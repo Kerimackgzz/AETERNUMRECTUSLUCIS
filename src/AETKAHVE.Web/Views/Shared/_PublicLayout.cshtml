@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/components/button.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/components/product-card.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/navbar.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
@@ -24,6 +25,7 @@
     <main id="main-content">
         @RenderBody()
     </main>
+    <script type="module" src="~/js/components/navbar-motion.js" asp-append-version="true"></script>
     @await RenderSectionAsync("PageScripts", required: false)
 </body>
 </html>
