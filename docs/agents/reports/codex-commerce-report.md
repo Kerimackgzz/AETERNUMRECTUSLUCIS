@@ -8,7 +8,7 @@
 - Uygulama commit'i: `2673542` (`feat: implement commerce core`)
 - Güncel integration merge commit'i: `982eebb` (`Merge branch 'integration' into agent/codex-commerce`)
 - Entegrasyon contract regresyon testi: `9c940fa` (`test: lock hero and navbar integration contract`)
-- Merge durumu: güncel `integration` commerce branch'ine çakışmasız alındı; branch henüz `integration` üzerine merge edilmedi. Coordinator `agent/codex-commerce` branch'ini almalıdır.
+- Merge durumu: Coordinator commerce çekirdeği için `6b2b47d` merge commit'ini üretti; ancak son kontrolde `integration` ref'i hâlâ `7c0568d` üzerinde, `6b2b47d` ise `agent/codex-architecture-security` üzerinden erişilebilir durumdaydı. Ayrıca `9c940fa` regresyon testi ve bu güncel rapor ilk merge'den sonra geldi. Coordinator son `agent/codex-commerce` HEAD'ini gerçek `integration` ref'ine alıp branch hedefini doğrulamalıdır.
 - Kök worktree ve Ajan 1/2'nin Razor/CSS/JS kaynakları Ajan 4 uygulama commit'inde değiştirilmedi.
 
 ## Tamamlanan kapsam
@@ -79,5 +79,6 @@ Kapsanan senaryolar: domain price/SKU/slug/stock kuralları, state transition, �
 ## Bilinen entegrasyon notları
 
 - Commerce Razor view'ları bu branch'te bilinçli olarak yoktur; controller/service smoke tamamlandı. `/products`, `/cart` ve diğer commerce sayfalarının tam browser smoke'u için Ajan 1'in route/ViewModel request belgesindeki view'ları eklemesi gerekir.
+- Bu geliştirme ortamında SQL Server LocalDB/runtime yoktur. Development seed gerçek SQL Server bağlantısı açtığı için commerce merge'inden sonraki normal `dotnet run` başlatılamaz; SQLite-backed test hostu etkilenmez. Canlı localhost smoke için çalışan SQL Server sağlanmalı veya Development veritabanı sağlayıcısı Coordinator kararıyla SQLite olarak yapılandırılmalıdır.
 - Production tax oranı varsayılmadı; ürün verisinden gelir. Production shipping threshold/fee, provider ve SMTP/SMS değerleri deployment configuration ile açıkça verilmelidir.
 - `Program.cs`, auth/security configuration ve dondurulmuş contract dosyaları değiştirilmedi.
