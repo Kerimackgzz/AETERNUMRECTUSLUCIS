@@ -5,6 +5,7 @@
 - Branch: `agent/claude-home-hero` — worktree: `../aeternum-claude-hero`. `git config --global --add safe.directory` kullanıcı tarafından çalıştırıldıktan sonra "dubious ownership" engeli kalktı.
 - Branch, ana checkout o sırada `agent/claude-design-pages` üzerinde ve **aktif** olduğu için (Ajan 1 paralel çalışıyordu — commit `50918f9` benim worktree kurulumum sırasında geldi), doğrudan `integration`'dan değil, Ajan 1'in o anki ucundan (`agent/claude-design-pages`) forklandı; böylece ana checkout'a hiç dokunulmadı/kesintiye uğratılmadı. Kendi dosyalarım ayrı worktree'ye taşındıktan sonra ana checkout tamamen temiz bırakıldı (`git status` boş).
 - Son commit: `956d3c1` — "feat: add home hero frame-sequence engine and product-card reveal motion" (446 dosya). Worktree'de temiz bir `dotnet restore`+`build`+`test` ile tekrar doğrulandı (0 hata/uyarı, 8/8 + 16/16).
+- **Güncelleme (aynı gün, ikinci tur):** `agent/claude-home-hero` bu sırada zaten `integration`'a merge edilmişti (`1d42fe4`); branch'im `git merge integration` ile güncel `integration` ucuna (`7c0568d`) senkronize edildi (fast-forward, çakışmasız). Bu, Ajan 1'in `_ProductCard.cshtml`'ini, Coordinator'ın `data-product-card-list`→partial bağlantısını, ve kullanıcının eklediği `navbar.css`/`navbar-motion.js` taslağı ile `HomePageViewModel.IsReducedMotionFallbackAvailable` varsayılan-değer düzeltmesini branch'ime taşıdı.
 
 ## Yapılan iş (bu oturum)
 
@@ -57,22 +58,30 @@ Kök `wwwroot/` klasörü (ve içindeki geçici `_preview-hero.html` QA dosyam) 
   - `/` → 200; render edilen HTML'de `id="home-hero"`, `data-frame-manifest-url="/frames/home/manifest.json"`, `data-poster-url="..."`, `data-reduced-motion="true"`, `<canvas data-hero-canvas>`, `#featured-products`, `data-product-card-list data-product-count="0"` doğrulandı.
   - `/frames/home/manifest.json`, `/js/pages/home-frame-sequence.js`, `/js/components/product-card-motion.js`, `/css/pages/home-hero.css`, `/css/components/product-card-motion.css`, `/font/Mellos-Regular.woff2`, `/frames/home/desktop/frame-0000.webp`, `/frames/home/desktop/poster.webp` → hepsi 200.
 
+### 5. Navbar harf-mask + page-transition runtime (kalan sorumluluklar)
+
+`docs/agents/AGENT_BOARD.md` benim işimi "Tamamlandı" olarak işaretlemişti, ama görev dosyamda (`05`) hâlâ eksik iki sorumluluk vardı — kullanıcının "diğer ajanları kontrol et, işine başla" talimatı üzerine tamamlandı:
+
+- **Navbar harf-mask animasyonu**: Kullanıcının eklediği basit `navbar.css`/`navbar-motion.js` (transparan→koyu scroll geçişi) **korunarak**, üzerine `[data-navbar-brand]` metnini runtime'da harflere bölüp (`.navbar-brand__letter-mask` > `.navbar-brand__letter`) staggered `translateY` reveal ile giriş animasyonu eklendi. JS çalışmazsa düz metin görünür kalır (progressive enhancement); `prefers-reduced-motion`'da animasyon iptal.
+- **Page transition runtime**: `Views/Shared/_PageTransitionOverlay.cshtml` hook'u zaten vardı ama onu kullanan hiçbir kod yoktu. `wwwroot/css/core/page-transition.css` + `wwwroot/js/core/page-transition.js` eklendi: yalnızca aynı-origin `<a>` tıklamalarını yakalar (form submit/yeni sekme/modifier-key/download/hash-only/farklı-origin'e hiç dokunmaz), kısa bir opacity-fade overlay gösterip navigasyonu tamamlar; `pageshow` ile ilk yükleme ve bfcache geri dönüşünde overlay her zaman temiz başlar, `popstate`'e kasıtlı olarak dokunulmadı (back/forward akışı bozulmasın diye).
+- **Layout bağlantısı benim yapamadığım kısım**: `page-transition.js/css`'in `_PublicLayout.cshtml`'e bağlanması (script/link tag'i) layout sahibinin işi — `docs/contracts/requests/claude-hero-20260804-page-transition-script-tag.md` ile contract request bırakıldı (navbar.css/navbar-motion.js için `7c0568d`'de yapılanın aynısı istendi).
+
 ## Kullanılan skill/MCP
 
 Kayıtlı bir frontend/motion/performance skill'i veya browser/screenshot MCP aracı yok; `dotnet build`/`test`/`run` + `curl` ile terminal tabanlı doğrulama yapıldı.
 
 ## Contract request
 
-Yok. Frozen ViewModel/contract dosyalarına dokunulmadı; sadece onlara **uyum sağlandı**.
+`docs/contracts/requests/claude-hero-20260804-page-transition-script-tag.md` — `_PublicLayout.cshtml`'e `page-transition.css/js` için link/script tag'i eklenmesi rica edildi (layout dosyasına ben dokunamıyorum). Frozen ViewModel/contract dosyalarına dokunulmadı.
 
 ## Bilinen sınırlamalar
 
 - **Gerçek tarayıcı/görsel doğrulama yapılamadı** — yalnızca HTTP durum kodu + HTML içerik kontrolü yapıldı (Ajan 1'in raporundaki dürüst sınırlamayla aynı durum).
 - `Model.HeroPosterUrl` şu an `/images/home/hero-poster.webp` değerini taşıyor ama bu dosya **yok** (404) — muhtemelen backend/seed verisi henüz gerçek içerik sağlamıyor (Ajan 4'ün alanı). JS bunu sessizce (catch) tolere ediyor, sayfa kırılmıyor; breakpoint manifest posterleri (`/frames/home/{bp}/poster.webp`) zaten mevcut ve devreye giriyor.
-- `data-reduced-motion` şu an sunucudan `IsReducedMotionFallbackAvailable` ile geliyor, seed/mock veri durumuna bağlı olarak hero statik modda render olabilir — bu benim kodumun değil, mevcut verinin bir sonucu.
-- Ajan 1'in `45b43b5`/`50918f9` commit'leriyle eklediği gerçek `_ProductCard.cshtml` incelendi: `data-product-card`, `data-product-card-surface`, `data-product-card-image`, `data-product-card-price`, `data-add-to-cart-url`, `data-toggle-favorite-url`, `data-detail-url` hook'larının tümü benim `product-card-motion.js/css`'imin beklediğiyle **birebir uyuşuyor** — ek değişiklik gerekmedi. Gerçek ürün verisiyle (şu an `FeaturedProducts` muhtemelen boş/az) tarayıcıda görsel doğrulama hâlâ yapılamadı.
-- Navbar/page-transition için yalnızca temel dosya sahipliğim var; `navbar-motion.js`/`page-transition.js` (transparan→blur navbar, harf-mask, sayfa geçiş runtime'ı) henüz yazılmadı — kapsam bu oturumda dosya taşıma + mimari düzeltme + commit'e odaklandı.
+- `data-reduced-motion` artık `HomePageViewModel.IsReducedMotionFallbackAvailable` varsayılanı `false` olacak şekilde düzeltildi (`7c0568d`, kullanıcı tarafından) — hero artık varsayılan olarak canlı/scroll-scrub modda başlıyor, HTTP smoke testte doğrulandı (`data-reduced-motion="false"`).
+- Ajan 1'in `45b43b5`/`50918f9` commit'leriyle eklediği gerçek `_ProductCard.cshtml` incelendi: tüm hook'lar (`data-product-card`, `data-product-card-surface`, vb.) benim `product-card-motion.js/css`'imin beklediğiyle **birebir uyuşuyor**. `data-product-count="0"` hâlâ boş (commerce/seed verisi yok, Ajan 4'ün alanı) — gerçek ürün verisiyle tarayıcıda görsel doğrulama hâlâ yapılamadı.
+- Navbar harf-mask ve page-transition runtime bu turda yazıldı (bkz. yukarı); page-transition'ın layout'a bağlanması bir contract request'e bağlı, o adım tamamlanana kadar `page-transition.js/css` sayfada aktif olmayacak (dosyalar mevcut ve 200 dönüyor, ama hiçbir `<script>`/`<link>` onları henüz çağırmıyor).
 
 ## Merge hazır durumu
 
-Evet. Build/test/HTTP smoke doğrulamasından geçti, `agent/claude-home-hero` branch'inde commit'li (`956d3c1`), sahiplik dışı dosya değişikliği yok, ana checkout'a müdahale edilmedi.
+Evet. Build/test/HTTP smoke doğrulamasından geçti, `agent/claude-home-hero` branch'i `integration` ile senkron, sahiplik dışı dosya değişikliği yok, ana checkout'a müdahale edilmedi. Tek açık nokta: page-transition contract request'inin layout sahibi tarafından uygulanması.

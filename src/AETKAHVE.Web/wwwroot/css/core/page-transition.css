@@ -1,0 +1,23 @@
+/* AETERNUM RECTUS LUCIS — Page Transition Overlay
+   Hook: [data-page-transition-overlay] (Views/Shared/_PageTransitionOverlay.cshtml, hazir).
+   Yalnizca opacity ile fade; scroll/etkilesimi asla engellemez (pointer-events: none). */
+
+[data-page-transition-overlay] {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay, 2000);
+  background-color: var(--color-ink, #050505);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.32s ease;
+}
+
+[data-page-transition-overlay].is-active {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-page-transition-overlay] {
+    transition: none;
+  }
+}
