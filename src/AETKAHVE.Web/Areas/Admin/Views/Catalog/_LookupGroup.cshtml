@@ -1,0 +1,29 @@
+@using AETKAHVE.Application.Commerce
+@model (string Kind, string Title, IReadOnlyList<CatalogLookupItem> Items, bool NeedsCountryCode)
+<div class="surface surface--padded">
+    <h2 class="text-lg mb-4">@Model.Title</h2>
+    @if (Model.Items.Count == 0)
+    {
+        <p class="text-muted text-sm mb-4">Henüz kayıt yok.</p>
+    }
+    else
+    {
+        <ul class="mb-4 lookup-list">
+            @foreach (var item in Model.Items)
+            {
+                <li>
+                    @item.Name <span class="text-muted text-sm">(@item.Slug)</span>
+                    <button type="button" class="lookup-list__copy" data-copy-id="@item.Id" title="ID'yi kopyala">@item.Id</button>
+                </li>
+            }
+        </ul>
+    }
+    <form data-catalog-form data-kind="@Model.Kind" class="cluster">
+        <input type="text" name="name" placeholder="Yeni @Model.Title.ToLowerInvariant()" required maxlength="150" />
+        @if (Model.NeedsCountryCode)
+        {
+            <input type="text" name="countryCode" placeholder="Ülke kodu (TR)" maxlength="2" />
+        }
+        <button type="submit" class="btn btn--outline btn--sm">Ekle</button>
+    </form>
+</div>

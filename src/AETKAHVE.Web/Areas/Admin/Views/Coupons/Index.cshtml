@@ -1,0 +1,67 @@
+@using System.Globalization
+@using AETKAHVE.Domain.Commerce
+@model AdminCouponListViewModel
+@{
+    ViewData["Title"] = "Kupon Yönetimi";
+    var currency = new CultureInfo("tr-TR");
+}
+<h1 class="admin-dashboard__title">Kupon Yönetimi</h1>
+<div data-admin-coupons-page>
+    <div class="surface surface--padded mb-4">
+        <h2 class="text-lg mb-4">Yeni kupon</h2>
+        <form data-coupon-form class="grid-auto">
+            <input type="text" name="name" placeholder="Kupon adı" required maxlength="150" />
+            <input type="text" name="code" placeholder="KOD" required maxlength="40" />
+            <select name="discountType">
+                <option value="@DiscountType.Percentage">Yüzde</option>
+                <option value="@DiscountType.FixedAmount">Sabit Tutar</option>
+                <option value="@DiscountType.FreeShipping">Ücretsiz Kargo</option>
+            </select>
+            <input type="number" name="discountValue" placeholder="İndirim değeri" step="0.01" min="0" required />
+            <input type="number" name="minimumCartAmount" placeholder="Min. sepet tutarı (opsiyonel)" step="0.01" min="0" />
+            <input type="number" name="maximumDiscountAmount" placeholder="Maks. indirim (opsiyonel)" step="0.01" min="0" />
+            <input type="number" name="totalUsageLimit" placeholder="Toplam kullanım limiti (opsiyonel)" min="0" />
+            <input type="number" name="perUserUsageLimit" placeholder="Kullanıcı başı limit (opsiyonel)" min="0" />
+            <label>Başlangıç <input type="datetime-local" name="startDate" required /></label>
+            <label>Bitiş <input type="datetime-local" name="endDate" required /></label>
+            <label class="cluster"><input type="checkbox" name="isFirstOrderOnly" /> Yalnız ilk sipariş</label>
+            <label class="cluster"><input type="checkbox" name="canCombine" /> Diğer indirimlerle birleştirilebilir</label>
+            <button type="submit" class="btn btn--primary">Kaydet</button>
+        </form>
+    </div>
+
+    @if (Model.Coupons.Items.Count == 0)
+    {
+        <div class="surface empty-state">
+            <p class="empty-state__title">Kupon yok</p>
+        </div>
+    }
+    else
+    {
+        <table>
+            <thead><tr><th>Ad</th><th>Kod</th><th>Tip</th><th>Değer</th><th>Kullanım</th><th>Aktif</th></tr></thead>
+            <tbody>
+                @foreach (var coupon in Model.Coupons.Items)
+                {
+                    <tr>
+                        <td>@coupon.Name</td>
+                        <td>@coupon.Code</td>
+                        <td>@coupon.DiscountType</td>
+                        <td>@coupon.DiscountValue.ToString("N2", currency)</td>
+                        <td>@coupon.ConsumedCount@(coupon.TotalUsageLimit is not null ? $" / {coupon.TotalUsageLimit}" : "")</td>
+                        <td><span class="status-badge" data-status-kind="@(coupon.IsActive ? "success" : "error")">@(coupon.IsActive ? "Aktif" : "Pasif")</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <partial name="_Pagination" model="(Model.Coupons.Page, Model.Coupons.TotalPages)" />
+    }
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/components/pagination.css" asp-append-version="true" />
+}
+
+@section PageScripts {
+    <script type="module" src="~/js/admin/coupons.js" asp-append-version="true"></script>
+}

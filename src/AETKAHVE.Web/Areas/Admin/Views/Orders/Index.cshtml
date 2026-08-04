@@ -1,0 +1,56 @@
+@using System.Globalization
+@using AETKAHVE.Application.Commerce
+@using AETKAHVE.Domain.Commerce
+@model PagedResult<OrderSummary>
+@{
+    ViewData["Title"] = "Sipariş Yönetimi";
+    var currency = new CultureInfo("tr-TR");
+    var statuses = Enum.GetValues<OrderStatus>();
+}
+<h1 class="admin-dashboard__title">Sipariş Yönetimi</h1>
+<div data-admin-orders-page>
+    @if (Model.Items.Count == 0)
+    {
+        <div class="surface empty-state">
+            <p class="empty-state__title">Sipariş yok</p>
+        </div>
+    }
+    else
+    {
+        <table>
+            <thead><tr><th>Sipariş No</th><th>Tarih</th><th>Durum</th><th>Tutar</th><th>Durum Değiştir</th></tr></thead>
+            <tbody>
+                @foreach (var order in Model.Items)
+                {
+                    <tr>
+                        <td>@order.OrderNumber</td>
+                        <td>@order.CreatedAtUtc.ToLocalTime().ToString("d MMM yyyy", currency)</td>
+                        <td>@order.Status</td>
+                        <td>@order.GrandTotal.ToString("N2", currency) ₺</td>
+                        <td>
+                            <form data-order-status-form data-order-id="@order.Id" class="cluster">
+                                <select name="status">
+                                    @foreach (var status in statuses)
+                                    {
+                                        <option value="@status" selected="@(status == order.Status ? "selected" : null)">@status</option>
+                                    }
+                                </select>
+                                <input type="text" name="description" placeholder="Not (opsiyonel)" class="text-sm" />
+                                <button type="submit" class="btn btn--outline btn--sm">Uygula</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <partial name="_Pagination" model="(Model.Page, Model.TotalPages)" />
+    }
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/components/pagination.css" asp-append-version="true" />
+}
+
+@section PageScripts {
+    <script type="module" src="~/js/admin/orders.js" asp-append-version="true"></script>
+}

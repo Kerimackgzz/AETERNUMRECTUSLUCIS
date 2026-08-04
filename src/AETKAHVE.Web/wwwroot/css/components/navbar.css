@@ -32,6 +32,7 @@
 }
 
 [data-navbar-brand] {
+  display: inline-flex;
   font-family: var(--font-display);
   font-size: var(--text-lg);
   letter-spacing: var(--tracking-wide);
@@ -42,6 +43,33 @@
 
 [data-navbar-brand]:hover {
   color: var(--color-gold-400);
+}
+
+/* Harf-mask reveal: JS (navbar-motion.js) marka metnini calisma zamaninda
+   [data-navbar-brand] icine bu yapida sarar; JS calismazsa duz metin gorunur. */
+.navbar-brand__letter-mask {
+  display: inline-block;
+  overflow: hidden;
+}
+
+.navbar-brand__letter {
+  display: inline-block;
+  transform: translateY(115%);
+  animation: navbar-letter-reveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--letter-delay, 0ms);
+}
+
+@keyframes navbar-letter-reveal {
+  to {
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar-brand__letter {
+    animation: none;
+    transform: none;
+  }
 }
 
 [data-navbar] > [data-navbar-link] {

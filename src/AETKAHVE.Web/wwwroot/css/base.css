@@ -113,6 +113,24 @@ button {
   color: inherit;
 }
 
+/* Genel form kontrolü zemini — özel component'ler (account-form, shop-filters vb.)
+   kendi context'lerinde bu tabanın üzerine yazabilir; buton hariçtir (.btn kendi sistemi). */
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  border-color: var(--color-gold-400);
+}
+
 label {
   display: inline-block;
   font-size: var(--text-sm);
@@ -196,6 +214,10 @@ th {
 
 .empty-state .btn {
   margin-top: var(--space-4);
+}
+
+.input-wide {
+  min-width: 280px;
 }
 
 /* Boşluk yardımcıları */

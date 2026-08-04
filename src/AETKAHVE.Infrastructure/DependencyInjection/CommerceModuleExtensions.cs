@@ -57,8 +57,8 @@ public static class CommerceModuleExtensions
         services.AddSingleton<IInvoicePdfGenerator, InvoicePdfGenerator>();
         services.AddSingleton<IInvoiceStorage, LocalInvoiceStorage>();
         services.AddSingleton<IFileStorageService, LocalFileStorageService>();
-        services.AddHostedService<NotificationDeliveryWorker>();
         services.AddHostedService<CommerceSeedHostedService>();
+        services.AddHostedService<NotificationDeliveryWorker>();
         return services;
     }
 }
