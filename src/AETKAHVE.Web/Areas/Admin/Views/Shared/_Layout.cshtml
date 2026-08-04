@@ -1,0 +1,28 @@
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@inject Microsoft.Extensions.Options.IOptions<AETKAHVE.Infrastructure.Options.SecurityOptions> SecurityOptionsAccessor
+@{
+    var antiforgery = Antiforgery.GetAndStoreTokens(Context);
+    var security = SecurityOptionsAccessor.Value;
+}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content="@antiforgery.RequestToken" />
+    <title>@ViewData["Title"] — AETERNUM RECTUS LUCIS</title>
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body data-idle-session="admin"
+      data-session-status-url="/admin/session/status"
+      data-session-keep-alive-url="/admin/session/keep-alive"
+      data-session-logout-url="/admin/logout"
+      data-idle-timeout-seconds="@(security.AdminIdleTimeoutMinutes * 60)"
+      data-idle-warning-seconds="@security.IdleWarningSeconds">
+    <main id="main-content">
+        @RenderBody()
+    </main>
+    @await RenderSectionAsync("PageScripts", required: false)
+</body>
+</html>
+

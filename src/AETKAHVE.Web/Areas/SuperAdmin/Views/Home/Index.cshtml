@@ -1,0 +1,13 @@
+@model DashboardSummaryViewModel
+@{
+    ViewData["Title"] = Model.Title;
+}
+<h1>@Model.Title</h1>
+<p>Güvenli üst yönetim foundation alanı.</p>
+<div data-idle-warning-dialog role="dialog" aria-modal="true" aria-labelledby="idle-warning-title" hidden>
+    <h2 id="idle-warning-title">Oturumunuz sona ermek üzere</h2>
+    <p data-idle-remaining aria-live="polite"></p>
+    <button type="button" data-idle-continue>Oturumu Devam Ettir</button>
+    <form action="/superadmin/logout" method="post">@Html.AntiForgeryToken()<button type="submit">Güvenli Çıkış</button></form>
+</div>
+<form action="/superadmin/logout" method="post">@Html.AntiForgeryToken()<button type="submit">Çıkış</button></form>
