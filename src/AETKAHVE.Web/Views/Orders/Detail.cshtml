@@ -1,0 +1,64 @@
+@using System.Globalization
+@using AETKAHVE.Domain.Commerce
+@model OrderDetailViewModel
+@{
+    var order = Model.Order;
+    ViewData["Title"] = order.Summary.OrderNumber;
+    Layout = "_AccountLayout";
+    var currency = new CultureInfo("tr-TR");
+
+    (string Label, string Kind) StatusInfo(OrderStatus status) => status switch
+    {
+        OrderStatus.PendingPayment => ("Ödeme Bekleniyor", "warning"),
+        OrderStatus.PaymentReceived => ("Ödeme Alındı", "info"),
+        OrderStatus.Preparing => ("Hazırlanıyor", "info"),
+        OrderStatus.Packed => ("Paketlendi", "info"),
+        OrderStatus.Shipped => ("Kargoya Verildi", "info"),
+        OrderStatus.OutForDelivery => ("Dağıtımda", "info"),
+        OrderStatus.Delivered => ("Teslim Edildi", "success"),
+        OrderStatus.Cancelled => ("İptal Edildi", "error"),
+        OrderStatus.ReturnRequested => ("İade Talep Edildi", "warning"),
+        OrderStatus.Returned => ("İade Edildi", "warning"),
+        OrderStatus.Refunded => ("Ücret İadesi Yapıldı", "success"),
+        _ => (status.ToString(), "info"),
+    };
+    var status = StatusInfo(order.Summary.Status);
+}
+<div class="account-card checkout-card surface surface--padded">
+    <h1 class="account-card__title">Sipariş @order.Summary.OrderNumber</h1>
+    <p class="mb-4"><span class="status-badge" data-status-kind="@status.Kind">@status.Label</span></p>
+
+    <table class="mb-4">
+        <thead>
+            <tr><th>Ürün</th><th>Adet</th><th>Birim Fiyat</th><th>Toplam</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var item in order.Items)
+            {
+                <tr>
+                    <td>@item.Name<br /><span class="text-sm text-muted">@item.Sku</span></td>
+                    <td>@item.Quantity</td>
+                    <td>@item.UnitPrice.ToString("N2", currency) ₺</td>
+                    <td>@item.Total.ToString("N2", currency) ₺</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="cart-summary mb-4">
+        <div class="cart-summary__row cart-summary__row--total"><span>Toplam</span><span>@order.Summary.GrandTotal.ToString("N2", currency) ₺</span></div>
+    </div>
+
+    <div class="grid-auto">
+        <div>
+            <h2 class="text-lg">Teslimat adresi</h2>
+            <p class="text-muted">@order.ShippingAddress</p>
+        </div>
+        <div>
+            <h2 class="text-lg">Fatura adresi</h2>
+            <p class="text-muted">@order.BillingAddress</p>
+        </div>
+    </div>
+
+    <a asp-controller="Orders" asp-action="Index" class="btn btn--outline mt-4">Siparişlerime dön</a>
+</div>

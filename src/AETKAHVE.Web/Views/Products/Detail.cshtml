@@ -1,0 +1,108 @@
+@using System.Globalization
+@using AETKAHVE.Domain.Commerce
+@model ProductDetailPageViewModel
+@{
+    var p = Model.Product;
+    ViewData["Title"] = p.Name;
+    var currency = new CultureInfo("tr-TR");
+    var addToCartUrl = Url.Action("Add", "Cart") ?? "/cart/items";
+    var favoriteUrl = Url.Action("Toggle", "Favorites", new { productId = p.Id }) ?? $"/favorites/{p.Id}/toggle";
+    var images = p.Images.Count > 0 ? p.Images : [(Url: "/frames/home/desktop/poster.webp", AltText: p.Name, IsPrimary: true)];
+    var primary = images.FirstOrDefault(i => i.IsPrimary, images[0]);
+}
+<div class="container product-detail" data-product-detail data-product-id="@p.Id">
+    <div>
+        <div class="product-detail__gallery-main">
+            <img data-detail-main-image src="@primary.Url" alt="@primary.AltText" />
+        </div>
+        @if (images.Count > 1)
+        {
+            <div class="product-detail__thumbs">
+                @foreach (var image in images)
+                {
+                    <button type="button" data-detail-thumb data-image-url="@image.Url" data-image-alt="@image.AltText" aria-current="@(image.Url == primary.Url ? "true" : "false")">
+                        <img src="@image.Url" alt="" />
+                    </button>
+                }
+            </div>
+        }
+    </div>
+
+    <div>
+        <p class="text-eyebrow product-detail__meta">@p.CategoryName@(p.OriginName is null ? "" : $" · {p.OriginName}")</p>
+        <h1 class="font-display">@p.Name</h1>
+        @if (p.ReviewCount > 0)
+        {
+            <p class="product-detail__rating">★ @p.AverageRating.ToString("0.0", currency) <span class="text-muted">(@p.ReviewCount değerlendirme)</span></p>
+        }
+
+        <div class="product-detail__price-row">
+            <span class="product-detail__price" data-detail-price>@p.DisplayPrice.ToString("N2", currency) ₺</span>
+            <span class="product-detail__price--original" data-detail-original-price hidden="@(p.OriginalPrice is null ? "hidden" : null)">@(p.OriginalPrice?.ToString("N2", currency)) ₺</span>
+        </div>
+
+        <p class="text-muted">@p.ShortDescription</p>
+
+        @if (p.Variants.Count > 0)
+        {
+            var defaultVariant = p.Variants.FirstOrDefault(v => v.AvailableQuantity > 0, p.Variants[0]);
+            <div class="product-detail__variants" role="group" aria-label="Gramaj seçimi">
+                @foreach (var variant in p.Variants)
+                {
+                    <button type="button" class="variant-chip" data-variant-chip
+                            data-variant-id="@variant.Id"
+                            data-display-price="@variant.DisplayPrice.ToString("N2", currency) ₺"
+                            data-original-price="@(variant.OriginalPrice is null ? null : $"{variant.OriginalPrice.Value.ToString("N2", currency)} ₺")"
+                            data-available-quantity="@variant.AvailableQuantity"
+                            aria-pressed="@(variant.Id == defaultVariant.Id ? "true" : "false")"
+                            disabled="@(variant.AvailableQuantity <= 0 ? "disabled" : null)">
+                        @(variant.Weight % 1 == 0 ? variant.Weight.ToString("0", currency) : variant.Weight.ToString("0.0", currency)) @(variant.Unit == WeightUnit.Kilogram ? "kg" : "g")
+                    </button>
+                }
+            </div>
+            <input type="hidden" data-selected-variant value="@defaultVariant.Id" />
+        }
+
+        <div class="cluster">
+            <div class="qty-stepper" data-quantity-stepper>
+                <button type="button" data-quantity-decrease aria-label="Azalt">−</button>
+                <input type="number" min="1" max="99" value="1" aria-label="Adet" />
+                <button type="button" data-quantity-increase aria-label="Artır">+</button>
+            </div>
+        </div>
+
+        <div class="product-detail__actions">
+            <button type="button" class="btn btn--primary" data-detail-add-to-cart
+                    data-add-to-cart-url="@addToCartUrl"
+                    disabled="@(p.Variants.Count == 0 && p.AvailableQuantity <= 0 ? "disabled" : null)">
+                Sepete Ekle
+            </button>
+            <button type="button" class="product-card__favorite" data-detail-favorite
+                    data-toggle-favorite-url="@favoriteUrl"
+                    aria-pressed="@(p.IsFavorite.ToString().ToLowerInvariant())"
+                    aria-label="@(p.IsFavorite ? "Favorilerden çıkar" : "Favorilere ekle")">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 20.5s-7.5-4.6-10-9.2C.6 8 2 4.5 5.4 3.7c2-.5 4 .3 5.1 2 .3.5.5 1 .5 1s.2-.5.5-1c1.1-1.7 3.1-2.5 5.1-2 3.4.8 4.8 4.3 3.4 7.6-2.5 4.6-8 9.2-8 9.2Z" />
+                </svg>
+            </button>
+        </div>
+
+        <dl class="stack text-sm text-muted">
+            @if (p.BrandName is not null) { <div><dt class="text-eyebrow">Marka</dt><dd>@p.BrandName</dd></div> }
+            @if (p.CoffeeTypeName is not null) { <div><dt class="text-eyebrow">Kahve Tipi</dt><dd>@p.CoffeeTypeName</dd></div> }
+            @if (p.BeanTypeName is not null) { <div><dt class="text-eyebrow">Çekirdek Tipi</dt><dd>@p.BeanTypeName</dd></div> }
+            @if (p.RoastLevelName is not null) { <div><dt class="text-eyebrow">Kavurma</dt><dd>@p.RoastLevelName</dd></div> }
+            <div><dt class="text-eyebrow">SKU</dt><dd>@p.Sku</dd></div>
+        </dl>
+
+        <div class="product-detail__description">@p.Description</div>
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/shop.css" asp-append-version="true" />
+}
+
+@section PageScripts {
+    <script type="module" src="~/js/pages/product-detail.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,227 @@
+/*
+  AETERNUM RECTUS LUCIS — Shop (Products / Search / Categories / Campaigns / Favorites / Detail)
+*/
+
+.shop-header {
+  padding-block: var(--space-16) var(--space-8);
+  text-align: center;
+}
+
+.shop-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-8);
+  padding-bottom: var(--space-20);
+}
+
+@media (min-width: 1024px) {
+  .shop-layout {
+    grid-template-columns: 260px 1fr;
+    align-items: start;
+  }
+}
+
+.shop-filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  padding: var(--space-6);
+}
+
+.shop-filters__group summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--color-ink);
+  margin-bottom: var(--space-3);
+}
+
+.shop-filters__option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+  padding-block: var(--space-1);
+}
+
+.shop-filters__range {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.shop-filters__range input {
+  width: 100%;
+  padding: var(--space-2);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink);
+}
+
+.shop-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.shop-toolbar__count {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.shop-toolbar__sort select,
+.shop-filters select {
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink);
+}
+
+/* Kampanya kartları */
+.campaign-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.campaign-card__badge {
+  align-self: flex-start;
+}
+
+.campaign-card__value {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  color: var(--color-gold-400);
+}
+
+/* Ürün detay */
+.product-detail {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-10);
+  padding-block: var(--space-10) var(--space-20);
+}
+
+@media (min-width: 900px) {
+  .product-detail {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+.product-detail__gallery-main {
+  aspect-ratio: 4 / 5;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background-color: var(--color-bg-elevated-2);
+}
+
+.product-detail__gallery-main img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-detail__thumbs {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.product-detail__thumbs button {
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  background: none;
+}
+
+.product-detail__thumbs button[aria-current="true"] {
+  border-color: var(--color-gold-400);
+}
+
+.product-detail__thumbs img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-detail__meta {
+  color: var(--color-ink-muted);
+  margin-bottom: var(--space-2);
+}
+
+.product-detail__price-row {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  margin-block: var(--space-4);
+}
+
+.product-detail__price {
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  color: var(--color-ink);
+}
+
+.product-detail__price--original {
+  font-size: var(--text-lg);
+  color: var(--color-ink-faint);
+  text-decoration: line-through;
+}
+
+.product-detail__variants {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block: var(--space-4);
+}
+
+.variant-chip {
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--color-ink);
+  cursor: pointer;
+  font-size: var(--text-sm);
+}
+
+.variant-chip[aria-pressed="true"] {
+  border-color: var(--color-gold-400);
+  color: var(--color-gold-400);
+}
+
+.variant-chip:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.product-detail__actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-block: var(--space-6);
+}
+
+.product-detail__description {
+  margin-top: var(--space-8);
+  color: var(--color-ink-muted);
+  line-height: var(--leading-normal);
+}
+
+.product-detail__rating {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-gold-400);
+  font-size: var(--text-sm);
+}
