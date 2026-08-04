@@ -7,6 +7,31 @@
 }
 <h1 class="admin-dashboard__title">Ürün Yönetimi</h1>
 <div data-admin-products-page>
+    <details class="surface surface--padded mb-4">
+        <summary class="text-lg">Yeni ürün ekle</summary>
+        <p class="text-muted text-sm mb-4">Koleksiyon/marka/kahve tipi vb. ID'lerini <a asp-area="Admin" asp-controller="Catalog" asp-action="Index">Katalog Yönetimi</a> sayfasındaki kayıtlara tıklayarak kopyalayabilirsiniz. Koleksiyon zorunludur, diğerleri opsiyoneldir.</p>
+        <form data-product-form class="grid-auto">
+            <input type="text" name="name" placeholder="Ürün adı" required maxlength="200" />
+            <input type="text" name="sku" placeholder="SKU" required maxlength="80" />
+            <input type="text" name="shortDescription" placeholder="Kısa açıklama" required maxlength="500" />
+            <textarea name="description" placeholder="Uzun açıklama" required maxlength="8000" rows="3" class="checkout-note"></textarea>
+            <input type="number" name="basePrice" placeholder="Fiyat" step="0.01" min="0" required />
+            <input type="number" name="discountedPrice" placeholder="İndirimli fiyat (opsiyonel)" step="0.01" min="0" />
+            <input type="number" name="taxRate" placeholder="Vergi oranı (%)" step="0.01" min="0" value="10" required />
+            <input type="number" name="stockQuantity" placeholder="Stok adedi" min="0" required />
+            <input type="number" name="criticalStockLevel" placeholder="Kritik stok seviyesi" min="0" value="5" />
+            <input type="text" name="categoryId" placeholder="Koleksiyon ID (zorunlu)" required class="input-wide" />
+            <input type="text" name="brandId" placeholder="Marka ID (opsiyonel)" class="input-wide" />
+            <input type="text" name="coffeeTypeId" placeholder="Kahve Tipi ID (opsiyonel)" class="input-wide" />
+            <input type="text" name="beanTypeId" placeholder="Çekirdek Tipi ID (opsiyonel)" class="input-wide" />
+            <input type="text" name="roastLevelId" placeholder="Kavurma ID (opsiyonel)" class="input-wide" />
+            <input type="text" name="originId" placeholder="Menşei ID (opsiyonel)" class="input-wide" />
+            <label class="cluster"><input type="checkbox" name="isActive" checked /> Aktif</label>
+            <label class="cluster"><input type="checkbox" name="isFeatured" /> Öne çıkan</label>
+            <button type="submit" class="btn btn--primary">Ürünü Kaydet</button>
+        </form>
+    </details>
+
     @if (Model.Items.Count == 0)
     {
         <div class="surface empty-state">
