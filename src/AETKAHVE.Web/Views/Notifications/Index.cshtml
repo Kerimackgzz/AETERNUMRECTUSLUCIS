@@ -1,0 +1,45 @@
+@using AETKAHVE.Application.Commerce
+@model IReadOnlyList<NotificationItem>
+@{
+    ViewData["Title"] = "Bildirimlerim";
+    Layout = "_AccountLayout";
+}
+<div class="account-card checkout-card surface surface--padded" data-notifications-page>
+    <div class="cluster cluster--between">
+        <h1 class="account-card__title">Bildirimlerim</h1>
+        @if (Model.Any(n => !n.IsRead))
+        {
+            <button type="button" class="btn btn--ghost btn--sm" data-notifications-read-all>Tümünü okundu işaretle</button>
+        }
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="empty-state">
+            <p class="empty-state__title">Bildiriminiz yok</p>
+        </div>
+    }
+    else
+    {
+        <div class="stack">
+            @foreach (var notification in Model)
+            {
+                <div class="surface surface--padded cluster cluster--between cluster--top">
+                    <div>
+                        <p class="text-eyebrow">@notification.CreatedAtUtc.ToLocalTime().ToString("d MMM yyyy HH:mm")</p>
+                        <p class="cart-line__name">@notification.Title</p>
+                        <p class="text-muted text-sm">@notification.Message</p>
+                    </div>
+                    @if (!notification.IsRead)
+                    {
+                        <button type="button" class="btn btn--outline btn--sm" data-notification-read="/account/notifications/@notification.Id/read">Okundu</button>
+                    }
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section PageScripts {
+    <script type="module" src="~/js/pages/notifications.js" asp-append-version="true"></script>
+}

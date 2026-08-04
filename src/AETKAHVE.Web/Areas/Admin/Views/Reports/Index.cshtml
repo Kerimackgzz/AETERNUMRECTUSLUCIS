@@ -1,0 +1,52 @@
+@using System.Globalization
+@using AETKAHVE.Application.Commerce
+@model SalesReport
+@{
+    ViewData["Title"] = "Satış Raporu";
+    var currency = new CultureInfo("tr-TR");
+    var from = Context.Request.Query["from"].FirstOrDefault();
+    var to = Context.Request.Query["to"].FirstOrDefault();
+}
+<h1 class="admin-dashboard__title">Satış Raporu</h1>
+
+<form method="get" class="cluster mb-4">
+    <label>Başlangıç <input type="date" name="from" value="@from" /></label>
+    <label>Bitiş <input type="date" name="to" value="@to" /></label>
+    <button type="submit" class="btn btn--outline btn--sm">Uygula</button>
+    <a asp-area="Admin" asp-controller="Reports" asp-action="Csv" asp-route-from="@from" asp-route-to="@to" class="btn btn--ghost btn--sm">CSV indir</a>
+</form>
+
+<div class="status-grid">
+    <div class="surface status-tile" data-status-kind="success">
+        <span class="status-tile__kind-label">Brüt Satış</span>
+        <span class="status-tile__value">@Model.GrossRevenue.ToString("N2", currency) ₺</span>
+    </div>
+    <div class="surface status-tile" data-status-kind="warning">
+        <span class="status-tile__kind-label">İndirim</span>
+        <span class="status-tile__value">@Model.DiscountTotal.ToString("N2", currency) ₺</span>
+    </div>
+    <div class="surface status-tile" data-status-kind="info">
+        <span class="status-tile__kind-label">Vergi</span>
+        <span class="status-tile__value">@Model.TaxTotal.ToString("N2", currency) ₺</span>
+    </div>
+    <div class="surface status-tile" data-status-kind="info">
+        <span class="status-tile__kind-label">Kargo Geliri</span>
+        <span class="status-tile__value">@Model.ShippingRevenue.ToString("N2", currency) ₺</span>
+    </div>
+    <div class="surface status-tile" data-status-kind="error">
+        <span class="status-tile__kind-label">İade</span>
+        <span class="status-tile__value">@Model.RefundTotal.ToString("N2", currency) ₺</span>
+    </div>
+    <div class="surface status-tile" data-status-kind="success">
+        <span class="status-tile__kind-label">Net Gelir</span>
+        <span class="status-tile__value">@Model.NetRevenue.ToString("N2", currency) ₺</span>
+    </div>
+    <div class="surface status-tile" data-status-kind="info">
+        <span class="status-tile__kind-label">Sipariş Sayısı</span>
+        <span class="status-tile__value">@Model.OrderCount</span>
+    </div>
+    <div class="surface status-tile" data-status-kind="info">
+        <span class="status-tile__kind-label">Ortalama Sipariş</span>
+        <span class="status-tile__value">@Model.AverageOrderValue.ToString("N2", currency) ₺</span>
+    </div>
+</div>

@@ -1,0 +1,56 @@
+@using System.Globalization
+@using AETKAHVE.Domain.Commerce
+@model AdminReturnListViewModel
+@{
+    ViewData["Title"] = "İade Yönetimi";
+    var currency = new CultureInfo("tr-TR");
+    var statuses = Enum.GetValues<ReturnStatus>();
+}
+<h1 class="admin-dashboard__title">İade Yönetimi</h1>
+<div data-admin-returns-page>
+    @if (Model.Returns.Items.Count == 0)
+    {
+        <div class="surface empty-state">
+            <p class="empty-state__title">İade talebi yok</p>
+        </div>
+    }
+    else
+    {
+        <table>
+            <thead><tr><th>Sipariş No</th><th>Talep Tarihi</th><th>Durum</th><th>İade Tutarı</th><th>Karar</th></tr></thead>
+            <tbody>
+                @foreach (var item in Model.Returns.Items)
+                {
+                    <tr>
+                        <td>@item.OrderNumber</td>
+                        <td>@item.RequestedAtUtc.ToLocalTime().ToString("d MMM yyyy", currency)</td>
+                        <td>@item.Status</td>
+                        <td>@item.RefundAmount.ToString("N2", currency) ₺</td>
+                        <td>
+                            <form data-return-status-form data-return-id="@item.Id" class="cluster">
+                                <select name="status">
+                                    @foreach (var status in statuses)
+                                    {
+                                        <option value="@status" selected="@(status == item.Status ? "selected" : null)">@status</option>
+                                    }
+                                </select>
+                                <label class="text-sm"><input type="checkbox" name="restock" /> Stoğa ekle</label>
+                                <input type="text" name="response" placeholder="Yanıt" class="text-sm" />
+                                <button type="submit" class="btn btn--outline btn--sm">Uygula</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <partial name="_Pagination" model="(Model.Returns.Page, Model.Returns.TotalPages)" />
+    }
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/components/pagination.css" asp-append-version="true" />
+}
+
+@section PageScripts {
+    <script type="module" src="~/js/admin/returns.js" asp-append-version="true"></script>
+}

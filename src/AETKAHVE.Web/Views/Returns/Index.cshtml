@@ -1,0 +1,57 @@
+@using System.Globalization
+@using AETKAHVE.Domain.Commerce
+@model ReturnListViewModel
+@{
+    ViewData["Title"] = "İade Taleplerim";
+    Layout = "_AccountLayout";
+    var currency = new CultureInfo("tr-TR");
+
+    (string Label, string Kind) StatusInfo(ReturnStatus status) => status switch
+    {
+        ReturnStatus.Pending => ("Beklemede", "warning"),
+        ReturnStatus.UnderReview => ("İnceleniyor", "info"),
+        ReturnStatus.Approved => ("Onaylandı", "success"),
+        ReturnStatus.Rejected => ("Reddedildi", "error"),
+        ReturnStatus.AwaitingProduct => ("Ürün Bekleniyor", "warning"),
+        ReturnStatus.ProductReceived => ("Ürün Alındı", "info"),
+        ReturnStatus.RefundPending => ("İade Bekleniyor", "warning"),
+        ReturnStatus.Completed => ("Tamamlandı", "success"),
+        ReturnStatus.Cancelled => ("İptal Edildi", "error"),
+        _ => (status.ToString(), "info"),
+    };
+}
+<div class="account-card checkout-card surface surface--padded">
+    <h1 class="account-card__title">İade Taleplerim</h1>
+    <p class="text-muted mb-4">Yeni bir iade talebi oluşturmak için sipariş detay sayfasındaki "İade talebi oluştur" seçeneğini kullanın.</p>
+
+    @if (Model.Returns.Items.Count == 0)
+    {
+        <div class="empty-state">
+            <p class="empty-state__title">İade talebiniz yok</p>
+            <a asp-controller="Orders" asp-action="Index" class="btn btn--primary">Siparişlerime git</a>
+        </div>
+    }
+    else
+    {
+        <table>
+            <thead><tr><th>Sipariş No</th><th>Talep Tarihi</th><th>Durum</th><th>İade Tutarı</th></tr></thead>
+            <tbody>
+                @foreach (var item in Model.Returns.Items)
+                {
+                    var status = StatusInfo(item.Status);
+                    <tr>
+                        <td><a asp-controller="Orders" asp-action="Detail" asp-route-id="@item.OrderId">@item.OrderNumber</a></td>
+                        <td>@item.RequestedAtUtc.ToLocalTime().ToString("d MMM yyyy", currency)</td>
+                        <td><span class="status-badge" data-status-kind="@status.Kind">@status.Label</span></td>
+                        <td>@item.RefundAmount.ToString("N2", currency) ₺</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <partial name="_Pagination" model="(Model.Returns.Page, Model.Returns.TotalPages)" />
+    }
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/components/pagination.css" asp-append-version="true" />
+}

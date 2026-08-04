@@ -1,0 +1,48 @@
+@using System.Globalization
+@using AETKAHVE.Application.Commerce
+@model PagedResult<ProductSummary>
+@{
+    ViewData["Title"] = "Ürün Yönetimi";
+    var currency = new CultureInfo("tr-TR");
+}
+<h1 class="admin-dashboard__title">Ürün Yönetimi</h1>
+<div data-admin-products-page>
+    @if (Model.Items.Count == 0)
+    {
+        <div class="surface empty-state">
+            <p class="empty-state__title">Kayıtlı ürün yok</p>
+        </div>
+    }
+    else
+    {
+        <table>
+            <thead><tr><th>Ürün</th><th>Koleksiyon</th><th>Fiyat</th><th>Stokta</th><th>Stok İşlemi</th></tr></thead>
+            <tbody>
+                @foreach (var product in Model.Items)
+                {
+                    <tr data-product-row data-product-id="@product.Id">
+                        <td>@product.Name<br /><span class="text-sm text-muted">@product.Slug</span></td>
+                        <td>@product.CategoryName</td>
+                        <td>@product.DisplayPrice.ToString("N2", currency) ₺</td>
+                        <td><span class="status-badge" data-status-kind="@(product.IsInStock ? "success" : "error")">@(product.IsInStock ? "Stokta" : "Tükendi")</span></td>
+                        <td>
+                            <div class="qty-stepper">
+                                <button type="button" data-stock-adjust="-1" aria-label="Azalt">−</button>
+                                <button type="button" data-stock-adjust="1" aria-label="Artır">+</button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <partial name="_Pagination" model="(Model.Page, Model.TotalPages)" />
+    }
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/components/pagination.css" asp-append-version="true" />
+}
+
+@section PageScripts {
+    <script type="module" src="~/js/admin/products.js" asp-append-version="true"></script>
+}

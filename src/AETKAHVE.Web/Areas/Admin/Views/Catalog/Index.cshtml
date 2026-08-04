@@ -1,0 +1,17 @@
+@model AdminCatalogViewModel
+@{
+    ViewData["Title"] = "Katalog Yönetimi";
+}
+<h1 class="admin-dashboard__title">Katalog Yönetimi</h1>
+<div class="grid-auto" data-catalog-page>
+    <partial name="_LookupGroup" model='("category", "Koleksiyonlar", Model.Lookups.Categories, false)' />
+    <partial name="_LookupGroup" model='("brand", "Markalar", Model.Lookups.Brands, false)' />
+    <partial name="_LookupGroup" model='("coffeetype", "Kahve Tipleri", Model.Lookups.CoffeeTypes, false)' />
+    <partial name="_LookupGroup" model='("beantype", "Çekirdek Tipleri", Model.Lookups.BeanTypes, false)' />
+    <partial name="_LookupGroup" model='("roastlevel", "Kavurma Seviyeleri", Model.Lookups.RoastLevels, false)' />
+    <partial name="_LookupGroup" model='("origin", "Menşeler", Model.Lookups.Origins, true)' />
+</div>
+
+@section PageScripts {
+    <script type="module" src="~/js/admin/catalog.js" asp-append-version="true"></script>
+}

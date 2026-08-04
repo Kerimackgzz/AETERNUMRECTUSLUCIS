@@ -1,0 +1,54 @@
+@using System.Globalization
+@using AETKAHVE.Domain.Commerce
+@model ReviewListViewModel
+@{
+    ViewData["Title"] = "Yorumlarım";
+    Layout = "_AccountLayout";
+    var currency = new CultureInfo("tr-TR");
+
+    (string Label, string Kind) StatusInfo(ReviewStatus status) => status switch
+    {
+        ReviewStatus.Pending => ("İncelemede", "warning"),
+        ReviewStatus.Approved => ("Yayında", "success"),
+        ReviewStatus.Rejected => ("Reddedildi", "error"),
+        _ => (status.ToString(), "info"),
+    };
+}
+<div class="account-card checkout-card surface surface--padded" data-reviews-page>
+    <h1 class="account-card__title">Yorumlarım</h1>
+    <p class="text-muted mb-4">Yeni yorum eklemek için sipariş detay sayfasındaki ürünleri kullanın.</p>
+
+    @if (Model.Reviews.Items.Count == 0)
+    {
+        <div class="empty-state">
+            <p class="empty-state__title">Henüz yorumunuz yok</p>
+        </div>
+    }
+    else
+    {
+        <div class="stack">
+            @foreach (var review in Model.Reviews.Items)
+            {
+                var status = StatusInfo(review.Status);
+                <div class="surface surface--padded">
+                    <div class="cluster cluster--between">
+                        <p class="cart-line__name">@review.ProductName</p>
+                        <span class="status-badge" data-status-kind="@status.Kind">@status.Label</span>
+                    </div>
+                    <p class="product-detail__rating">@(new string('★', review.Rating))@(new string('☆', 5 - review.Rating))</p>
+                    <p class="text-muted text-sm">@review.Comment</p>
+                    <button type="button" class="btn btn--ghost btn--sm" data-review-delete="/account/reviews/@review.Id/delete">Sil</button>
+                </div>
+            }
+        </div>
+        <partial name="_Pagination" model="(Model.Reviews.Page, Model.Reviews.TotalPages)" />
+    }
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/components/pagination.css" asp-append-version="true" />
+}
+
+@section PageScripts {
+    <script type="module" src="~/js/pages/reviews.js" asp-append-version="true"></script>
+}
