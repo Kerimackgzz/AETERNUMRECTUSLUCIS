@@ -1,13 +1,40 @@
+using System.Security.Claims;
+using AETKAHVE.Application.Commerce;
+using AETKAHVE.Web.Infrastructure;
 using AETKAHVE.Web.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AETKAHVE.Web.Controllers;
 
-public sealed class HomeController : Controller
+[TypeFilter(typeof(GuestCartMergeFilter))]
+public sealed class HomeController(ICatalogQueryService catalogQueryService) : Controller
 {
-    public IActionResult Index()
+    public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        return View(new HomePageViewModel());
+        var userId = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : (Guid?)null;
+        var featured = await catalogQueryService.GetFeaturedAsync(8, userId, cancellationToken);
+        return View(new HomePageViewModel
+        {
+            FeaturedProducts = featured.Select(x => new ProductCardViewModel
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Slug = x.Slug,
+                PrimaryImageUrl = x.ImageUrl,
+                PrimaryImageAlt = x.ImageAlt,
+                CategoryName = x.CategoryName,
+                OriginName = x.OriginName,
+                RoastLevelName = x.RoastLevelName,
+                DisplayPrice = x.DisplayPrice,
+                OriginalPrice = x.OriginalPrice,
+                IsDiscounted = x.IsDiscounted,
+                IsInStock = x.IsInStock,
+                IsFavorite = x.IsFavorite,
+                AddToCartUrl = Url.Action("Add", "Cart") ?? "/cart/items",
+                ToggleFavoriteUrl = Url.Action("Toggle", "Favorites", new { productId = x.Id }) ?? $"/favorites/{x.Id}/toggle",
+                DetailUrl = Url.Action("Detail", "Products", new { slug = x.Slug }) ?? $"/products/{x.Slug}",
+            }).ToList(),
+        });
     }
 
     public IActionResult Privacy()
