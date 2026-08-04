@@ -3,6 +3,10 @@
     Layout = "_AccountLayout";
     ViewData["Title"] = Model.Title;
 }
-<h1>@Model.Title</h1>
-<form asp-action="Logout" method="post"><button type="submit">Çıkış</button></form>
-
+<div class="account-card surface surface--padded">
+    <h1 class="account-card__title">@Model.Title</h1>
+    <p class="account-card__subtitle text-muted">Hesap panelinize hoş geldiniz.</p>
+    <form asp-action="Logout" method="post">
+        <button type="submit" class="btn btn--outline">Çıkış</button>
+    </form>
+</div>

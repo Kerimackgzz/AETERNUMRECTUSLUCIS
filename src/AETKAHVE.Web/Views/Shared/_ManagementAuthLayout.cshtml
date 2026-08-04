@@ -1,3 +1,5 @@
+@* Admin/SuperAdmin login ve access-denied gibi kimliksiz yönetim sayfaları için minimal kabuk.
+   Kimlik doğrulanmış _Layout'un topbar/AFK betiğini taşımaz. *@
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @{
     var antiforgery = Antiforgery.GetAndStoreTokens(Context);
@@ -20,10 +22,9 @@
 <body class="account-layout">
     <a href="#main-content" class="skip-link">İçeriğe geç</a>
     <main id="main-content" class="account-layout__main">
-        <a asp-controller="Home" asp-action="Index" class="account-layout__brand font-display">AETERNUM RECTUS LUCIS</a>
+        <a asp-area="" asp-controller="Home" asp-action="Index" class="account-layout__brand font-display">AETERNUM RECTUS LUCIS</a>
         @RenderBody()
     </main>
     @await RenderSectionAsync("PageScripts", required: false)
 </body>
 </html>
-

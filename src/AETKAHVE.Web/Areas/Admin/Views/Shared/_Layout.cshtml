@@ -10,18 +10,38 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="@antiforgery.RequestToken" />
-    <title>@ViewData["Title"] — AETERNUM RECTUS LUCIS</title>
+    <title>@ViewData["Title"] — AETERNUM RECTUS LUCIS Yönetim</title>
+    <link rel="stylesheet" href="~/css/tokens.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/typography.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/base.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/button.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/idle-warning.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin/admin.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
-<body data-idle-session="admin"
+<body class="admin-layout"
+      data-idle-session="admin"
       data-session-status-url="/admin/session/status"
       data-session-keep-alive-url="/admin/session/keep-alive"
       data-session-logout-url="/admin/logout"
       data-idle-timeout-seconds="@(security.AdminIdleTimeoutMinutes * 60)"
       data-idle-warning-seconds="@security.IdleWarningSeconds">
-    <main id="main-content">
+    <a href="#main-content" class="skip-link">İçeriğe geç</a>
+    <header class="admin-topbar">
+        <a asp-area="Admin" asp-controller="Home" asp-action="Index" class="admin-topbar__brand">
+            AETKAHVE<span class="admin-topbar__portal">Admin</span>
+        </a>
+        <form class="admin-topbar__logout" asp-area="Admin" asp-controller="Auth" asp-action="Logout" method="post">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn--outline btn--sm">Güvenli Çıkış</button>
+        </form>
+    </header>
+    <main id="main-content" class="admin-layout__main">
         @RenderBody()
     </main>
+    <partial name="_IdleWarningDialog" />
+    <script src="~/js/admin/idle-session.js" asp-append-version="true" defer></script>
     @await RenderSectionAsync("PageScripts", required: false)
 </body>
 </html>

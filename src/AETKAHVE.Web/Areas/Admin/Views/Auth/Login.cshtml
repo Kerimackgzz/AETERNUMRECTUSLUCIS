@@ -1,14 +1,28 @@
 @model AdminLoginViewModel
 @{
     ViewData["Title"] = "Admin Girişi";
+    Layout = "_ManagementAuthLayout";
 }
-<h1>Admin Girişi</h1>
-<form action="/admin/login" method="post">
-    @Html.AntiForgeryToken()
-    <div asp-validation-summary="ModelOnly" role="alert"></div>
-    <input asp-for="ReturnUrl" type="hidden" />
-    <label asp-for="Email">E-posta</label><input asp-for="Email" autocomplete="username" /><span asp-validation-for="Email"></span>
-    <label asp-for="Password">Parola</label><input asp-for="Password" autocomplete="current-password" /><span asp-validation-for="Password"></span>
-    <label><input asp-for="RememberMe" /> Beni Hatırla</label>
-    <button type="submit">Giriş Yap</button>
-</form>
+<div class="account-card surface surface--padded">
+    <h1 class="account-card__title">Admin Girişi</h1>
+    <p class="account-card__subtitle text-muted">Yalnızca yetkili yönetim hesapları içindir.</p>
+    <form class="account-form" action="/admin/login" method="post" novalidate>
+        @Html.AntiForgeryToken()
+        <div asp-validation-summary="ModelOnly" role="alert" class="text-sm"></div>
+        <input asp-for="ReturnUrl" type="hidden" />
+        <div class="field">
+            <label asp-for="Email">E-posta</label>
+            <input asp-for="Email" type="email" autocomplete="username" />
+            <span asp-validation-for="Email" class="field-validation-error"></span>
+        </div>
+        <div class="field">
+            <label asp-for="Password">Parola</label>
+            <input asp-for="Password" type="password" autocomplete="current-password" />
+            <span asp-validation-for="Password" class="field-validation-error"></span>
+        </div>
+        <div class="field">
+            <label><input asp-for="RememberMe" /> Beni hatırla</label>
+        </div>
+        <button type="submit" class="btn btn--primary btn--block">Giriş Yap</button>
+    </form>
+</div>

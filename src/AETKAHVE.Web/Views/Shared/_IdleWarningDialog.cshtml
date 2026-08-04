@@ -1,0 +1,15 @@
+@* AFK uyarı modalının base görsel componenti (Ajan 1). Runtime davranışı wwwroot/js/admin/idle-session.js içindedir. *@
+<div class="idle-warning" data-idle-warning-dialog role="alertdialog" aria-modal="true" aria-labelledby="idle-warning-title" aria-describedby="idle-warning-description" hidden>
+    <div class="idle-warning__backdrop"></div>
+    <div class="idle-warning__panel surface surface--padded">
+        <h2 id="idle-warning-title" class="idle-warning__title">Oturumunuz sona ermek üzere</h2>
+        <p id="idle-warning-description" class="idle-warning__description">
+            Hareketsizlik nedeniyle
+            <strong><span data-idle-remaining>60</span> saniye</strong>
+            içinde oturumunuz kapatılacak.
+        </p>
+        <div class="idle-warning__actions">
+            <button type="button" class="btn btn--primary" data-idle-continue>Oturumu sürdür</button>
+        </div>
+    </div>
+</div>

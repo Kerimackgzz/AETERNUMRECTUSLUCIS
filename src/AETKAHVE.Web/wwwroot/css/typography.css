@@ -1,0 +1,109 @@
+/*
+  AETERNUM RECTUS LUCIS — Typography
+  Mellos: logo, hero dışındaki büyük başlıklar, seçili ürün isimleri.
+  Sans-serif: uzun metin, formlar, admin tabloları.
+*/
+
+@font-face {
+  font-family: "Mellos";
+  src:
+    url("/font/Mellos.otf") format("opentype"),
+    url("/font/Mellos.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--color-ink);
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-tight);
+  color: var(--color-ink);
+}
+
+h1 {
+  font-size: var(--text-4xl);
+}
+
+h2 {
+  font-size: var(--text-3xl);
+}
+
+h3 {
+  font-size: var(--text-2xl);
+  line-height: var(--leading-snug);
+}
+
+h4,
+h5,
+h6 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  line-height: var(--leading-snug);
+  color: var(--color-ink);
+}
+
+h4 {
+  font-size: var(--text-xl);
+}
+
+h5 {
+  font-size: var(--text-lg);
+}
+
+h6 {
+  font-size: var(--text-base);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-ink-muted);
+}
+
+p {
+  margin: 0 0 var(--space-4);
+}
+
+small,
+.text-sm {
+  font-size: var(--text-sm);
+}
+
+.text-muted {
+  color: var(--color-ink-muted);
+}
+
+.text-eyebrow {
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--color-gold-400);
+}
+
+/* Seçili ürün isimleri (ProductCard başlığı) Mellos kullanır; ölçek daha küçük. */
+.product-name {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  line-height: var(--leading-snug);
+}
+
+@media (min-width: 768px) {
+  h1 {
+    font-size: var(--text-5xl);
+  }
+
+  h2 {
+    font-size: var(--text-4xl);
+  }
+}
