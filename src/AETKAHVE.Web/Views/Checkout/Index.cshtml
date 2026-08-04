@@ -1,0 +1,78 @@
+@using System.Globalization
+@model CheckoutPageViewModel
+@{
+    ViewData["Title"] = "Ödeme";
+    Layout = "_AccountLayout";
+    var currency = new CultureInfo("tr-TR");
+    var cart = Model.Cart;
+}
+<div class="account-card surface surface--padded checkout-card">
+    <h1 class="account-card__title">Ödeme</h1>
+
+    @if (Model.Addresses.Count == 0)
+    {
+        <div class="surface empty-state">
+            <p class="empty-state__title">Kayıtlı adresiniz yok</p>
+            <p class="text-muted">Devam etmek için önce bir teslimat adresi ekleyin.</p>
+            <a asp-controller="Addresses" asp-action="Index" class="btn btn--primary">Adres ekle</a>
+        </div>
+    }
+    else
+    {
+        <form data-checkout-form data-checkout-page data-cart-id="@cart.CartId" data-idempotency-key="@Model.IdempotencyKey">
+            <div class="checkout-section">
+                <h2 class="checkout-section__title text-lg">Teslimat adresi</h2>
+                <div class="address-picker">
+                    @foreach (var address in Model.Addresses)
+                    {
+                        <label class="address-card">
+                            <input type="radio" name="shippingAddressId" value="@address.Id" checked="@(address.IsDefaultShipping ? "checked" : null)" />
+                            <span class="address-card__title">@address.Title</span>
+                            <p class="address-card__body">@address.FirstName @address.LastName · @address.AddressLine, @address.District/@address.City</p>
+                        </label>
+                    }
+                </div>
+            </div>
+
+            <div class="checkout-section">
+                <h2 class="checkout-section__title text-lg">Fatura adresi</h2>
+                <div class="address-picker">
+                    @foreach (var address in Model.Addresses)
+                    {
+                        <label class="address-card">
+                            <input type="radio" name="billingAddressId" value="@address.Id" checked="@(address.IsDefaultBilling ? "checked" : null)" />
+                            <span class="address-card__title">@address.Title</span>
+                            <p class="address-card__body">@address.FirstName @address.LastName · @address.AddressLine, @address.District/@address.City</p>
+                        </label>
+                    }
+                </div>
+            </div>
+
+            <div class="checkout-section">
+                <h2 class="checkout-section__title text-lg">Sipariş notu (opsiyonel)</h2>
+                <textarea name="customerNote" rows="3" class="checkout-note"></textarea>
+            </div>
+
+            <div class="cart-summary">
+                <div class="cart-summary__row"><span>Ara toplam</span><span>@cart.Subtotal.ToString("N2", currency) ₺</span></div>
+                @if (cart.DiscountTotal > 0)
+                {
+                    <div class="cart-summary__row"><span>İndirim</span><span>−@cart.DiscountTotal.ToString("N2", currency) ₺</span></div>
+                }
+                <div class="cart-summary__row"><span>Vergi</span><span>@cart.TaxTotal.ToString("N2", currency) ₺</span></div>
+                <div class="cart-summary__row"><span>Kargo</span><span>@(cart.ShippingTotal == 0 ? "Ücretsiz" : $"{cart.ShippingTotal.ToString("N2", currency)} ₺")</span></div>
+                <div class="cart-summary__row cart-summary__row--total"><span>Toplam</span><span>@cart.GrandTotal.ToString("N2", currency) ₺</span></div>
+            </div>
+
+            <button type="submit" class="btn btn--primary btn--block">Siparişi Tamamla</button>
+        </form>
+    }
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/cart-checkout.css" asp-append-version="true" />
+}
+
+@section PageScripts {
+    <script type="module" src="~/js/pages/checkout.js" asp-append-version="true"></script>
+}

@@ -1,0 +1,50 @@
+@using System.Globalization
+@using AETKAHVE.Application.Commerce
+@using AETKAHVE.Domain.Commerce
+@model CampaignListViewModel
+@{
+    ViewData["Title"] = "Kampanyalar";
+    var currency = new CultureInfo("tr-TR");
+
+    string DiscountLabel(CampaignSummary c) => c.DiscountType switch
+    {
+        DiscountType.Percentage => $"%{c.DiscountValue.ToString("0.#", currency)}",
+        DiscountType.FixedAmount => $"{c.DiscountValue.ToString("N2", currency)} ₺",
+        DiscountType.FreeShipping => "Ücretsiz Kargo",
+        _ => c.DiscountValue.ToString("N2", currency),
+    };
+}
+<header class="container shop-header">
+    <p class="text-eyebrow">Sınırlı Süreli</p>
+    <h1>Kampanyalar</h1>
+</header>
+<div class="container section--tight">
+    @if (Model.Campaigns.Count == 0)
+    {
+        <div class="surface empty-state">
+            <p class="empty-state__title">Şu anda aktif kampanya yok</p>
+            <p class="text-muted">Yeni kampanyalar için takipte kalın.</p>
+        </div>
+    }
+    else
+    {
+        <div class="grid-auto">
+            @foreach (var campaign in Model.Campaigns)
+            {
+                <div class="surface surface--padded campaign-card">
+                    <div>
+                        <span class="product-card__badge campaign-card__badge">Kampanya</span>
+                        <h2 class="product-name">@campaign.Name</h2>
+                        <p class="text-muted text-sm">Son gün: @campaign.EndDateUtc.ToLocalTime().ToString("d MMMM yyyy", new CultureInfo("tr-TR"))</p>
+                    </div>
+                    <p class="campaign-card__value">@DiscountLabel(campaign)</p>
+                    <a class="btn btn--outline btn--block" asp-controller="Products" asp-action="Index">Ürünlere göz at</a>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/shop.css" asp-append-version="true" />
+}

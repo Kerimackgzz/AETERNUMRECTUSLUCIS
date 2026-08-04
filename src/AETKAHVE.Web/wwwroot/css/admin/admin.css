@@ -101,14 +101,3 @@
   letter-spacing: var(--tracking-wide);
 }
 
-/* Boş durum */
-.empty-state {
-  padding: var(--space-16) var(--space-6);
-  text-align: center;
-  color: var(--color-ink-muted);
-}
-
-.empty-state__title {
-  color: var(--color-ink);
-  margin-bottom: var(--space-2);
-}

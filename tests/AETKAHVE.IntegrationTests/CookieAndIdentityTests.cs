@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.RegularExpressions;
+using AETKAHVE.Application.Security;
 using AETKAHVE.Infrastructure.Identity;
 using AETKAHVE.Infrastructure.Notifications;
 using AETKAHVE.IntegrationTests.Infrastructure;
@@ -132,6 +133,47 @@ public sealed class CookieAndIdentityTests(AeternumWebApplicationFactory factory
         Assert.Contains("no-store", response.Headers.CacheControl?.ToString(), StringComparison.OrdinalIgnoreCase);
         Assert.Equal("DENY", response.Headers.GetValues("X-Frame-Options").Single());
         Assert.True(response.Headers.Contains("X-Correlation-ID"));
+    }
+
+    [Fact]
+    public async Task Security_stamp_change_deletes_the_customer_authentication_cookie()
+    {
+        var email = $"stamp-{Guid.NewGuid():N}@test.local";
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var user = new ApplicationUser
+            {
+                Id = Guid.NewGuid(),
+                UserName = email,
+                Email = email,
+                EmailConfirmed = true,
+                FirstName = "Stamp",
+                LastName = "Test",
+                IsActive = true,
+                CreatedAtUtc = factory.Clock.GetUtcNow(),
+            };
+            Assert.True((await userManager.CreateAsync(user, AeternumWebApplicationFactory.Password)).Succeeded);
+            Assert.True((await userManager.AddToRoleAsync(user, RoleNames.Customer)).Succeeded);
+        }
+
+        using var client = factory.CreateClientWithoutRedirects();
+        Assert.Equal(HttpStatusCode.Redirect, (await FormClient.LoginAsync(client, "/account", email)).StatusCode);
+
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var user = Assert.IsType<ApplicationUser>(await userManager.FindByEmailAsync(email));
+            Assert.True((await userManager.UpdateSecurityStampAsync(user)).Succeeded);
+        }
+
+        var response = await client.GetAsync("/account");
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        var deletionCookie = Assert.Single(
+            response.Headers.GetValues("Set-Cookie"),
+            value => value.StartsWith("AETKAHVE.Customer.Auth=", StringComparison.Ordinal));
+        Assert.Contains("expires=", deletionCookie, StringComparison.OrdinalIgnoreCase);
     }
 
     private static string FindAuthenticationCookie(HttpResponseMessage response, string cookieName) =>

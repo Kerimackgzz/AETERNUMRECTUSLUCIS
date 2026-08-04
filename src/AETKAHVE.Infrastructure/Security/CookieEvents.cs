@@ -1,7 +1,9 @@
 using System.Security.Claims;
 using AETKAHVE.Application.Security;
 using AETKAHVE.Infrastructure.Identity;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 
 namespace AETKAHVE.Infrastructure.Security;
@@ -21,6 +23,7 @@ public sealed class CustomerCookieEvents(UserManager<ApplicationUser> userManage
             !await userManager.IsInRoleAsync(user, RoleNames.Customer))
         {
             context.RejectPrincipal();
+            await context.HttpContext.SignOutAsync(context.Scheme.Name);
         }
     }
 }
@@ -31,6 +34,12 @@ public abstract class ManagementCookieEvents(
     SecurityAuditWriter auditWriter,
     AuthenticationPortal portal) : CookieAuthenticationEvents
 {
+    public override Task RedirectToLogin(RedirectContext<CookieAuthenticationOptions> context) =>
+        RedirectOrStatusCode(context, StatusCodes.Status401Unauthorized);
+
+    public override Task RedirectToAccessDenied(RedirectContext<CookieAuthenticationOptions> context) =>
+        RedirectOrStatusCode(context, StatusCodes.Status403Forbidden);
+
     public override async Task ValidatePrincipal(CookieValidatePrincipalContext context)
     {
         var userIdValue = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -39,7 +48,7 @@ public abstract class ManagementCookieEvents(
 
         if (!Guid.TryParse(userIdValue, out var userId) || !Guid.TryParse(sessionIdValue, out var sessionId))
         {
-            context.RejectPrincipal();
+            await RejectAndDeleteCookieAsync(context);
             return;
         }
 
@@ -49,7 +58,7 @@ public abstract class ManagementCookieEvents(
             !string.Equals(user.SecurityStamp, securityStamp, StringComparison.Ordinal) ||
             !await userManager.IsInRoleAsync(user, expectedRole))
         {
-            context.RejectPrincipal();
+            await RejectAndDeleteCookieAsync(context);
             return;
         }
 
@@ -68,7 +77,7 @@ public abstract class ManagementCookieEvents(
             return;
         }
 
-        context.RejectPrincipal();
+        await RejectAndDeleteCookieAsync(context);
         if (validation.IsIdleExpired)
         {
             await auditWriter.WriteAsync(
@@ -81,6 +90,28 @@ public abstract class ManagementCookieEvents(
                 context.HttpContext.TraceIdentifier,
                 context.HttpContext.RequestAborted);
         }
+    }
+
+    private static async Task RejectAndDeleteCookieAsync(CookieValidatePrincipalContext context)
+    {
+        context.RejectPrincipal();
+        await context.HttpContext.SignOutAsync(context.Scheme.Name);
+    }
+
+    private static Task RedirectOrStatusCode(
+        RedirectContext<CookieAuthenticationOptions> context,
+        int statusCode)
+    {
+        if (context.Request.Path.Value?.Contains("/session/", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            context.Response.StatusCode = statusCode;
+        }
+        else
+        {
+            context.Response.Redirect(context.RedirectUri);
+        }
+
+        return Task.CompletedTask;
     }
 }
 

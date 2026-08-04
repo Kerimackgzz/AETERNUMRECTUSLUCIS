@@ -36,6 +36,15 @@
 - `typography.css`: Ajan 2'nin ürettiği `Mellos-Regular.woff2`'yi birincil kaynak yaptım (otf/ttf fallback olarak kaldı) — home-hero.css'teki geçici `@font-face` artık tamamen aynı önceliği kullanıyor, çakışma yok.
 - **Not:** `Views/Home/Index.cshtml` (hero+featured-products) tamamen Ajan 2 sahipliğinde olduğu için dokunulmadı. Container zaten hazır (`data-product-card-list`); entegrasyon için tek satır yeterli: `@foreach (var p in Model.FeaturedProducts) { <partial name="_ProductCard" model="p" /> }`.
 
+**Commerce view'ları** — üçüncü dilim (`2f53f36`, Coordinator merge sonrası)
+- `Products/Index.cshtml` + `Categories/Detail.cshtml` (ikisi de `_ProductListing.cshtml` partial'ını paylaşır): filtre formu (koleksiyon/fiyat/kahve-çekirdek-kavurma-menşei/stok/indirim), sıralama, `_Pagination.cshtml`.
+- `Products/Detail.cshtml` + `product-detail.js`: galeri, gramaj/varyant seçimi, adet stepper, sepete ekle, favori.
+- `Campaigns/Index.cshtml`, `Favorites/Index.cshtml`, `Cart/Index.cshtml` + `cart.js`, `Checkout/Index.cshtml` + `checkout.js` (mock ödeme başlatma → callback → sipariş sayfasına yönlendirme).
+- Checkout'un işlevsel olması için gereken minimum Account dilimi: `Addresses/Index.cshtml` (liste+ekleme formu) + `addresses.js`, `Orders/Index.cshtml`, `Orders/Detail.cshtml`.
+- Paylaşılan JS: `js/core/commerce-api.js` (fetch+antiforgery+`CommerceMutationResponse`), `js/components/toast.js` + `toast.css`, `js/components/product-card-actions.js` (gerçek sepete-ekle/favori — Ajan 2'nin yalnızca motion olan `product-card-motion.js`'inden ayrı).
+- İki gerçek hata düzeltildi: (1) sıralama `<select>`'i inline `onchange` ile submit ediyordu, mevcut CSP (`default-src 'self'`, unsafe-inline yok) bunu engelliyordu — görünür buton yapıldı; (2) `.empty-state` yalnız `admin.css`'te tanımlıydı, public sayfalarda stil almıyordu — `base.css`'e taşındı, ayrıca ortak `.status-badge` component'i eklendi.
+- `ProductSummary` → `ProductCardViewModel` dönüşümü, `HomeController`'ın kullandığı aynı desenle (`Url.Action` tabanlı) her listeleme view'ında `@functions` bloğuyla tekrarlandı (Controller'a dokunmadan yapılabilecek tek yol).
+
 ## Değiştirilen dosyalar
 
 `git show --stat 28dc5a9` (foundation dilimi) ve `git show --stat 45b43b5` (ProductCard dilimi) — toplam 35 dosya, tamamı `src/AETKAHVE.Web/**` altında. Detaylı liste commit mesajlarında ve repoda mevcuttur.
@@ -58,15 +67,15 @@ Yok. Shared ViewModel property'leri, route'lar ve frozen contract dosyaları de�
 
 ## Bilinen sorunlar
 
-- **Gerçek tarayıcı/ekran görüntüsü doğrulaması yapılmadı** — yalnızca HTTP durum kodu ve HTML içerik grep'i ile doğrulandı; görsel/responsive/klavye-focus/renk kontrastı incelemesi kullanıcı veya browser MCP ile teyit edilmeli.
-- **`Views/Home/Index.cshtml`'e ProductCard entegrasyonu henüz yapılmadı** — dosya tamamen Ajan 2 sahipliğinde; `data-product-card-list` container'ına `@foreach` + `<partial name="_ProductCard" />` satırının eklenmesi gerekiyor (yukarıda belirtildi).
-- Ajan 2'nin çalışma dizinindeki değişiklikleri (home-hero.css, product-card-motion.css/js, home-frame-sequence.js, frames/, Mellos-Regular.woff2, Views/Home/Index.cshtml, kendi raporu) hâlâ commit'siz — bu oturum onlara dokunmadı, kendi branch/commit/rapor adımını bekliyor.
+- **Gerçek tarayıcı/ekran görüntüsü doğrulaması yapılmadı** — bu ortamda SQL Server olmadığı için `dotnet run` gerçek veriyle başlatılamıyor; doğrulama SQLite tabanlı `WebApplicationFactory` testleri ve HTML içerik kontrolüyle yapıldı. Görsel/responsive/klavye-focus/renk kontrastı incelemesi kullanıcı veya browser MCP ile teyit edilmeli.
+- **Kalan sayfalar**: Account invoices/returns/reviews/notifications, `/contact` formu, tüm Admin commerce sayfaları (products/catalog/orders/shipments/invoices/returns/campaigns/coupons/reviews/messages/reports) — henüz üretilmedi, sonraki dilim.
 - Cross-tab AFK senkronizasyonu (contract: "frontend runtime sahibindedir") uygulanmadı; her sekme kendi 30 saniyelik status poll'una güveniyor — kabul edilebilir ama geliştirilebilir bir basitleştirme.
+- Adres düzenleme (yalnız ekleme/silme var) ve checkout'ta adres CRUD'unun tam entegrasyonu (şu an checkout sayfası adres yoksa Addresses'e yönlendiriyor, aynı akışta ekleyip geri dönme yok) basitleştirildi.
 
 ## Son commit hash
 
-`45b43b5` (ProductCard); önceki: `28dc5a9` (foundation dilimi), `d1bac17` (ilk rapor), `4f0fa19` (Coordinator board düzeltmesi). Coordinator merge: `bcfbf8d`; Coordinator status update: `eb80222`.
+`2f53f36` (commerce view'ları); önceki: `45b43b5` (ProductCard), `28dc5a9` (foundation dilimi). Coordinator merge'ler: `bcfbf8d` (foundation), Ajan 1/2 merge zinciri, Ajan 4 merge (`6b2b47d`→ff), bu dilimin merge'i (Ajan 1 → integration, commerce view'ları).
 
 ## Merge hazır durumu
 
-Bu iki dilim (design system foundation + Account/Admin/SuperAdmin auth+dashboard sayfaları; ProductCard base markup/style) build/test/HTTP smoke doğrulamasından geçti ve merge'e hazırdır. Kapsamın geri kalanı (Public ürün/kategori/sepet/checkout sayfaları — Ajan 4'ün Controller/ViewModel'leri olmadan üretilemez, ortak modal/drawer/toast/pagination component'leri) sonraki bir iş dilimidir — henüz üretilmedi.
+Üç dilim de (design system foundation + Account/Admin/SuperAdmin sayfaları; ProductCard; commerce view'ları) build/test ve SQLite tabanlı render smoke testinden geçti, `integration`'a merge edildi. Kalan kapsam (Account invoices/returns/reviews/notifications, Contact, tüm Admin commerce sayfaları) sonraki bir iş dilimidir.

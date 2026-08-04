@@ -50,6 +50,26 @@ public sealed class AfkAndAuditTests(AeternumWebApplicationFactory factory)
     }
 
     [Fact]
+    public async Task Idle_timeout_deletes_the_management_authentication_cookie()
+    {
+        using var client = factory.CreateClientWithoutRedirects();
+        Assert.Equal(HttpStatusCode.Redirect, (await FormClient.LoginAsync(
+            client,
+            "/admin",
+            AeternumWebApplicationFactory.AdminEmail,
+            rememberMe: true)).StatusCode);
+
+        factory.Clock.Advance(TimeSpan.FromMinutes(16));
+        var response = await client.GetAsync("/admin/session/status");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        var deletionCookie = Assert.Single(
+            response.Headers.GetValues("Set-Cookie"),
+            value => value.StartsWith("AETKAHVE.Admin.Auth=", StringComparison.Ordinal));
+        Assert.Contains("expires=", deletionCookie, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task Status_poll_does_not_extend_idle_session()
     {
         using var client = factory.CreateClientWithoutRedirects();

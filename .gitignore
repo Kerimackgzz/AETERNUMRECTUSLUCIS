@@ -11,4 +11,5 @@ TestResults/
 *.db-wal
 *.nupkg
 artifacts/
+**/App_Data/
 

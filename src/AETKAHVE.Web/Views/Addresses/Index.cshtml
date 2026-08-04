@@ -1,0 +1,81 @@
+@model AddressListViewModel
+@{
+    ViewData["Title"] = "Adreslerim";
+    Layout = "_AccountLayout";
+}
+<div class="account-card checkout-card surface surface--padded" data-addresses-page>
+    <h1 class="account-card__title">Adreslerim</h1>
+
+    @if (Model.Addresses.Count > 0)
+    {
+        <div class="address-picker mb-4">
+            @foreach (var address in Model.Addresses)
+            {
+                <div class="address-card">
+                    <span class="address-card__title">@address.Title</span>
+                    <p class="address-card__body">
+                        @address.FirstName @address.LastName · @address.PhoneNumber<br />
+                        @address.AddressLine, @address.District/@address.City<br />
+                        @(address.IsDefaultShipping ? "Varsayılan teslimat · " : "")@(address.IsDefaultBilling ? "Varsayılan fatura" : "")
+                    </p>
+                    <button type="button" class="btn btn--ghost btn--sm" data-address-delete="/account/addresses/@address.Id/delete">Sil</button>
+                </div>
+            }
+        </div>
+    }
+
+    <h2 class="text-lg mb-4">Yeni adres ekle</h2>
+    <form class="account-form" data-address-form novalidate>
+        <div class="field">
+            <label for="addr-title">Adres başlığı</label>
+            <input id="addr-title" name="Title" required maxlength="80" />
+        </div>
+        <div class="field">
+            <label for="addr-firstname">Ad</label>
+            <input id="addr-firstname" name="FirstName" required maxlength="100" />
+        </div>
+        <div class="field">
+            <label for="addr-lastname">Soyad</label>
+            <input id="addr-lastname" name="LastName" required maxlength="100" />
+        </div>
+        <div class="field">
+            <label for="addr-phone">Telefon</label>
+            <input id="addr-phone" name="PhoneNumber" required maxlength="30" />
+        </div>
+        <div class="field">
+            <label for="addr-country">Ülke</label>
+            <input id="addr-country" name="Country" required maxlength="100" value="Türkiye" />
+        </div>
+        <div class="field">
+            <label for="addr-city">İl</label>
+            <input id="addr-city" name="City" required maxlength="100" />
+        </div>
+        <div class="field">
+            <label for="addr-district">İlçe</label>
+            <input id="addr-district" name="District" required maxlength="100" />
+        </div>
+        <div class="field">
+            <label for="addr-neighborhood">Mahalle</label>
+            <input id="addr-neighborhood" name="Neighborhood" maxlength="150" />
+        </div>
+        <div class="field">
+            <label for="addr-postal">Posta kodu</label>
+            <input id="addr-postal" name="PostalCode" maxlength="20" />
+        </div>
+        <div class="field">
+            <label for="addr-line">Açık adres</label>
+            <textarea id="addr-line" name="AddressLine" class="checkout-note" required maxlength="1000" rows="3"></textarea>
+        </div>
+        <div class="field">
+            <label><input type="checkbox" name="isDefaultShipping" /> Varsayılan teslimat adresi</label>
+        </div>
+        <div class="field">
+            <label><input type="checkbox" name="isDefaultBilling" /> Varsayılan fatura adresi</label>
+        </div>
+        <button type="submit" class="btn btn--primary btn--block">Adresi Kaydet</button>
+    </form>
+</div>
+
+@section PageScripts {
+    <script type="module" src="~/js/pages/addresses.js" asp-append-version="true"></script>
+}

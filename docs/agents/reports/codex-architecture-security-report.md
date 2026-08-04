@@ -65,3 +65,13 @@
 ## Merge Hazır Durumu
 
 Foundation, final EF ve Git kontrolleri başarılı olduktan sonra Coordinator review/merge için hazırdır. Ajan 3 doğrudan `integration` veya `main` üzerine merge yapmaz.
+
+## Post-Foundation Security Hardening — 2026-08-04
+
+- Ajan 1 ve Ajan 2 değişikliklerinin `integration` üzerinde olduğu doğrulandı. Ajan 4 commerce çekirdeği denetim sırasında `6b2b47d` merge commit’iyle Ajan 3 dalına ulaştı; `integration` dalı bu sırada `7c0568d` üzerinde kaldı.
+- `EventsType` kullanımının cookie options içindeki management redirect callback’lerini gölgelediği görüldü. `/admin/session/*` ve `/superadmin/session/*` challenge/forbid cevapları gerçek event sınıfında `401`/`403` üretecek şekilde düzeltildi.
+- AFK, revoke, security-stamp, rol veya hesap durumu doğrulaması başarısız olduğunda principal reddine ek olarak ilgili authentication cookie’si artık açıkça siliniyor.
+- AFK sonrası management cookie silinmesi ve customer security-stamp değişimi sonrası cookie silinmesi için iki integration testi eklendi.
+- Build: 0 warning / 0 error. Unit: 21/21. Integration: 39/39. Toplam: 60/60.
+- Değişen Ajan 3 dosyaları için `dotnet format --verify-no-changes --include ...` ve `git diff --check` başarılı.
+- Tam solution format kontrolü, Ajan 4’e ait yeni commerce dosyalarındaki mevcut whitespace ihlalleri nedeniyle başarısızdır. Migration/commerce sahipliği gereği bu dosyalar Ajan 3 tarafından değiştirilmedi; Ajan 4/Coordinator düzeltme kapısı olarak kaydedildi.

@@ -1,0 +1,93 @@
+@using System.Globalization
+@model CartPageViewModel
+@{
+    ViewData["Title"] = "Sepetim";
+    var currency = new CultureInfo("tr-TR");
+    var cart = Model.Cart;
+}
+<div class="container" data-cart-page>
+    <header class="section--tight">
+        <h1>Sepetim</h1>
+    </header>
+
+    @if (cart.Warnings.Count > 0)
+    {
+        <div class="stack mb-4">
+            @foreach (var warning in cart.Warnings)
+            {
+                <p class="cart-warning">@warning</p>
+            }
+        </div>
+    }
+
+    @if (cart.Items.Count == 0)
+    {
+        <div class="surface empty-state">
+            <p class="empty-state__title">Sepetiniz boş</p>
+            <p class="text-muted">Seçili kahvelerimize göz atın.</p>
+            <a asp-controller="Products" asp-action="Index" class="btn btn--primary mt-4">Alışverişe başla</a>
+        </div>
+    }
+    else
+    {
+        <div class="cart-layout">
+            <div class="cart-lines">
+                @foreach (var line in cart.Items)
+                {
+                    <article class="surface cart-line" data-cart-line data-item-id="@line.ItemId">
+                        <div class="cart-line__image">
+                            <img src="@line.ImageUrl" alt="@line.ProductName" />
+                        </div>
+                        <div>
+                            <p class="cart-line__name">@line.ProductName</p>
+                            @if (line.VariantName is not null)
+                            {
+                                <p class="cart-line__variant">@line.VariantName</p>
+                            }
+                            <p class="text-sm text-muted">@line.UnitPrice.ToString("N2", currency) ₺ / adet</p>
+                        </div>
+                        <div class="cart-line__controls">
+                            <div class="qty-stepper">
+                                <button type="button" data-quantity-decrease aria-label="Azalt">−</button>
+                                <input type="number" data-quantity-input min="0" max="@line.AvailableQuantity" value="@line.Quantity" aria-label="Adet" />
+                                <button type="button" data-quantity-increase aria-label="Artır">+</button>
+                            </div>
+                            <strong>@line.LineTotal.ToString("N2", currency) ₺</strong>
+                            <button type="button" class="cart-line__remove" data-cart-remove="/cart/items/@line.ItemId/remove">Kaldır</button>
+                        </div>
+                    </article>
+                }
+            </div>
+
+            <aside class="surface cart-summary">
+                <form data-coupon-form class="cart-summary__coupon">
+                    <input type="text" name="code" placeholder="Kupon kodu" value="@cart.CouponCode" />
+                    <button type="submit" class="btn btn--outline btn--sm">Uygula</button>
+                </form>
+                @if (cart.CouponCode is not null)
+                {
+                    <button type="button" class="btn btn--ghost btn--sm" data-coupon-remove>Kuponu kaldır (@cart.CouponCode)</button>
+                }
+
+                <div class="cart-summary__row"><span>Ara toplam</span><span>@cart.Subtotal.ToString("N2", currency) ₺</span></div>
+                @if (cart.DiscountTotal > 0)
+                {
+                    <div class="cart-summary__row"><span>İndirim</span><span>−@cart.DiscountTotal.ToString("N2", currency) ₺</span></div>
+                }
+                <div class="cart-summary__row"><span>Vergi</span><span>@cart.TaxTotal.ToString("N2", currency) ₺</span></div>
+                <div class="cart-summary__row"><span>Kargo</span><span>@(cart.ShippingTotal == 0 ? "Ücretsiz" : $"{cart.ShippingTotal.ToString("N2", currency)} ₺")</span></div>
+                <div class="cart-summary__row cart-summary__row--total"><span>Toplam</span><span>@cart.GrandTotal.ToString("N2", currency) ₺</span></div>
+
+                <a asp-controller="Checkout" asp-action="Index" class="btn btn--primary btn--block">Ödemeye geç</a>
+            </aside>
+        </div>
+    }
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/cart-checkout.css" asp-append-version="true" />
+}
+
+@section PageScripts {
+    <script type="module" src="~/js/pages/cart.js" asp-append-version="true"></script>
+}
