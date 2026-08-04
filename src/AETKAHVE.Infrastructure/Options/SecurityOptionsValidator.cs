@@ -16,6 +16,11 @@ public sealed class SecurityOptionsValidator : IValidateOptions<SecurityOptions>
         ValidateRange(options.IdleWarningSeconds, 10, 600, nameof(options.IdleWarningSeconds), failures);
         ValidateRange(options.MaxFailedAccessAttempts, 3, 20, nameof(options.MaxFailedAccessAttempts), failures);
         ValidateRange(options.LockoutMinutes, 1, 1440, nameof(options.LockoutMinutes), failures);
+        ValidateRange(options.CustomerLoginRequestsPerMinute, 1, 1000, nameof(options.CustomerLoginRequestsPerMinute), failures);
+        ValidateRange(options.AdminLoginRequestsPerMinute, 1, 1000, nameof(options.AdminLoginRequestsPerMinute), failures);
+        ValidateRange(options.SuperAdminLoginRequestsPerMinute, 1, 1000, nameof(options.SuperAdminLoginRequestsPerMinute), failures);
+        ValidateRange(options.CustomerRegistrationRequestsPerMinute, 1, 1000, nameof(options.CustomerRegistrationRequestsPerMinute), failures);
+        ValidateRange(options.PasswordRecoveryRequestsPerMinute, 1, 1000, nameof(options.PasswordRecoveryRequestsPerMinute), failures);
 
         ValidateRoute(options.AdminRoute, nameof(options.AdminRoute), failures);
         ValidateRoute(options.SuperAdminRoute, nameof(options.SuperAdminRoute), failures);

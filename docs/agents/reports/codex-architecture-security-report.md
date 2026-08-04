@@ -75,3 +75,15 @@ Foundation, final EF ve Git kontrolleri başarılı olduktan sonra Coordinator r
 - Build: 0 warning / 0 error. Unit: 21/21. Integration: 39/39. Toplam: 60/60.
 - Değişen Ajan 3 dosyaları için `dotnet format --verify-no-changes --include ...` ve `git diff --check` başarılı.
 - Tam solution format kontrolü, Ajan 4’e ait yeni commerce dosyalarındaki mevcut whitespace ihlalleri nedeniyle başarısızdır. Migration/commerce sahipliği gereği bu dosyalar Ajan 3 tarafından değiştirilmedi; Ajan 4/Coordinator düzeltme kapısı olarak kaydedildi.
+
+## Identity Abuse Hardening — 2026-08-04
+
+- Ajan 3 ayrı worktree’si güncel `integration` (`f008db0`) üzerine fast-forward edildi; ana Coordinator/Ajan 1 checkout’una dokunulmadı.
+- Login limitleri hard-coded değerlerden `SecurityOptions` içindeki doğrulanan per-minute ayarlara taşındı.
+- Customer registration ve forgot/reset password POST’larına ayrı IP-bölümlü rate-limit policy’leri eklendi.
+- `429 Too Many Requests` cevapları fixed-window metadata’sından hesaplanan `Retry-After` başlığını döndürüyor.
+- Options validation, registration limiter, password recovery limiter ve `Retry-After` için üç yeni test eklendi.
+- Restore/build başarılı, 0 warning / 0 error. Unit: 22/22. Integration: 42/42. Toplam: 64/64.
+- Commerce production provider/webhook/contact riskleri doğrudan sahiplik dışı kod değiştirilmeden `docs/contracts/requests/codex-architecture-security-20260804-commerce-security-hardening.md` ile Ajan 4/Coordinator’a iletildi.
+- AFK istemcisinin süre sonunda `logoutUrl` çağırmaması ve cross-tab senkronizasyon eksikliği, backend logout cookie testiyle birlikte `docs/contracts/requests/codex-architecture-security-20260804-afk-client-expiry.md` üzerinden frontend sahiplerine iletildi.
+- Tam solution format kontrolü commerce whitespace borcu nedeniyle hâlâ başarısız; Ajan 3’e ait değişen C# dosyalarının scoped format kontrolü ayrıca uygulanır.

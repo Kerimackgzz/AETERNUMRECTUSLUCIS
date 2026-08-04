@@ -26,6 +26,16 @@ public sealed class SecurityOptions
 
     public int LockoutMinutes { get; set; } = 15;
 
+    public int CustomerLoginRequestsPerMinute { get; set; } = 10;
+
+    public int AdminLoginRequestsPerMinute { get; set; } = 5;
+
+    public int SuperAdminLoginRequestsPerMinute { get; set; } = 5;
+
+    public int CustomerRegistrationRequestsPerMinute { get; set; } = 5;
+
+    public int PasswordRecoveryRequestsPerMinute { get; set; } = 5;
+
     public CookieSecurePolicy CookieSecurePolicy { get; set; } = CookieSecurePolicy.SameAsRequest;
 
     public SameSiteMode CookieSameSiteMode { get; set; } = SameSiteMode.Lax;

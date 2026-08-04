@@ -34,5 +34,18 @@ public sealed class SecurityOptionsValidatorTests
 
         Assert.True(result.Failed);
     }
+
+    [Fact]
+    public void Non_positive_rate_limits_are_rejected()
+    {
+        var options = new SecurityOptions { PasswordRecoveryRequestsPerMinute = 0 };
+
+        var result = _validator.Validate(null, options);
+
+        Assert.True(result.Failed);
+        Assert.Contains(result.Failures, failure => failure.Contains(
+            nameof(SecurityOptions.PasswordRecoveryRequestsPerMinute),
+            StringComparison.Ordinal));
+    }
 }
 
