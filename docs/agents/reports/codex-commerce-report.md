@@ -4,10 +4,12 @@
 
 - Branch: `agent/codex-commerce`
 - Worktree: `C:\Users\Kerim Açıkgöz\Desktop\aeternum-codex-commerce`
-- Taban: `integration` / `eb80222` (Ajan 3 foundation `8b1a922` dahil)
+- Güncel taban: `integration` / `7c0568d` (Ajan 1, 2 ve 3 teslimleri ile hero/navbar düzeltmesi dahil)
 - Uygulama commit'i: `2673542` (`feat: implement commerce core`)
-- Merge durumu: merge edilmedi; Coordinator `agent/codex-commerce` branch'ini `integration` üzerine almalıdır.
-- Kök worktree'deki Ajan 2 `wwwroot/` ve rapor dosyalarına dokunulmadı.
+- Güncel integration merge commit'i: `982eebb` (`Merge branch 'integration' into agent/codex-commerce`)
+- Entegrasyon contract regresyon testi: `9c940fa` (`test: lock hero and navbar integration contract`)
+- Merge durumu: güncel `integration` commerce branch'ine çakışmasız alındı; branch henüz `integration` üzerine merge edilmedi. Coordinator `agent/codex-commerce` branch'ini almalıdır.
+- Kök worktree ve Ajan 1/2'nin Razor/CSS/JS kaynakları Ajan 4 uygulama commit'inde değiştirilmedi.
 
 ## Tamamlanan kapsam
 
@@ -61,20 +63,21 @@ EF doğrulamaları:
 - Admin: `/admin/products`, `/admin/catalog`, `/admin/orders`, `/admin/shipments`, `/admin/invoices`, `/admin/returns`, `/admin/campaigns`, `/admin/coupons`, `/admin/reviews`, `/admin/messages`, `/admin/reports`.
 - Ayrıntılı method ve ViewModel sözleşmesi: `docs/contracts/requests/codex-commerce-20260804-commerce-routes-viewmodels.md`.
 - `HomeController` async featured query'ye bağlandı; frozen Home/ProductCard property şekilleri aynen korundu ve endpoint URL'leri server-side üretildi.
-- Razor, CSS ve JavaScript dosyaları değiştirilmedi. Browser smoke, Ajan 1 view'ları integration'a alındıktan sonra çalıştırılmalıdır.
+- Razor, CSS ve JavaScript dosyaları Ajan 4 uygulama commit'inde değiştirilmedi. Ajan 1/2 teslimleri branch'e alındıktan sonra anasayfanın hero/navbar markup ve asset bağlantıları integration contract testiyle doğrulandı.
 
 ## Test sonucu
 
 - Restore: başarılı.
 - Build: 0 uyarı, 0 hata.
 - Unit: 21/21 geçti.
-- Integration/contract: 37/37 geçti.
-- Toplam: 58/58 geçti.
+- Integration/contract: 38/38 geçti.
+- Toplam: 59/59 geçti.
+- Anasayfa navbar CSS/JS bağlantıları, `is-scrolled` davranış kancaları ve hero reduced-motion değerinin yanlışlıkla zorlanmaması için regresyon testi eklendi.
 
 Kapsanan senaryolar: domain price/SKU/slug/stock kuralları, state transition, çok sayfalı PDF, katalog filtre/paging/projection, favorite/cart ownership, guest merge, kampanya-kupon matematiği ve limitleri, checkout idempotency, success/fail, tekrar callback, tekrar provider transaction, ödeme sonrası stok tükenmesi/refund, concurrency token ile negatif stok önleme, cancellation restore-once, invoice/order/return IDOR, delivered-purchase review, return restock, rapor matematiği/CSV, outbox mock delivery, route aileleri, antiforgery ve admin policy.
 
 ## Bilinen entegrasyon notları
 
-- Commerce Razor view'ları bu branch'te bilinçli olarak yoktur; controller/service smoke tamamlandı.
+- Commerce Razor view'ları bu branch'te bilinçli olarak yoktur; controller/service smoke tamamlandı. `/products`, `/cart` ve diğer commerce sayfalarının tam browser smoke'u için Ajan 1'in route/ViewModel request belgesindeki view'ları eklemesi gerekir.
 - Production tax oranı varsayılmadı; ürün verisinden gelir. Production shipping threshold/fee, provider ve SMTP/SMS değerleri deployment configuration ile açıkça verilmelidir.
 - `Program.cs`, auth/security configuration ve dondurulmuş contract dosyaları değiştirilmedi.
