@@ -137,22 +137,6 @@ public static class IdentityAndSecurityModuleExtensions
         options.Cookie.SameSite = security.CookieSameSiteMode;
         options.LoginPath = loginPath;
         options.AccessDeniedPath = accessDeniedPath;
-        options.Events.OnRedirectToLogin = context => RedirectOrStatusCode(context, StatusCodes.Status401Unauthorized);
-        options.Events.OnRedirectToAccessDenied = context => RedirectOrStatusCode(context, StatusCodes.Status403Forbidden);
-    }
-
-    private static Task RedirectOrStatusCode(RedirectContext<CookieAuthenticationOptions> context, int statusCode)
-    {
-        if (context.Request.Path.Value?.Contains("/session/", StringComparison.OrdinalIgnoreCase) == true)
-        {
-            context.Response.StatusCode = statusCode;
-        }
-        else
-        {
-            context.Response.Redirect(context.RedirectUri);
-        }
-
-        return Task.CompletedTask;
     }
 
 }
