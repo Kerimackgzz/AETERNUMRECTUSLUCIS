@@ -1,5 +1,9 @@
 using System.Net;
+using System.Net.Http.Json;
+using System.Text.RegularExpressions;
 using AETKAHVE.Application.Commerce;
+using AETKAHVE.Domain.Commerce;
+using AETKAHVE.Infrastructure.Persistence;
 using AETKAHVE.Web.Controllers;
 using AETKAHVE.IntegrationTests.Infrastructure;
 using AETKAHVE.Web.Models;
@@ -7,6 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AETKAHVE.IntegrationTests;
@@ -92,6 +97,68 @@ public sealed class CommerceContractTests(AeternumWebApplicationFactory factory)
     }
 
     [Fact]
+    public async Task Cart_json_mutations_bind_body_and_select_an_available_default_variant()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var token = Guid.NewGuid().ToString("N");
+        var category = new Category
+        {
+            Name = $"Category {token}", Slug = $"category-{token}", CreatedAtUtc = now, UpdatedAtUtc = now,
+        };
+        var product = new Product
+        {
+            Name = $"Product {token}", Slug = $"product-{token}", Sku = $"SKU-{token}", ShortDescription = "Test",
+            Description = "JSON cart contract product", BasePrice = 100, TaxRate = 0, StockQuantity = 0,
+            Category = category, IsActive = true, CreatedAtUtc = now, UpdatedAtUtc = now,
+        };
+        var variant = new ProductVariant
+        {
+            Product = product, Weight = 250, Unit = WeightUnit.Gram, Sku = $"VAR-{token}", Price = 100,
+            StockQuantity = 5, IsActive = true, CreatedAtUtc = now, UpdatedAtUtc = now,
+        };
+        product.Variants.Add(variant);
+        await using (var seedScope = factory.Services.CreateAsyncScope())
+        {
+            var db = seedScope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.Products.Add(product);
+            await db.SaveChangesAsync();
+        }
+
+        using var client = factory.CreateClientWithoutRedirects();
+        var productsResponse = await client.GetAsync("/products");
+        productsResponse.EnsureSuccessStatusCode();
+        var html = await productsResponse.Content.ReadAsStringAsync();
+        var antiforgery = Regex.Match(html, "<meta name=\"csrf-token\" content=\"([^\"]+)\"", RegexOptions.IgnoreCase);
+        Assert.True(antiforgery.Success, "Commerce antiforgery meta token was not rendered.");
+
+        using var addRequest = CreateJsonMutation("/cart/items", antiforgery.Groups[1].Value,
+            new { productId = product.Id, variantId = (Guid?)null, quantity = 1 });
+        var addResponse = await client.SendAsync(addRequest);
+
+        Assert.Equal(HttpStatusCode.OK, addResponse.StatusCode);
+        var addResult = Assert.IsType<CommerceMutationResponse>(await addResponse.Content.ReadFromJsonAsync<CommerceMutationResponse>());
+        Assert.True(addResult.Success);
+        Assert.Equal(1, addResult.CartItemCount);
+
+        Guid itemId;
+        await using (var assertionScope = factory.Services.CreateAsyncScope())
+        {
+            var db = assertionScope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var item = await db.CartItems.SingleAsync(x => x.ProductId == product.Id);
+            itemId = item.Id;
+            Assert.Equal(variant.Id, item.ProductVariantId);
+        }
+
+        using var updateRequest = CreateJsonMutation($"/cart/items/{itemId}/quantity", antiforgery.Groups[1].Value, new { quantity = 2 });
+        var updateResponse = await client.SendAsync(updateRequest);
+        Assert.Equal(HttpStatusCode.OK, updateResponse.StatusCode);
+
+        await using var finalScope = factory.Services.CreateAsyncScope();
+        var finalDb = finalScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.Equal(2, (await finalDb.CartItems.SingleAsync(x => x.Id == itemId)).Quantity);
+    }
+
+    [Fact]
     public async Task Anonymous_admin_commerce_routes_use_existing_admin_policy_challenge()
     {
         using var client = factory.CreateClientWithoutRedirects();
@@ -122,6 +189,13 @@ public sealed class CommerceContractTests(AeternumWebApplicationFactory factory)
         var actual = typeof(T).GetProperties().ToDictionary(x => x.Name, x => x.PropertyType, StringComparer.Ordinal);
         Assert.Equal(expected.Count, actual.Count);
         foreach (var property in expected) Assert.Equal(property.Value, actual[property.Key]);
+    }
+
+    private static HttpRequestMessage CreateJsonMutation(string path, string antiforgeryToken, object body)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, path) { Content = JsonContent.Create(body) };
+        request.Headers.Add("RequestVerificationToken", antiforgeryToken);
+        return request;
     }
 
     private sealed class CatalogStub(ProductSummary product) : ICatalogQueryService

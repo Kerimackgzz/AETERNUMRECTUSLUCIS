@@ -18,10 +18,10 @@ public sealed class CartController(ICartService cartService, IDataProtectionProv
     public async Task<IActionResult> Index(CancellationToken cancellationToken) => View(new CartPageViewModel(await cartService.GetAsync(await ResolveOwnerAsync(cancellationToken), cancellationToken)));
 
     [HttpPost("items")]
-    public Task<IActionResult> Add(AddCartItemInput input, CancellationToken cancellationToken) => MutateAsync(owner => cartService.AddAsync(owner, input.ProductId, input.VariantId, input.Quantity, cancellationToken), cancellationToken);
+    public Task<IActionResult> Add([FromBody] AddCartItemInput input, CancellationToken cancellationToken) => MutateAsync(owner => cartService.AddAsync(owner, input.ProductId, input.VariantId, input.Quantity, cancellationToken), cancellationToken);
 
     [HttpPost("items/{itemId:guid}/quantity")]
-    public Task<IActionResult> Update(Guid itemId, UpdateCartQuantityInput input, CancellationToken cancellationToken) => MutateAsync(owner => cartService.UpdateQuantityAsync(owner, itemId, input.Quantity, cancellationToken), cancellationToken);
+    public Task<IActionResult> Update(Guid itemId, [FromBody] UpdateCartQuantityInput input, CancellationToken cancellationToken) => MutateAsync(owner => cartService.UpdateQuantityAsync(owner, itemId, input.Quantity, cancellationToken), cancellationToken);
 
     [HttpPost("items/{itemId:guid}/remove")]
     public Task<IActionResult> Remove(Guid itemId, CancellationToken cancellationToken) => MutateAsync(owner => cartService.RemoveAsync(owner, itemId, cancellationToken), cancellationToken);
@@ -30,7 +30,7 @@ public sealed class CartController(ICartService cartService, IDataProtectionProv
     public Task<IActionResult> Clear(CancellationToken cancellationToken) => MutateAsync(owner => cartService.ClearAsync(owner, cancellationToken), cancellationToken);
 
     [HttpPost("coupon")]
-    public Task<IActionResult> Coupon(CouponInput input, CancellationToken cancellationToken) => MutateAsync(owner => cartService.ApplyCouponAsync(owner, input.Code, cancellationToken), cancellationToken);
+    public Task<IActionResult> Coupon([FromBody] CouponInput input, CancellationToken cancellationToken) => MutateAsync(owner => cartService.ApplyCouponAsync(owner, input.Code, cancellationToken), cancellationToken);
 
     [HttpPost("coupon/remove")]
     public Task<IActionResult> RemoveCoupon(CancellationToken cancellationToken) => MutateAsync(owner => cartService.RemoveCouponAsync(owner, cancellationToken), cancellationToken);
