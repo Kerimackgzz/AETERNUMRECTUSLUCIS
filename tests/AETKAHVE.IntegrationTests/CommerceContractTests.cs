@@ -43,7 +43,7 @@ public sealed class CommerceContractTests(AeternumWebApplicationFactory factory)
     }
 
     [Fact]
-    public async Task Public_home_renders_the_hero_and_navbar_motion_contract()
+    public async Task Public_home_renders_the_hero_navbar_and_page_transition_contract()
     {
         using var client = factory.CreateClientWithoutRedirects();
 
@@ -54,16 +54,29 @@ public sealed class CommerceContractTests(AeternumWebApplicationFactory factory)
         Assert.Contains("data-navbar", html, StringComparison.Ordinal);
         Assert.Contains("/css/components/navbar.css", html, StringComparison.Ordinal);
         Assert.Contains("/js/components/navbar-motion.js", html, StringComparison.Ordinal);
+        Assert.Contains("/css/core/page-transition.css", html, StringComparison.Ordinal);
+        Assert.Contains("/js/core/page-transition.js", html, StringComparison.Ordinal);
+        Assert.Contains("data-page-transition-overlay", html, StringComparison.Ordinal);
         Assert.Contains("data-frame-manifest-url=\"/frames/home/manifest.json\"", html, StringComparison.Ordinal);
         Assert.Contains("data-reduced-motion=\"false\"", html, StringComparison.Ordinal);
 
         var navbarCss = await client.GetAsync("/css/components/navbar.css");
         var navbarScript = await client.GetAsync("/js/components/navbar-motion.js");
+        var transitionCss = await client.GetAsync("/css/core/page-transition.css");
+        var transitionScript = await client.GetAsync("/js/core/page-transition.js");
 
         Assert.Equal(HttpStatusCode.OK, navbarCss.StatusCode);
         Assert.Equal(HttpStatusCode.OK, navbarScript.StatusCode);
-        Assert.Contains("[data-navbar].is-scrolled", await navbarCss.Content.ReadAsStringAsync(), StringComparison.Ordinal);
-        Assert.Contains("classList.toggle(\"is-scrolled\"", await navbarScript.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Assert.Equal(HttpStatusCode.OK, transitionCss.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, transitionScript.StatusCode);
+        var navbarCssText = await navbarCss.Content.ReadAsStringAsync();
+        var navbarScriptText = await navbarScript.Content.ReadAsStringAsync();
+        Assert.Contains("[data-navbar].is-scrolled", navbarCssText, StringComparison.Ordinal);
+        Assert.Contains(".navbar-brand__letter-mask", navbarCssText, StringComparison.Ordinal);
+        Assert.Contains("classList.toggle(\"is-scrolled\"", navbarScriptText, StringComparison.Ordinal);
+        Assert.Contains("navbar-brand__letter-mask", navbarScriptText, StringComparison.Ordinal);
+        Assert.Contains("[data-page-transition-overlay].is-active", await transitionCss.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Assert.Contains("initPageTransitionOverlay", await transitionScript.Content.ReadAsStringAsync(), StringComparison.Ordinal);
     }
 
     [Fact]
