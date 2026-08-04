@@ -1,3 +1,5 @@
+@* Admin/SuperAdmin login ve access-denied gibi kimliksiz yönetim sayfaları için minimal kabuk.
+   Kimlik doğrulanmış _Layout'un topbar/AFK betiğini taşımaz. *@
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @{
     var antiforgery = Antiforgery.GetAndStoreTokens(Context);
@@ -14,17 +16,15 @@
     <link rel="stylesheet" href="~/css/base.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/components/button.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/components/product-card.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/account.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
-<body>
+<body class="account-layout">
     <a href="#main-content" class="skip-link">İçeriğe geç</a>
-    <partial name="_Navbar" />
-    <partial name="_PageTransitionOverlay" />
-    <main id="main-content">
+    <main id="main-content" class="account-layout__main">
+        <a asp-area="" asp-controller="Home" asp-action="Index" class="account-layout__brand font-display">AETERNUM RECTUS LUCIS</a>
         @RenderBody()
     </main>
     @await RenderSectionAsync("PageScripts", required: false)
 </body>
 </html>
-

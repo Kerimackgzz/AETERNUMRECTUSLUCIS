@@ -9,11 +9,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="@antiforgery.RequestToken" />
     <title>@ViewData["Title"] — AETERNUM RECTUS LUCIS</title>
+    <link rel="stylesheet" href="~/css/tokens.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/typography.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/base.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/button.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/account.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
-<body>
-    <main id="main-content">
-        <a asp-controller="Home" asp-action="Index">AETERNUM RECTUS LUCIS</a>
+<body class="account-layout">
+    <a href="#main-content" class="skip-link">İçeriğe geç</a>
+    <main id="main-content" class="account-layout__main">
+        <a asp-controller="Home" asp-action="Index" class="account-layout__brand font-display">AETERNUM RECTUS LUCIS</a>
         @RenderBody()
     </main>
     @await RenderSectionAsync("PageScripts", required: false)

@@ -1,5 +1,9 @@
 @{
     ViewData["Title"] = "Erişim Engellendi";
+    Layout = "_ManagementAuthLayout";
 }
-<h1>Erişim engellendi</h1>
-
+<div class="account-card account-card--center surface surface--padded">
+    <h1 class="account-card__title">Erişim engellendi</h1>
+    <p class="text-muted">Bu alanı görüntülemek için gerekli yetkiye sahip değilsiniz.</p>
+    <a href="/superadmin/login" class="btn btn--outline">SuperAdmin girişine dön</a>
+</div>

@@ -3,23 +3,33 @@
     Layout = "_AccountLayout";
     ViewData["Title"] = "Giriş";
 }
-<h1>Giriş</h1>
-@if (TempData["StatusMessage"] is string statusMessage)
-{
-    <p role="status">@statusMessage</p>
-}
-<form asp-action="Login" method="post">
-    <div asp-validation-summary="ModelOnly" role="alert"></div>
-    <input asp-for="ReturnUrl" type="hidden" />
-    <label asp-for="Email">E-posta</label>
-    <input asp-for="Email" autocomplete="email" />
-    <span asp-validation-for="Email"></span>
-    <label asp-for="Password">Parola</label>
-    <input asp-for="Password" autocomplete="current-password" />
-    <span asp-validation-for="Password"></span>
-    <label><input asp-for="RememberMe" /> Beni Hatırla</label>
-    <button type="submit">Giriş Yap</button>
-</form>
-<a asp-action="ForgotPassword">Şifremi unuttum</a>
-<a asp-action="Register">Kayıt ol</a>
-
+<div class="account-card surface surface--padded">
+    <h1 class="account-card__title">Giriş</h1>
+    <p class="account-card__subtitle text-muted">Hesabınıza erişmek için bilgilerinizi girin.</p>
+    @if (TempData["StatusMessage"] is string statusMessage)
+    {
+        <p role="status" class="text-sm">@statusMessage</p>
+    }
+    <form class="account-form" asp-action="Login" method="post" novalidate>
+        <div asp-validation-summary="ModelOnly" role="alert" class="text-sm"></div>
+        <input asp-for="ReturnUrl" type="hidden" />
+        <div class="field">
+            <label asp-for="Email">E-posta</label>
+            <input asp-for="Email" autocomplete="email" />
+            <span asp-validation-for="Email" class="field-validation-error"></span>
+        </div>
+        <div class="field">
+            <label asp-for="Password">Parola</label>
+            <input asp-for="Password" autocomplete="current-password" />
+            <span asp-validation-for="Password" class="field-validation-error"></span>
+        </div>
+        <div class="field">
+            <label><input asp-for="RememberMe" /> Beni hatırla</label>
+        </div>
+        <button type="submit" class="btn btn--primary btn--block">Giriş Yap</button>
+    </form>
+    <div class="account-form__footer">
+        <a asp-action="ForgotPassword">Şifremi unuttum</a>
+        <a asp-action="Register">Kayıt ol</a>
+    </div>
+</div>

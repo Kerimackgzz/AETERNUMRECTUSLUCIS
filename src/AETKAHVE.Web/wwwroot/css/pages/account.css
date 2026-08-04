@@ -1,0 +1,80 @@
+/*
+  AETERNUM RECTUS LUCIS — Account layout
+  Login/Register/Forgot/Reset gibi odaklı auth sayfaları için ortak iskelet.
+*/
+
+.account-layout__main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-8);
+  min-height: 100dvh;
+  padding: var(--space-8) var(--space-4);
+}
+
+.account-layout__brand {
+  font-size: var(--text-xl);
+  text-decoration: none;
+  color: var(--color-ink);
+  letter-spacing: var(--tracking-tight);
+}
+
+.account-layout__brand:hover {
+  color: var(--color-gold-400);
+}
+
+.account-card {
+  width: 100%;
+  max-width: 420px;
+  margin: auto;
+}
+
+.account-card--center {
+  text-align: center;
+}
+
+.account-card__title {
+  margin-bottom: var(--space-2);
+}
+
+.account-card__subtitle {
+  margin-bottom: var(--space-6);
+}
+
+.account-form .field {
+  margin-bottom: var(--space-5);
+}
+
+.account-form input[type="text"],
+.account-form input[type="email"],
+.account-form input[type="password"] {
+  width: 100%;
+  padding: var(--space-3);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink);
+}
+
+.account-form input:focus-visible {
+  border-color: var(--color-gold-400);
+}
+
+.account-form .field-validation-error {
+  display: block;
+  margin-top: var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--color-error);
+}
+
+.account-form .field-validation-error::before {
+  content: "⚠ ";
+}
+
+.account-form__footer {
+  margin-top: var(--space-6);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--text-sm);
+}
