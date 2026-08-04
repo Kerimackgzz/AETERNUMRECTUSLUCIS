@@ -1,0 +1,18 @@
+@{
+    ViewData["Title"] = "Hikâyemiz";
+}
+<header class="container shop-header">
+    <p class="text-eyebrow">AETERNUM RECTUS LUCIS</p>
+    <h1>Işığın izinde, kahvenin özünde</h1>
+</header>
+<section class="container container--narrow section--tight">
+    <article class="surface surface--padded stack">
+        <p>Her kahveyi kökenine, emeğine ve taşıdığı karaktere saygıyla seçiyoruz. Amacımız yalnızca bir fincan sunmak değil; çekirdeğin yolculuğunu berrak ve özenli bir deneyime dönüştürmek.</p>
+        <p class="text-muted">Nitelikli çekirdekleri küçük partiler hâlinde kavuruyor, tazelik ve izlenebilirliği bütün sürecin merkezinde tutuyoruz.</p>
+        <a class="btn btn--primary" asp-controller="Products" asp-action="Index">Kahveleri keşfet</a>
+    </article>
+</section>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/shop.css" asp-append-version="true" />
+}

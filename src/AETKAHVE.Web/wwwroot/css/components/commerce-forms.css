@@ -1,0 +1,80 @@
+.commerce-form {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.commerce-form .field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.commerce-form input[type="text"],
+.commerce-form input[type="email"],
+.commerce-form input[type="tel"],
+.commerce-form input[type="number"],
+.commerce-form select,
+.commerce-form textarea {
+  width: 100%;
+  padding: var(--space-3);
+  color: var(--color-ink);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  font: inherit;
+}
+
+.commerce-form textarea {
+  resize: vertical;
+}
+
+.commerce-form input:focus-visible,
+.commerce-form select:focus-visible,
+.commerce-form textarea:focus-visible {
+  border-color: var(--color-gold-400);
+  outline: 2px solid color-mix(in srgb, var(--color-gold-400) 35%, transparent);
+  outline-offset: 2px;
+}
+
+.commerce-form__check {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.commerce-form__check input {
+  margin-top: 0.2rem;
+}
+
+.commerce-form__status {
+  min-height: 1.25rem;
+}
+
+.order-actions {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-8);
+}
+
+.order-action {
+  padding: var(--space-4);
+}
+
+.order-action summary {
+  cursor: pointer;
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.order-action__forms {
+  display: grid;
+  gap: var(--space-6);
+  margin-top: var(--space-5);
+}
+
+@media (min-width: 720px) {
+  .order-action__forms {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

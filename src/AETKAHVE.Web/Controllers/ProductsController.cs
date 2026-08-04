@@ -43,6 +43,10 @@ public sealed class CampaignsController(ICatalogQueryService catalogQueryService
 [Route("categories")]
 public sealed class CategoriesController(ICatalogQueryService catalogQueryService) : CommerceControllerBase
 {
+    [HttpGet("")]
+    public async Task<IActionResult> Index(CancellationToken cancellationToken) =>
+        View(new CategoryListViewModel(await catalogQueryService.GetCategoriesAsync(cancellationToken)));
+
     [HttpGet("{slug}")]
     public async Task<IActionResult> Detail(string slug, [FromQuery] int page, CancellationToken cancellationToken)
     {

@@ -7,6 +7,7 @@ namespace AETKAHVE.Web.Models;
 public sealed record ProductListViewModel(PagedResult<ProductSummary> Products, CatalogLookupSet Lookups, ProductQuery Query);
 public sealed record ProductDetailPageViewModel(ProductDetails Product);
 public sealed record CampaignListViewModel(IReadOnlyList<CampaignSummary> Campaigns);
+public sealed record CategoryListViewModel(IReadOnlyList<CatalogLookupItem> Categories);
 public sealed record CartPageViewModel(CartSummary Cart);
 public sealed record FavoritePageViewModel(PagedResult<ProductSummary> Products);
 public sealed record CheckoutPageViewModel(CartSummary Cart, IReadOnlyList<AddressDetails> Addresses, string IdempotencyKey);

@@ -45,6 +45,77 @@
         </tbody>
     </table>
 
+    @if (order.Summary.Status is OrderStatus.Delivered or OrderStatus.ReturnRequested)
+    {
+        <section class="order-actions" data-order-actions aria-labelledby="order-actions-title">
+            <h2 id="order-actions-title" class="text-lg">Ürün işlemleri</h2>
+            @foreach (var item in order.Items)
+            {
+                <details class="surface order-action">
+                    <summary>@item.Name</summary>
+                    <div class="order-action__forms">
+                        @if (order.Summary.Status == OrderStatus.Delivered)
+                        {
+                            <form class="commerce-form"
+                                  data-review-create
+                                  data-order-item-id="@item.OrderItemId"
+                                  data-submit-url="@(Url.Action("Save", "Reviews") ?? "/account/reviews")"
+                                  data-success-url="@(Url.Action("Index", "Reviews") ?? "/account/reviews")">
+                                <h3 class="text-base">Yorum yap</h3>
+                                <div class="field">
+                                    <label for="review-rating-@item.OrderItemId">Puan</label>
+                                    <select id="review-rating-@item.OrderItemId" name="rating" required>
+                                        <option value="5">5 — Mükemmel</option>
+                                        <option value="4">4 — Çok iyi</option>
+                                        <option value="3">3 — İyi</option>
+                                        <option value="2">2 — Geliştirilebilir</option>
+                                        <option value="1">1 — Zayıf</option>
+                                    </select>
+                                </div>
+                                <div class="field">
+                                    <label for="review-comment-@item.OrderItemId">Deneyiminiz</label>
+                                    <textarea id="review-comment-@item.OrderItemId" name="comment" rows="4" maxlength="3000" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn--primary">Yorumu Gönder</button>
+                            </form>
+                        }
+
+                        <form class="commerce-form"
+                              data-return-create
+                              data-order-id="@order.Summary.Id"
+                              data-order-item-id="@item.OrderItemId"
+                              data-submit-url="@(Url.Action("Create", "Returns") ?? "/account/returns")"
+                              data-success-url="@(Url.Action("Index", "Returns") ?? "/account/returns")">
+                            <h3 class="text-base">İade talebi oluştur</h3>
+                            <div class="field">
+                                <label for="return-quantity-@item.OrderItemId">Adet</label>
+                                <input id="return-quantity-@item.OrderItemId" name="quantity" type="number" min="1" max="@item.Quantity" value="1" required />
+                            </div>
+                            <div class="field">
+                                <label for="return-condition-@item.OrderItemId">Ürün durumu</label>
+                                <select id="return-condition-@item.OrderItemId" name="condition" required>
+                                    <option value="0">Açılmamış</option>
+                                    <option value="1">Açılmış</option>
+                                    <option value="2">Hasarlı</option>
+                                    <option value="3">Kusurlu</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label for="return-reason-@item.OrderItemId">İade nedeni</label>
+                                <input id="return-reason-@item.OrderItemId" name="reason" maxlength="250" required />
+                            </div>
+                            <div class="field">
+                                <label for="return-description-@item.OrderItemId">Açıklama <span class="text-muted">(isteğe bağlı)</span></label>
+                                <textarea id="return-description-@item.OrderItemId" name="description" rows="4" maxlength="2000"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn--outline">İade Talebi Gönder</button>
+                        </form>
+                    </div>
+                </details>
+            }
+        </section>
+    }
+
     <div class="cart-summary mb-4">
         <div class="cart-summary__row cart-summary__row--total"><span>Toplam</span><span>@order.Summary.GrandTotal.ToString("N2", currency) ₺</span></div>
     </div>
@@ -62,3 +133,12 @@
 
     <a asp-controller="Orders" asp-action="Index" class="btn btn--outline mt-4">Siparişlerime dön</a>
 </div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/cart-checkout.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/commerce-forms.css" asp-append-version="true" />
+}
+
+@section PageScripts {
+    <script type="module" src="~/js/pages/order-actions.js" asp-append-version="true"></script>
+}

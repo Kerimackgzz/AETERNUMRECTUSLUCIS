@@ -42,4 +42,7 @@ public sealed class HomeController(ICatalogQueryService catalogQueryService) : C
         return View();
     }
 
+    [HttpGet("/about")]
+    public IActionResult About() => View();
+
 }

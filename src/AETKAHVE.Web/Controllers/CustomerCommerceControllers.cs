@@ -78,7 +78,7 @@ public sealed class ReturnsController(IReturnService returnService) : CommerceCo
         View(new ReturnListViewModel(await returnService.GetForUserAsync(RequiredUserId, Math.Max(1, page), 20, cancellationToken)));
 
     [HttpPost]
-    public async Task<IActionResult> Create(ReturnInputModel input, CancellationToken cancellationToken)
+    public async Task<IActionResult> Create([FromBody] ReturnInputModel input, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return BadRequest(new CommerceMutationResponse(false, "İade talebi doğrulanamadı."));
         try
@@ -100,7 +100,7 @@ public sealed class ReviewsController(IReviewService reviewService) : CommerceCo
         View(new ReviewListViewModel(await reviewService.GetForUserAsync(RequiredUserId, Math.Max(1, page), 20, cancellationToken)));
 
     [HttpPost]
-    public async Task<IActionResult> Save(ReviewInputModel input, CancellationToken cancellationToken)
+    public async Task<IActionResult> Save([FromBody] ReviewInputModel input, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return BadRequest(new CommerceMutationResponse(false, "Yorum doğrulanamadı."));
         try
@@ -122,8 +122,11 @@ public sealed class ReviewsController(IReviewService reviewService) : CommerceCo
 [Route("contact")]
 public sealed class ContactController(IContactService contactService) : Controller
 {
+    [HttpGet]
+    public IActionResult Index() => View(new ContactInputModel());
+
     [HttpPost]
-    public async Task<IActionResult> Submit(ContactInputModel input, CancellationToken cancellationToken)
+    public async Task<IActionResult> Submit([FromBody] ContactInputModel input, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return BadRequest(new CommerceMutationResponse(false, "İletişim formu doğrulanamadı."));
         try
