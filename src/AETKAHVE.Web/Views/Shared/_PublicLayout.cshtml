@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="~/css/components/product-card.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/components/navbar.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/components/toast.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/core/page-transition.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
@@ -28,6 +29,7 @@
     </main>
     <script type="module" src="~/js/components/navbar-motion.js" asp-append-version="true"></script>
     <script type="module" src="~/js/components/product-card-actions.js" asp-append-version="true"></script>
+    <script type="module" src="~/js/core/page-transition.js" asp-append-version="true"></script>
     @await RenderSectionAsync("PageScripts", required: false)
 </body>
 </html>
