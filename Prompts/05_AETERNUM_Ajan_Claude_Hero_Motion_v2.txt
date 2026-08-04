@@ -1,0 +1,155 @@
+AETERNUM RECTUS LUCIS — AJAN 2 CLAUDE HOME HERO VE MOTION v2
+
+OKUNACAK BELGELER
+
+1. 02_AETERNUM_Master_Frontend_UIUX_Motion_v2.txt
+2. 03_AETERNUM_Paralel_Orkestrasyon_4_Ajan_v2.txt
+3. Bu görev dosyası
+4. Onaylı contract belgeleri
+
+BRANCH / WORKTREE
+
+- Branch: agent/claude-home-hero
+- Worktree: ../aeternum-claude-hero
+- Rapor: docs/agents/reports/claude-home-hero-report.md
+
+BAŞLAMA KOŞULU
+
+Ajan 3 foundation integration’a merge edilmiş olmalıdır.
+HomePageViewModel, ProductCardViewModel, navbar/transition partial hookları ve data-* sözleşmeleri hazır olmalıdır.
+
+ROLÜN
+
+Creative Frontend Engineer, Motion Designer ve Web Performance uzmanısın.
+Yalnızca Home hero, navbar ve public motion enhancement alanından sorumlusun.
+
+MARKA
+
+- Teknik ad: AETKAHVE
+- Public marka: AETERNUM RECTUS LUCIS
+- Mellos Regular kullan.
+- Siyah, orman yeşili ve altın tasarım diline uy.
+
+SORUMLULUKLAR
+
+- Manifest-driven frame sequence
+- Canvas/requestAnimationFrame
+- ScrollTrigger veya eşdeğer timeline
+- Reverse scroll, resize, DPR ve preload
+- Poster, düşük bağlantı ve reduced-motion fallback
+- Transparan navbar
+- Navbar harf mask animasyonu
+- Son kareden eşit ürün kartlarına tek timeline
+- Ürün kartı motion enhancement ve kontrollü altın ışıltı
+- Page transition overlay/runtime
+- Mask reveal ve elegant CTA motion
+- Browser/performance doğrulaması
+
+DOSYA SAHİPLİĞİN
+
+Yalnızca:
+
+- Views/Home/Index.cshtml hero ve featured-products alanı
+- Views/Shared/_Navbar.cshtml
+- Views/Shared/_PageTransitionOverlay.cshtml
+- wwwroot/css/pages/home-hero.css
+- wwwroot/css/components/navbar.css
+- wwwroot/css/components/product-card-motion.css
+- wwwroot/css/core/page-transition.css
+- wwwroot/js/pages/home-frame-sequence.js
+- wwwroot/js/components/navbar-motion.js
+- wwwroot/js/components/product-card-motion.js
+- wwwroot/js/core/page-transition.js
+- wwwroot/frames/home/*
+
+DOKUNMAYACAĞIN DOSYALAR
+
+- tokens.css, typography.css, base.css, layout.css
+- ProductCard markup/base CSS
+- Public/Account/Admin/SuperAdmin layout dosyaları
+- Hero dışındaki view’lar
+- Backend, controller, policy, ViewModel property ve migration
+- Ortak contract dosyaları
+
+LAYOUT KURALI
+
+Layoutu değiştirme.
+Foundation tarafından eklenen `_Navbar` ve `_PageTransitionOverlay` hooklarını kullan.
+Hook eksikse:
+docs/contracts/requests/claude-hero-<yyyyMMdd>-<konu>.md
+
+PRODUCT CARD KURALI
+
+Ajan 1 markup ve base style sahibidir.
+Sen sadece product-card-motion.css/js ile enhancement yaparsın.
+Onaylı data-* hooklarını kullan; markup’ı yeniden yazma.
+
+FRAME KURALI
+
+- Frame count hardcode etme.
+- Manifest desktop/tablet/mobile kaynağı içersin.
+- Tüm yüksek çözünürlüklü kareleri aynı anda yükleme.
+- İlk/komşu kare önceliği ve batch preload uygula.
+- Eksik karede en yakın kare veya poster.
+- Scroll progress 0–1 normalize.
+- Pin süresi kare sayısına kör bağlı olmasın.
+- JS yoksa poster ve ürün listesi erişilebilir.
+- Scroll hijacking yapma.
+
+MOTION KURALI
+
+- Transform/opacity ağırlıklı
+- 60 FPS hedefi; kesin garanti ancak ölçümle
+- Bounce/elastic yok
+- Sürekli shimmer/neon yok
+- Product activation kısa ve elegant
+- Page transition form/checkout/auth/back-forward akışını bozmaz
+- Reduced-motion kısa fade veya doğrudan içerik
+- Listener/timeline cleanup
+
+SKILL / MCP
+
+Frontend/motion/accessibility/performance skill’lerini keşfet.
+Browser, screenshot, console, network, profiler MCP varsa kullan.
+Var olmayan araç uydurma.
+MCP yoksa terminal/browser ile devam et.
+
+CONTRACT
+
+Shared ViewModel property adlarını değiştirme.
+Backend endpoint ekleme.
+Eksik alan için contract request oluştur.
+HomePageViewModel ve ProductCardViewModel sözleşmesini birebir kullan.
+
+TEST
+
+- dotnet build ve Razor compile
+- Manifest ve poster
+- Reverse scroll
+- Resize/DPR
+- Düşük ağ
+- Reduced motion
+- Touch/hover ayrımı
+- Page transition back/forward
+- Keyboard/focus
+- Product card ölçüsü
+- Navbar’da Admin/SuperAdmin linki olmaması
+- Performance profile, long task ve console
+- Sahiplik dışı dosya değişikliği olmaması
+
+TESLİM
+
+Raporunda:
+
+- Hero mimarisi
+- Manifest formatı
+- Preload/fallback
+- Motion tokenları
+- Kullanılan skill/MCP
+- Browser/performance sonucu
+- Contract request
+- Bilinen sınırlamalar
+- Son commit hash
+- Merge hazır durumu
+
+Yalnızca sahip olduğun hero/navbar/motion dosyalarında çalış.

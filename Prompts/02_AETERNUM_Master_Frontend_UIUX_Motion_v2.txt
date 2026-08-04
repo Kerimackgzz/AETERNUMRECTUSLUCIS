@@ -1,0 +1,1611 @@
+AETERNUM RECTUS LUCIS — MASTER FRONTEND, UI/UX VE MOTION PROMPTU v2
+
+1. ROLÜN VE ANA GÖREVİN
+
+Sen; lüks e-ticaret deneyimleri konusunda uzman bir Creative Director, Senior UI/UX Designer, Motion Designer, Frontend Architect, ASP.NET Core Razor uzmanı, erişilebilirlik uzmanı ve performans mühendisi olarak çalışacaksın.
+
+Teknik solution adı AETKAHVE olan, müşteriye `AETERNUM RECTUS LUCIS` markasıyla görünen kahve e-ticaret uygulamasının tüm kullanıcı, müşteri, Admin ve SuperAdmin ekranlarını üretime yakın kalitede tasarlayıp kodlayacaksın.
+
+Bu görev yalnızca güzel görünen statik mockup üretme görevi değildir. Tasarım:
+
+- Mevcut ASP.NET Core MVC backend yapısıyla çalışmalıdır.
+- Mevcut controller, action, route, ViewModel ve form sözleşmelerini bozmamalıdır.
+- Razor View, Partial View, View Component ve gerekli JavaScript modülleriyle uygulanmalıdır.
+- Desktop, tablet ve mobil cihazlarda eksiksiz çalışmalıdır.
+- Lüks, kontrollü, minimal ve kendine özgü görünmelidir.
+- Animasyonlar işlevi desteklemeli, kullanıcıyı yormamalıdır.
+- Erişilebilirlik ve performans tasarımın ayrılmaz parçası olmalıdır.
+- Backend iş kuralları frontend tarafına taşınmamalıdır.
+- Tasarım tamamlandığında mevcut ödeme, sepet, üyelik, sipariş ve yönetim akışları çalışmaya devam etmelidir.
+
+Önce repository’yi ve mevcut ViewModel sözleşmelerini incele. Daha sonra ortak tasarım sistemini kur ve sayfaları aşağıdaki sırayla uygula. Mevcut route veya backend sözleşmesini yalnızca gerçekten zorunluysa değiştir; yaptığın değişikliği açıkça dokümante et.
+
+
+PROJE VE MARKA ADLANDIRMA KURALI
+
+- Teknik solution, namespace ve repository adı `AETKAHVE` olarak kalabilir.
+- Public marka adı `AETERNUM RECTUS LUCIS` olacaktır.
+- Logo, navbar, footer, hero, sayfa başlıkları, e-posta önizlemeleri ve kullanıcıya görünen marka alanlarında public marka adını kullan.
+- Teknik adı gereksiz yere public arayüzde gösterme.
+
+CLAUDE CODE SKILL VE MCP KULLANIM KURALLARI
+
+- Ortamda gerçekten bulunan frontend, UI/UX, accessibility, motion/animation ve performans skill’lerini keşfet ve uygun görevlerde kullan.
+- Kullanılabilir MCP sunucularını önce keşfet; var olmayan MCP veya skill adı uydurma.
+- Browser automation, screenshot comparison, accessibility audit, console, network ve performance profiler araçları varsa bunları gerçek doğrulama için kullan.
+- MCP erişimi yoksa işi durdurma; terminal, browser ve repository araçlarıyla devam et.
+- Araç çıktısını kör biçimde kabul etme. Kodun build durumunu, gerçek tarayıcı görüntüsünü, responsive davranışını, keyboard kullanımını ve console hatalarını kendin doğrula.
+- “60 FPS” sonucunu yalnızca tahmin ederek yazma; mümkünse performance profile ile ölç, değilse “60 FPS hedeflendi, cihaz bazlı kesin garanti verilemez” diye raporla.
+
+ÇOK AJANLI ÇALIŞMA KURALI
+
+Bu prompt paralel ajan yapısıyla kullanılıyorsa `03_AETERNUM_Paralel_Orkestrasyon_4_Ajan_v2.txt` ve sana atanmış ajan görev dosyası dosya sahipliği bakımından bağlayıcıdır. Master prompt bütün tasarım vizyonunu tanımlar; ajan görev dosyası ise senin uygulayacağın alt kapsamı belirler. Sana ait olmayan Razor, CSS, JavaScript veya backend dosyalarını değiştirme.
+
+2. MARKA HİSSİ
+
+AETERNUM RECTUS LUCIS sıradan, renkli veya oyuncu bir kahve mağazası gibi görünmemelidir.
+
+Marka hissi:
+
+- Aşırı lüks
+- Sessiz ve kendinden emin
+- Karanlık
+- Sinematik
+- Editoryal
+- Dokunsal
+- Zamansız
+- Minimal
+- Premium parfüm, moda evi veya butik saat markası kalitesinde
+- Kahveyi günlük tüketim nesnesi değil, ritüel ve zanaat ürünü olarak sunan
+
+Kaçınılacak tasarım dili:
+
+- Hazır Bootstrap teması görünümü
+- Yoğun kart gölgeleri
+- Her yerde yuvarlatılmış kutular
+- Parlak neon renkler
+- Fazla ikon
+- Emoji
+- Kalabalık dashboard görünümü
+- Standart kahverengi kahve sitesi klişesi
+- Aynı anda çok fazla hareket
+- Ucuz görünen altın gradient
+- Gereksiz glassmorphism
+- Büyük ve anlamsız CTA kalabalığı
+- Sürekli zıplayan, dönen veya dikkat dağıtan elementler
+
+3. RENK PALETİ VE TASARIM TOKENLARI
+
+Kullanıcının gönderdiği renk örneklerini temel al. Aşağıdaki pigment değerlerini başlangıç tasarım tokenları olarak kullan:
+
+- Ana siyah: #050505
+- Yumuşak siyah: #0B0D0B
+- Ana orman yeşili: #202E1F
+- İkincil orman yeşili: #202E21
+- Derin orman yeşili: #151F16
+- Yükseltilmiş yüzey yeşili: #29362A
+- Ana açık altın: #DAC298
+- Sıcak açık altın: #DFC39A
+- Koyu bronz altın: #7B5C2D
+- İkincil bronz: #826331
+- Kırık beyaz: #F7F7F7
+- Sessiz metin: rgba(247, 247, 247, 0.64)
+- İnce çizgi: rgba(218, 194, 152, 0.24)
+- Koyu çizgi: rgba(5, 5, 5, 0.45)
+- Başarı tonu: ana orman yeşilinden ayrışan fakat paleti bozmayan kontrollü bir yeşil
+- Hata tonu: koyu şarap kırmızısı; parlak kırmızı kullanma
+- Uyarı tonu: koyu bronz altın
+
+CSS custom properties oluştur:
+
+:root {
+  --color-black: #050505;
+  --color-black-soft: #0B0D0B;
+  --color-forest: #202E1F;
+  --color-forest-alt: #202E21;
+  --color-forest-deep: #151F16;
+  --color-forest-elevated: #29362A;
+  --color-gold: #DAC298;
+  --color-gold-warm: #DFC39A;
+  --color-bronze: #7B5C2D;
+  --color-bronze-alt: #826331;
+  --color-offwhite: #F7F7F7;
+  --color-text-muted: rgba(247, 247, 247, 0.64);
+  --color-line-gold: rgba(218, 194, 152, 0.24);
+}
+
+Renk kullanım oranı yaklaşık olarak:
+
+- %55 siyah ve yumuşak siyah
+- %30 orman yeşili tonları
+- %10 kırık beyaz ve nötr metin
+- %5 altın/bronze vurgu
+
+Altın rengi büyük dolu alanlarda kullanma. Altın; başlık, ince çerçeve, aktif durum, fiyat, küçük vurgu, hover ve özel detaylarda kullanılmalıdır.
+
+4. TİPOGRAFİ
+
+Ana marka fontu: Mellos Regular.
+
+Mellos Regular fontunu aşağıdaki alanlarda kullan:
+
+- Logo yazısı
+- Ana hero başlıkları
+- Navbar metinleri
+- Büyük bölüm başlıkları
+- Kampanya başlıkları
+- Ürün isimleri
+- Editoryal kısa cümleler
+- Lüks etiketler ve fiyat vurguları
+
+Font dosyası repository içinde bulunuyorsa @font-face ile yükle:
+
+- Öncelikle WOFF2
+- Gerekirse WOFF fallback
+- font-display: swap
+- Doğru font-weight ve font-style tanımları
+
+Font dosyası bulunmuyorsa sistemi bozma; açık bir fallback zinciri kullan ve eksik dosyayı dokümante et.
+
+Uzun açıklamalar, form alanları, tablo verileri, küçük yardımcı metinler ve yönetim paneli için okunabilir nötr bir sans-serif fallback kullan. Mellos Regular okunabilirliği düşürdüğü küçük boyutlarda zorla kullanılmamalıdır.
+
+Tipografi yaklaşımı:
+
+- Büyük başlıklar geniş nefes alanı taşımalı.
+- Harf aralığı kontrollü kullanılmalı.
+- Tamamı büyük harf metinleri yalnızca kısa etiketlerde kullan.
+- Paragrafların satır uzunluğu yaklaşık 55–75 karakter aralığında tutulmalı.
+- Mobilde başlıklar kırılmalı fakat kelime veya harfler taşmamalı.
+- Fiyatlarda tabular numerals kullanılabilirse kullan.
+- Metin hiyerarşisi yalnızca font büyüklüğüyle değil; boşluk, ton ve ağırlıkla kurulmalıdır.
+
+5. ALTIN/METALİK VE MAT DOKU YAKLAŞIMI
+
+Başlık ve vurgu metinleri düz sarı görünmemelidir.
+
+İki kullanım modu oluştur:
+
+A. Mat kumaş altın:
+- Ana renk #DAC298
+- Çok düşük kontrastlı noise dokusu
+- Hafif ışık kırılması
+- Fazla parlak olmayan yüzey
+- Hover’da yalnızca küçük ton değişimi
+
+B. Kontrollü metalik altın:
+- #7B5C2D, #DAC298 ve #DFC39A arasında çok yumuşak geçiş
+- Animasyonlu parlama yalnızca önemli CTA veya özel başlıkta
+- Sürekli hareket eden gradient kullanma
+- Okunabilirliği bozacak clipping veya aşırı blur kullanma
+- Metin seçilebilir ve erişilebilir kalmalı
+
+Texture kullanılırsa CSS pseudo-element veya optimize edilmiş küçük noise asset tercih et. Büyük, ağır texture görselleri kullanma.
+
+6. GENEL YERLEŞİM SİSTEMİ
+
+- Maksimum içerik genişliği geniş ekranlarda yaklaşık 1440–1600px aralığında kontrollü olsun.
+- Ana içerik kenar boşlukları responsive clamp() ile yönetilsin.
+- Grid sistemi 12 kolon mantığına uygun kurulabilir.
+- Büyük ekranlarda cesur negatif alan kullan.
+- Section yüksekliklerini gereksiz yere aynı yapma.
+- Her bölümün ritmi ve ağırlığı içeriğine göre değişsin.
+- Kartlar her yerde aynı görünmemeli; ürün, sipariş, kampanya ve admin kartlarının ortak DNA’sı olsa da kullanım amacı ayırt edilsin.
+- Border radius düşük veya orta seviyede olsun; aşırı yuvarlak tasarımdan kaçın.
+- İnce altın çizgiler, koyu yeşil yüzeyler ve siyah boşluklar ana kompozisyon araçları olsun.
+- Box-shadow yerine çoğunlukla border, ton farkı ve ışık geçişi kullan.
+- Focus durumları belirgin ve erişilebilir olsun.
+
+7. TRANSPARAN NAVBAR
+
+Ana web sitesindeki navbar:
+
+- Sayfanın en üstünde fixed konumda olsun.
+- Hero başlangıcında tamamen transparan olsun.
+- Arka plan plakası veya belirgin kutu bulunmasın.
+- Yalnızca metin tabanlı navigasyon hissi versin.
+- Logo yazısı Mellos Regular ile oluşturulsun.
+- Menü örnekleri: Ürünler, Koleksiyonlar/Kategoriler, Hikâyemiz, Kampanyalar, İletişim.
+- Sağ tarafta metin tabanlı Arama, Hesap ve Sepet bağlantıları kullanılabilir.
+- İkon kullanılırsa çok ince, küçük ve ikincil olmalıdır.
+- Admin veya SuperAdmin bağlantısı kesinlikle bulunmamalıdır.
+- İlk ekranda metin tonu sahnenin kontrastına göre altın veya kırık beyaz olmalıdır.
+- Hover durumunda metin #DAC298 tonuna yaklaşmalı ve ince bir çizgi kontrollü biçimde açılmalıdır.
+- Navbar bağlantılarında zarif harf animasyonu uygulanabilir: mevcut harf katmanı kısa bir maskenin içinde çekilirken ikinci harf katmanı yerini alabilir.
+- Harf animasyonu kelimenin okunabilirliğini korumalı, kısa sürmeli ve hover sırasında sürekli dönmemelidir.
+- Animasyon transform ve opacity ağırlıklı olmalı; width, left veya letter-spacing gibi layout değiştiren değerleri animate etme.
+- Keyboard focus durumunda hover’a eşdeğer, görünür ve erişilebilir bir tepki sun.
+- Hero geride kaldığında navbar çok hafif koyu blur veya yarı opak siyah yüzeye geçebilir.
+- Geçiş ani olmamalı; scroll durumuna göre yumuşak gerçekleşmelidir.
+- Mobilde minimal bir metin tetikleyicili tam ekran menü veya sade drawer kullanılmalıdır.
+- Mobil menü de siyah/orman yeşili ve altın tipografi dilini korumalıdır.
+- Klavye erişimi, focus trap ve Escape ile kapanma uygulanmalıdır.
+
+8. ANA SAYFA — SİNEMATİK FRAME-SEQUENCE HERO
+
+Ana sayfanın en kritik bölümü budur. Bu alan sıradan autoplay video olarak uygulanmamalıdır.
+
+Sahne:
+
+- Tam ekran, karanlık ve sinematik bir hero bulunmalıdır.
+- Kahve kutusundan veya paketinden kahve çekirdeklerinin döküldüğü hazırlanmış video, dışarıda kare dizisine ayrılmış olacaktır.
+- Uygulama gerçek kare sayısını bir manifest, config veya dosya isimleme düzeninden okumalıdır.
+- Kare sayısı koda sabit yazılmamalıdır.
+- Kullanıcının scroll ilerlemesi normalize edilerek mevcut kare dizisinin başından sonuna eşlenmelidir.
+- Video FPS değeri scroll davranışının sabit değeri olarak kullanılmamalı; kare dizisi scroll ilerlemesine göre yönetilmelidir.
+- Animasyon canvas üzerinde veya performans açısından eşdeğer bir teknikle çizilmelidir.
+- Kare değişimleri requestAnimationFrame üzerinden düzenlenmelidir.
+- ScrollTrigger veya eşdeğer güvenilir scroll senkronizasyon yaklaşımı kullanılmalıdır.
+- Hero gerekli süre boyunca pin edilmeli; kullanıcı aşağı kaydırdıkça kahve dökülme hareketi ileri doğru ilerlemelidir.
+- Ters yönde scroll edildiğinde hareket kontrollü biçimde geriye sarabilmelidir.
+- Görsel, oran bozulmadan responsive biçimde cover/contain stratejisiyle sahneye yerleştirilmelidir.
+- Ana obje farklı ekranlarda kadraj dışında kalmamalıdır.
+- Desktop, tablet ve mobil için gerekirse farklı frame klasörleri veya responsive kaynaklar desteklenmelidir.
+
+Frame yükleme stratejisi:
+
+- İlk görünür kare ve yakın kareler öncelikli yüklenmelidir.
+- Tüm yüksek çözünürlüklü kareleri aynı anda kör biçimde yükleme.
+- Ön yükleme batch veya yakınlık önceliğiyle yapılmalıdır.
+- Görsel yükleme hatalarında sahne kırılmamalı; en yakın yüklenmiş kare veya poster görüntüsü kullanılmalıdır.
+- Kareler WebP veya AVIF gibi optimize edilmiş formatlarda hazırlanabilir.
+- Canvas yüksek DPI ekranlarda net olmalı fakat gereksiz çözünürlükle belleği tüketmemelidir.
+- Resize sırasında canvas ve aktif kare doğru yeniden çizilmelidir.
+- Sayfa yüklenirken büyük ve rahatsız edici layout shift oluşmamalıdır.
+- Yükleme göstergesi lüks ve minimal olmalı; yüzde göstergesi veya ince altın çizgi kullanılabilir.
+
+Hero içerik katmanı:
+
+- İlk karelerde marka adı veya kısa manifesto çok düşük yoğunlukta görünebilir.
+- Kahve akışı başladığında metinler sahneden çekilmeli veya sessizleşmelidir.
+- Frame görüntüsünü kapatan büyük metin blokları kullanılmamalıdır.
+- Üstte transparan navbar görünmeye devam etmelidir.
+- Arka plan siyah ile derin orman yeşili arasında sinematik geçiş taşıyabilir.
+- Efektler videonun kendi ışığını ezmemelidir.
+
+9. ANA SAYFA — FRAME BİTİŞİNDEN ÜRÜNLERE GEÇİŞ
+
+Frame dizisinin sonuna ulaşıldığında yeni bir sayfaya kesme yapılmamalıdır. Ürün alanı aynı sinematik akışın devamı gibi ortaya çıkmalıdır.
+
+Geçiş davranışı:
+
+- Son kare ekranda kısa ve kontrollü bir an tutulmalıdır.
+- Son kare ilerlemesi tamamlandığında ürün bölümü görünmeye başlamalıdır.
+- Birbirine özdeş boyutlu ürün kartları yatay düzlemde sıralanmalıdır.
+- Kartlar ekranın altından yukarı doğru gelerek nihai hizalarına oturmalıdır.
+- Kartlar aynı anda patlamamalı; kısa bir stagger ile sırayla yükselmelidir.
+- Opacity, translateY ve çok hafif scale değişimi kullanılabilir.
+- Hareket yumuşak, ağır ve pahalı hissettirmelidir.
+- Bounce, elastic veya oyuncu easing kullanma.
+- Geçiş sırasında hero arka planı siyah/orman yeşili ürün sahnesine karışmalıdır.
+- Kartların son konuma ulaşmasıyla pinned hero serbest kalmalı ve normal scroll akışı devam etmelidir.
+- Scroll yönü tersine çevrildiğinde geçiş mümkün olduğunca tutarlı biçimde geri çalışmalıdır.
+- Ürün kartlarının hareketi frame animasyonundan kopuk görünmemelidir.
+- Frame sonu ve kart girişinin timeline’ı tek koreografi olarak yönetilmelidir.
+
+Desktop:
+
+- İlk görünümde tercihen dört eşit ürün kartı yatay sırada yer alsın.
+- Tüm kartların genişlik ve yükseklikleri özdeş olsun.
+- Kartlar eşit baseline, görsel oran ve iç boşluk taşısın.
+- Geniş ekranlarda kartlar arasında bol fakat tutarlı boşluk bulunsun.
+- Kullanıcı aşağı kaydırmaya devam ettiğinde koleksiyon metni veya ikinci ürün satırı görülebilir.
+
+Tablet:
+
+- İki veya üç kart görünür olabilir.
+- Yatay kaydırma ya da kontrollü grid seçilebilir.
+- Kompozisyonun lüks boşlukları korunmalıdır.
+
+Mobil:
+
+- Tek tam kart ve sonraki kartın küçük bir kısmı görünerek yatay keşif hissi verilebilir.
+- Alternatif olarak iki kolonlu sade grid kullanılabilir.
+- Scroll hijacking yapma.
+- Yatay kart alanı erişilebilir ve dokunmatik uyumlu olmalıdır.
+
+10. ANA SAYFA — ÜRÜN KARTLARI
+
+Ürün kartları:
+
+- Özdeş ölçülere sahip olmalıdır.
+- Büyük ve kaliteli ürün görseli taşımalıdır.
+- Görsel oranı bütün kartlarda aynı olmalıdır.
+- Siyah veya derin orman yeşili yüzey kullanılmalıdır.
+- Çok ince altın veya koyu yeşil çerçeve olabilir.
+- Ürün adı Mellos Regular ile gösterilmelidir.
+- Menşei, kavurma derecesi veya kahve türü küçük ve sessiz metinle gösterilmelidir.
+- Fiyat altın tonunda vurgulanmalıdır.
+- İndirim varsa eski fiyat baskın olmamalıdır.
+- “Sepete Ekle” butonu büyük renkli bir kutu yerine tipografik CTA veya ince çerçeveli buton olabilir.
+- Hover’da görsel çok hafif büyüyabilir.
+- Hover’da kart yukarı sıçramamalı; en fazla birkaç piksel kontrollü yükselmelidir.
+- İmleç ürün kartına geldiğinde kart aktive olmuş hissi vermelidir: görselde kontrollü yakınlaşma, ince altın çerçevenin belirginleşmesi ve fiyat/CTA katmanının sakin biçimde açılması kullanılabilir.
+- Kartta kısa süreli, imleç yönüne duyarlı, mat/metalik altın bir ışık taraması uygulanabilir.
+- Işıltı sürekli tekrarlanan shimmer, neon glow veya ucuz parlama gibi görünmemelidir.
+- Efektleri pseudo-element, mask veya gradient katmanı ile; ağırlıklı olarak transform ve opacity üzerinden uygula.
+- Pointer karttan ayrılınca katmanlar yumuşak ve hızlı biçimde başlangıç hâline dönmelidir.
+- Touch cihazlarda hover zorlanmamalı ve ilk dokunuş aksiyonu geciktirmemelidir.
+- Hızlı inceleme veya favori aksiyonu görünür ama sessiz olmalıdır.
+- Stok yok etiketi kart diline uyumlu olmalıdır.
+- Tüm kart hover efektleri reduced-motion tercihinde kapatılmalıdır.
+
+11. ANA SAYFA — DEVAM EDEN BÖLÜMLER
+
+Frame hero ve öne çıkan ürünlerden sonra ana sayfa şu bölümleri içerebilir:
+
+A. Kahvenin kökeni:
+- Büyük editoryal fotoğraf
+- Menşei, yükseklik ve işleme yöntemi hakkında kısa anlatı
+- Asimetrik ama dengeli yerleşim
+
+B. Kavurma manifestosu:
+- Koyu zemin
+- Büyük Mellos başlık
+- İnce altın ölçüm çizgileri veya roast scale
+- Fazla teknik tablo görünümünden kaçın
+
+C. Seçili koleksiyonlar:
+- Espresso
+- Filtre
+- Tek köken
+- Özel seri
+- Kart yerine büyük editoryal paneller kullanılabilir
+
+D. Ritüel bölümü:
+- Demleme, öğütme veya aroma hakkında kısa hikâye
+- Sinematik video veya görsel için alan bırakılabilir
+- Otomatik ses oynatma yapılmamalıdır
+
+E. Kampanya veya üyelik çağrısı:
+- İndirim sitesi gibi görünmemeli
+- “İlk sipariş indirimi” yerine özel davet hissi
+- E-posta kayıt formu minimal olmalı
+
+F. Footer:
+- Siyah veya derin orman yeşili
+- Büyük AETERNUM RECTUS LUCIS wordmark
+- Sayfa bağlantıları
+- Yasal bağlantılar
+- Sosyal bağlantılar
+- İletişim bilgileri
+- Admin veya SuperAdmin bağlantısı bulunmamalıdır
+
+12. ÜRÜNLER LİSTELEME SAYFASI
+
+Sayfa hissi bir katalog ve moda editoryali arasında olmalıdır.
+
+Üst alan:
+
+- Büyük “Koleksiyon” veya “Kahveler” başlığı
+- Kısa açıklama
+- Sessiz ürün sayısı
+- Arka planda koyu yüzey veya seçili ürün görseli
+
+Filtre sistemi:
+
+- Desktopta sol tarafta sabit veya sticky filtre paneli kullanılabilir.
+- Alternatif olarak üstte yatay filtre barı kullanılabilir.
+- Filtre başlıkları Mellos veya sade sans ile okunabilir olmalıdır.
+- Kategori, fiyat, kavurma, gramaj, menşei ve stok filtreleri bulunmalıdır.
+- Seçili filtreler ince altın chip veya metin etiketi olarak gösterilmelidir.
+- “Tümünü Temizle” aksiyonu sade olmalıdır.
+- Mobilde filtreler erişilebilir bottom sheet veya tam ekran panel olarak açılmalıdır.
+- Focus trap, kapatma ve keyboard desteği uygulanmalıdır.
+
+Ürün grid:
+
+- Desktopta 3 veya 4 kolon
+- Tablette 2 veya 3 kolon
+- Mobilde 1 veya 2 kolon
+- Tüm görsel oranları ve kart yükseklikleri tutarlı
+- Sayfalama lüks tipografik numaralandırmayla yapılabilir
+- Infinite scroll yalnızca backend ve erişilebilirlik doğru çözülüyorsa kullanılmalıdır
+- Loading skeleton koyu tonlarda ve sakin olmalıdır
+- Boş sonuç ekranı ürün önerileri veya filtreyi temizleme aksiyonu sunmalıdır
+
+13. ÜRÜN DETAY SAYFASI
+
+Desktop yerleşimi:
+
+- Sol tarafta büyük ürün galeri alanı
+- Sağ tarafta sticky ürün bilgi paneli
+- Yüksek kaliteli, eşit oranlı görseller
+- Thumbnail navigasyonu sade
+- Görsel zoom kontrollü ve isteğe bağlı
+
+Ürün bilgi alanı:
+
+- Ürün adı Mellos Regular
+- Menşei ve kategori küçük etiket
+- Fiyat altın
+- Kısa açıklama
+- Kavurma derecesi
+- Çekirdek türü
+- Gramaj/varyant seçimi
+- Stok durumu
+- Adet seçici
+- Sepete ekleme
+- Favori
+- Kargo/tahmini teslim bilgisi
+- Güvenli ödeme bilgisi
+- Fazla rozet kullanma
+
+Ürün anlatısı:
+
+- Aroma notaları
+- Gövde
+- Asidite
+- İşleme yöntemi
+- Yetiştiği rakım
+- Kavurma önerisi
+- Demleme önerileri
+
+Bu verileri standart tablo yerine editoryal modüllerle sun.
+
+Alt bölümler:
+
+- Hikâye
+- Teknik detaylar
+- Demleme önerileri
+- Yorumlar
+- Benzer ürünler
+- Son baktıkların
+
+Mobilde satın alma CTA’sı gerektiğinde ekran altında sticky olabilir; içerik kapatmamalıdır.
+
+14. KATEGORİ VE KOLEKSİYON SAYFALARI
+
+Her kategori sayfası birbirinin kopyası gibi görünmemelidir ancak ortak sistem korunmalıdır.
+
+- Kategoriye özel büyük hero görseli
+- Mellos başlık
+- Kısa editoryal açıklama
+- İlgili ürün grid’i
+- Kavurma veya kullanım biçimini anlatan kısa içerik
+- İlgili diğer koleksiyonlara geçiş
+- Arama motoru içeriği tasarımı bozmadan alt bölümlerde sunulabilir
+- Ürün listesi filtreleri ürünler sayfasıyla tutarlı olmalıdır
+
+15. KAMPANYALAR SAYFASI
+
+Kampanyalar ucuz indirim afişleri gibi sunulmamalıdır.
+
+- Büyük editoryal kampanya panelleri
+- Başlangıç ve bitiş tarihleri sessiz metin
+- Kampanya koşulları açık
+- Altın vurgu kontrollü
+- Geri sayım yalnızca gerçekten gerekliyse ve erişilebilir biçimde
+- Kullanıcıyı baskılayan sürekli yanıp sönen sayaç kullanma
+- Kampanya detay sayfasında ilgili ürünler ve koşullar birlikte gösterilmelidir
+- Geçmiş kampanyalar aktif kampanya gibi görünmemelidir
+
+16. ARAMA DENEYİMİ
+
+Navbar’daki Arama bağlantısı:
+
+- Desktopta büyük, sade overlay arama alanı açabilir.
+- Mobilde tam ekran arama deneyimi kullanılabilir.
+- Arama açıldığında arka plan siyah/orman yeşili olmalıdır.
+- Input büyük fakat sakin olmalıdır.
+- Otomatik öneriler kategori, ürün ve menşei olarak ayrılabilir.
+- Keyboard navigasyonu desteklenmelidir.
+- Son aramalar yalnızca uygun gizlilik yaklaşımıyla gösterilmelidir.
+- Sonuç sayfası ürün grid’iyle tutarlı olmalıdır.
+- Sonuç yoksa alternatif terimler ve popüler koleksiyonlar gösterilmelidir.
+
+17. HAKKIMIZDA / HİKÂYEMİZ SAYFASI
+
+- Klasik şirket tanıtım şablonu kullanma.
+- Büyük editoryal başlık
+- Markanın kahveye yaklaşımı
+- Köken, kavurma, seçki ve ritüel bölümleri
+- Büyük fotoğraf ve metin blokları arasında güçlü boşluk
+- Zaman çizelgesi kullanılacaksa ince ve minimal olmalı
+- İstatistik kullanılacaksa az ve anlamlı olmalı
+- Scroll animasyonları sakin reveal hareketlerinden oluşmalıdır
+- Frame hero seviyesinde ağır animasyon tekrar edilmemelidir
+
+18. İLETİŞİM SAYFASI
+
+- Sol veya üst alanda kısa marka mesajı
+- İletişim bilgileri
+- Çalışma saatleri
+- Form
+- Harita gerekiyorsa koyu temaya uyumlu ve performanslı
+- Form alanları koyu yüzeyde yüksek okunabilirlik taşımalıdır
+- Label her zaman görünür olmalıdır; yalnızca placeholder kullanma
+- Başarı ve hata durumları lüks tasarım dilini bozmadan açık olmalıdır
+- KVKK/gizlilik onayı okunabilir olmalıdır
+- Spam koruması kullanıcı deneyimini gereksiz zorlaştırmamalıdır
+
+19. SIK SORULAN SORULAR
+
+- Kategorilere ayrılmış akordeon
+- Sipariş, kargo, kahve, ödeme ve iade başlıkları
+- Akordeon geçişleri kısa ve kontrollü
+- Keyboard erişimi
+- Açık/kapalı durumlar belirgin
+- Arama alanı eklenebilir
+- Uzun metinlerde doğru satır uzunluğu korunmalıdır
+
+20. YASAL VE METİN AĞIRLIKLI SAYFALAR
+
+Gizlilik, çerez, satış sözleşmesi ve iade koşulları:
+
+- Okunabilir açık veya koyu yüzey
+- Sabit içindekiler navigasyonu
+- Net başlık hiyerarşisi
+- Tarih/güncelleme bilgisi
+- 55–75 karakterlik satır uzunluğu
+- Mobilde içindekiler collapsible olabilir
+- Dekorasyon minimumda tutulmalıdır
+
+21. SEPET SAYFASI
+
+Desktop:
+
+- Sol tarafta sepet ürünleri
+- Sağ tarafta sticky sipariş özeti
+- Ürün görseli, adı, varyantı, adet ve fiyat net görünmelidir
+- Adet değişimi minimal stepper ile yapılmalıdır
+- Silme aksiyonu yanlış dokunmaya karşı güvenli olmalıdır
+- Kupon alanı ikincil seviyede bulunmalıdır
+- Ara toplam, indirim, vergi, kargo ve genel toplam ayrıştırılmalıdır
+- Genel toplam altın vurgu taşıyabilir
+- Checkout CTA’sı güçlü fakat aşırı parlak olmamalıdır
+
+Boş sepet:
+
+- Büyük boş ikon yerine editoryal mesaj
+- Koleksiyona dön CTA’sı
+- Önerilen ürünler
+
+Mobil:
+
+- Sipariş özeti accordion veya aşağıda görünür olmalıdır
+- Checkout CTA’sı gerektiğinde sticky olabilir
+- İçerik veya browser kontrollerini kapatmamalıdır
+
+22. FAVORİLER SAYFASI
+
+- Ürün grid’i katalog sayfasıyla tutarlı
+- Favoriden çıkarma işlemi yanlış tıklamaya karşı kontrollü
+- Sepete ekleme aksiyonu
+- Stok olmayan ürün durumu
+- Boş durumda ürün koleksiyonlarına yönlendirme
+- Gereksiz ayrı bir görsel dil oluşturma
+
+23. CHECKOUT / ÖDEME SAYFASI
+
+Checkout süreci güven, sakinlik ve açıklık vermelidir.
+
+Adımlar:
+
+- İletişim
+- Teslimat adresi
+- Fatura adresi
+- Kargo
+- Ödeme
+- Onay
+
+Desktopta iki kolonlu yapı kullanılabilir:
+
+- Sol: form ve adımlar
+- Sağ: sticky sipariş özeti
+
+Tasarım:
+
+- Adım göstergesi ince ve minimal
+- Form label’ları görünür
+- Hata mesajları alanla ilişkili
+- Kart bilgileri gerçek ödeme sağlayıcı bileşeninde gösteriliyorsa tasarımla çevrelenmeli fakat hassas veri uygulama tarafından tutulmamalıdır
+- Güven ikonları abartılmamalıdır
+- Kullanıcı sözleşmeleri okuyup onaylayabilmelidir
+- Ödeme butonunda işlem durumu açık olmalıdır
+- Çift tıklamayı engelle
+- Loading durumunda buton metni değişsin
+- Hata durumunda kullanıcı girdiği bilgileri gereksiz yere kaybetmesin
+
+24. ÖDEME SONUCU VE SİPARİŞ SONUÇ SAYFALARI
+
+Başarılı:
+
+- Büyük ama sakin onay mesajı
+- Sipariş numarası
+- Tahmini teslim
+- Sipariş detayına git
+- Alışverişe devam
+- E-posta/SMS bilgisi
+- Konfeti veya oyuncu kutlama animasyonu kullanma
+- Çok hafif altın çizgi veya ışık geçişi kullanılabilir
+
+Başarısız:
+
+- Suçlayıcı olmayan açık mesaj
+- Teknik hata kodunu doğrudan gösterme
+- Tekrar dene
+- Sepete dön
+- Destek bağlantısı
+- Siparişin oluşup oluşmadığı net anlatılmalıdır
+
+Beklemede:
+
+- Ödeme doğrulanıyor durumu
+- Güvenli tekrar kontrol mekanizması
+- Kullanıcıyı sonsuz spinner’da bırakma
+
+25. GİRİŞ, KAYIT VE ŞİFRE SAYFALARI
+
+Müşteri giriş sayfası:
+
+- Site tasarımının doğal parçası olmalı
+- Admin veya SuperAdmin ile ilgili hiçbir ifade veya bağlantı içermemeli
+- Büyük marka başlığı ve sade form
+- E-posta
+- Şifre
+- Beni Hatırla
+- Şifremi unuttum
+- Giriş
+- Kayıt bağlantısı
+
+Beni Hatırla:
+
+- Açık, standart ve erişilebilir checkbox
+- Varsayılan seçili olmamalıdır
+- Karanlık temada focus durumu görünür olmalıdır
+- Kullanıcıyı yanıltan özel checkbox animasyonu kullanılmamalıdır
+
+Kayıt:
+
+- Gereksiz alan isteme
+- Parola kuralları canlı fakat sakin biçimde gösterilebilir
+- Sözleşme ve gizlilik onayı açık
+- Başarı sonrası doğrulama bilgisi
+
+Şifremi unuttum, şifre sıfırlama ve doğrulama sayfaları aynı auth tasarım sistemini kullanmalıdır.
+
+26. KULLANICI PANELİ — GENEL YAPI
+
+Müşteri paneli lüks web sitesinin devamı olmalı, klasik kurumsal dashboard gibi görünmemelidir.
+
+Desktop:
+
+- Sol tarafta sade hesap navigasyonu
+- Sağ tarafta içerik
+- Koyu yüzeyler
+- Aktif menü altın çizgi veya ton farkıyla belirtilir
+- Büyük karşılama başlığı
+- Gereksiz grafik kullanılmaz
+
+Mobil:
+
+- Hesap navigasyonu select, drawer veya yatay kaydırılabilir sekmelerle çözülebilir
+- İçerik rahat okunmalıdır
+- Dokunma hedefleri yeterli olmalıdır
+
+Menüler:
+
+- Genel Bakış
+- Profilim
+- Adreslerim
+- Siparişlerim
+- Kargo Takibi
+- Faturalarım
+- İade Taleplerim
+- Favorilerim
+- Yorumlarım
+- Bildirimlerim
+- Güvenlik
+- Çıkış
+
+27. KULLANICI DASHBOARD
+
+- Kullanıcı adıyla sakin karşılama
+- Son sipariş
+- Aktif kargo
+- Okunmamış bildirim
+- Favori ürün sayısı
+- Hızlı bağlantılar
+- Son görüntülenen veya önerilen ürünler
+- Büyük satış dashboard grafiklerinden kaçın
+- Bilgi kartları sade ve aynı hizada olmalıdır
+
+28. PROFİL VE ADRES SAYFALARI
+
+Profil:
+
+- Düzenlenebilir alanlar
+- Salt okunur veya doğrulanmış bilgiler açıkça ayırt edilmeli
+- Kaydetme sonrası başarı durumu
+- E-posta/telefon doğrulama durumu
+
+Adresler:
+
+- Kart veya liste görünümü
+- Varsayılan teslimat/fatura etiketi
+- Düzenle
+- Sil
+- Yeni adres
+- Silme öncesi onay
+- Çok uzun adresler düzenli kırılmalı
+- Mobilde form tek kolon olmalıdır
+
+29. SİPARİŞLERİM VE SİPARİŞ DETAYI
+
+Sipariş listesi:
+
+- Sipariş numarası
+- Tarih
+- Tutar
+- Durum
+- Ürün önizlemeleri
+- Detaya git
+- Filtre ve arama
+- Desktopta sade liste veya kontrollü kart
+- Mobilde kart görünümü
+
+Sipariş detay:
+
+- Durum başlığı
+- Timeline
+- Sipariş ürünleri
+- Adres snapshot
+- Ödeme özeti
+- Kargo bilgisi
+- Fatura
+- İptal veya iade aksiyonu
+- Durum timeline’ı ince altın çizgi ve kontrollü noktalarla gösterilebilir
+- Geçmiş ve aktif adımlar net ayrılmalıdır
+
+30. KARGO TAKİBİ
+
+- Kargo firması
+- Takip numarası
+- Tahmini teslim
+- Güncel durum
+- Durum geçmişi
+- Dış takip bağlantısı
+- Harita gerçek entegrasyon yoksa sahte konum göstermemeli
+- Timeline sade olmalı
+- Mobilde okunabilir kalmalıdır
+
+31. FATURALAR
+
+- Fatura numarası
+- Sipariş numarası
+- Tarih
+- Tutar
+- Görüntüle
+- PDF indir
+- Liste sayfası müşteri paneli diliyle tutarlı
+- PDF önizleme modal veya ayrı sayfa olabilir
+- Yetkisiz erişim hata sayfasına yönlendirilmelidir
+
+32. İADE TALEPLERİ
+
+Liste:
+
+- Talep numarası
+- Sipariş
+- Tarih
+- Durum
+- Tutar
+- Detay
+
+Yeni talep:
+
+- İade edilecek ürün
+- Miktar
+- Neden
+- Açıklama
+- Görsel yükleme
+- Koşullar
+- Gönder
+
+Durumlar renklerle tek başına anlatılmamalıdır; metin etiketi bulunmalıdır.
+
+Adım adım form kullanılabilir fakat gereksiz karmaşıklaştırılmamalıdır.
+
+33. YORUMLAR VE PUANLAMA
+
+- Satın alınmış ürünler
+- Puan seçimi
+- Yorum alanı
+- Onay durumu
+- Düzenleme/silme
+- Yıldız sistemi keyboard ile kullanılabilir olmalıdır
+- Yalnızca renk üzerinden puan anlatma
+- Moderasyon durumu açıkça gösterilmelidir
+
+34. BİLDİRİMLER
+
+- Okunmuş/okunmamış ayrımı
+- Tarih
+- Bildirim türü
+- İlgili kayda git
+- Tümünü okundu yap
+- İnce vurgu çizgisi
+- Aşırı badge kullanımından kaçın
+- Boş durum açık olmalıdır
+
+35. HESAP GÜVENLİĞİ VE HESAP SİLME
+
+Güvenlik:
+
+- Şifre değiştir
+- Aktif oturum bilgisi gösterilebiliyorsa listele
+- E-posta/telefon doğrulama
+- Son giriş bilgisi
+- Güvenli çıkış
+
+Hesap silme:
+
+- Tehlikeli işlem alanı diğer içerikten ayrılmalı
+- Koyu şarap kırmızısı kontrollü kullanılmalı
+- Sonuçları açık biçimde anlat
+- Yeniden parola veya doğrulama iste
+- Yanlışlıkla tek tıkla silme yapma
+
+36. ADMIN GİRİŞ SAYFASI
+
+- Public sitede bağlantısı bulunmamalıdır.
+- Yalnızca /admin route’u üzerinden erişilmelidir.
+- Müşteri giriş sayfasından görsel ve teknik olarak ayrılmalıdır.
+- Aynı marka kimliğini taşır fakat daha kontrollü ve operasyonel görünür.
+- Admin ve SuperAdmin girişleri birbirinin yerine kullanılmamalıdır.
+- Form minimaldir: kullanıcı/e-posta, parola, Beni Hatırla, giriş.
+- Beni Hatırla varsayılan seçili değildir.
+- Brute-force veya kilitlenme mesajları güvenli ve genel olmalıdır.
+- Footer veya navigasyon gerekmez.
+- Sayfa source içinde SuperAdmin route’una yönlendiren gereksiz bağlantı bırakma.
+- Cache ve güvenlik kuralları backend tarafından uygulanmalıdır.
+
+37. SUPERADMIN GİRİŞ SAYFASI
+
+- Yalnızca /superadmin route’u üzerinden erişilmelidir.
+- Admin girişinden küçük ama net bir görsel ayrım taşımalıdır.
+- Daha yüksek güvenlik hissi; daha koyu yüzey, daha az dekorasyon.
+- Public site veya Admin panelinde gereksiz SuperAdmin bağlantısı bulunmamalıdır.
+- Beni Hatırla ve hata durumları güvenli şekilde uygulanmalıdır.
+- Form erişilebilir ve hızlı kullanılabilir olmalıdır.
+
+38. ADMIN VE SUPERADMIN AFK ARAYÜZÜ
+
+Admin ve SuperAdmin panellerinde AFK/idle sistemi için tasarım oluştur:
+
+- Oturum sona ermeden önce merkezde veya uygun yerde güvenli uyarı modalı aç.
+- Başlık: Oturumunuz sona ermek üzere
+- Kalan süre
+- Oturumu Devam Ettir
+- Güvenli Çıkış
+- Modal keyboard erişimine sahip olmalı
+- Focus modal içinde tutulmalı
+- Escape davranışı güvenlik politikasına göre belirlenmeli
+- Süre yalnızca görsel sayaç olmamalı; backend gerçeğini temsil etmelidir
+- Bir sekmede çıkış olduğunda diğer sekmeler de güvenli giriş sayfasına yönlenmelidir
+- Timeout sonrasında hassas dashboard içeriği görünür kalmamalıdır
+- Browser back ile eski görünüm gösterilmemelidir
+- Uyarı tasarımı marka dilinde olmalı fakat tehlike açıkça anlaşılmalıdır
+
+39. ADMIN PANELİ — GENEL TASARIM
+
+Admin paneli public sitenin sinematik animasyonlarını tekrar etmemelidir.
+
+Hedef:
+
+- Hızlı
+- Temiz
+- Güvenilir
+- Yoğun veriyi okunabilir sunan
+- Marka kimliğini kaybetmeyen
+- Operasyonel
+
+Yerleşim:
+
+- Sol sidebar
+- Üst bar
+- Ana içerik
+- Breadcrumb
+- Sayfa başlığı
+- Sayfa aksiyonları
+- Filtre alanı
+- Veri alanı
+
+Renk:
+
+- Ana yüzey #0B0D0B
+- Sidebar #151F16 veya #202E1F
+- İçerik yüzeyi #202E21
+- Altın yalnızca aktif durum ve kritik vurgu
+- Tablolarda yüksek okunabilirlik
+
+Sidebar:
+
+- Daraltılabilir
+- Menü grupları
+- Aktif menü belirgin
+- SuperAdmin’e özel menüler yalnızca policy izin veriyorsa görünür
+- Public siteye dön bağlantısı olabilir; public sitede yönetim bağlantısı olmamalıdır
+
+40. ADMIN DASHBOARD
+
+- Günlük/haftalık/aylık satış
+- Brüt ve net gelir
+- Sipariş sayısı
+- Bekleyen sipariş
+- Kritik stok
+- Bekleyen iade
+- Son siparişler
+- Son audit işlemleri
+
+Tasarım:
+
+- Kart sayısı kontrollü
+- Her KPI için gereksiz farklı renk kullanma
+- Grafikler koyu temada okunabilir
+- Tooltip erişilebilir
+- Tarih filtresi
+- Veri yok durumu
+- Loading ve hata durumu
+- Sayılar tutarlı formatlanmalıdır
+
+41. ADMIN LİSTE SAYFALARI
+
+Ürünler, siparişler, kullanıcılar, kampanyalar, kuponlar, faturalar, iadeler, yorumlar ve mesajlar ortak bir liste sistemi kullanmalıdır.
+
+Ortak parçalar:
+
+- Sayfa başlığı
+- Birincil aksiyon
+- Arama
+- Filtreler
+- Sıralama
+- Sayfalama
+- Toplam kayıt
+- Tablo
+- Mobil kart görünümü
+- Seçili satır işlemleri
+- Empty state
+- Loading state
+- Error state
+
+Tablo:
+
+- Sticky header gerekirse
+- Yatay scroll mobilde kontrollü
+- Satır hover
+- Status chip
+- İşlem menüsü
+- Silme aksiyonu doğrudan ana CTA olmamalıdır
+- Klavye erişimi
+- Gerekli kolonları gizleme/önceliklendirme
+
+42. ADMIN FORM SAYFALARI
+
+Ürün, kategori, kampanya, kupon ve ayar formları:
+
+- Mantıksal section’lara ayrılmalı
+- Uzun form tek duvar gibi görünmemeli
+- Desktopta iki kolon uygun yerlerde
+- Mobilde tek kolon
+- Sticky kaydet alanı gerekirse
+- Kaydet
+- Taslak veya pasif kaydet
+- İptal
+- Validasyon
+- Unsaved changes uyarısı
+- Görsel yükleme önizlemesi
+- Sürükle-bırak varsa keyboard alternatifi
+- Fiyat ve stok alanları doğru input türü kullanmalı
+- Hata özeti sayfanın üstünde ve alan yanında gösterilmelidir
+
+43. ADMIN SİPARİŞ DETAYI
+
+- Sipariş başlığı ve durum
+- Durum değiştirme
+- Müşteri bilgisi
+- Adres snapshot
+- Ürünler
+- Ödeme
+- Kargo
+- Fatura
+- İade
+- Durum geçmişi
+- Admin notu
+- Yeniden bildirim
+
+Kritik işlemler:
+
+- Durum değiştirme modal veya açık onay adımı
+- Refund, iptal ve stok değişiklikleri tehlikeli işlem olarak ayrılmalı
+- Eski ve yeni durum görünür olmalı
+- İşlem sonrası audit kaydı bilgisi gösterilebilir
+- Aynı anda iki admin güncellemesine karşı concurrency hatası kullanıcıya anlaşılır biçimde sunulmalıdır
+
+44. RAPOR VE GRAFİK SAYFALARI
+
+- Tarih aralığı
+- Karşılaştırma
+- KPI
+- Grafik
+- Tablo
+- CSV/Excel export
+- Brüt/net ayrımı
+- İade/iptal görünürlüğü
+- Grafikler dekorasyon değil veri anlatımı için kullanılmalıdır
+- Aynı ekranda gereğinden fazla grafik gösterme
+- Renk körlüğüne uygun işaretler, desen veya etiket kullan
+- Tooltip dışında da temel değerler erişilebilir olmalıdır
+
+45. AUDIT LOG / YÖNETİCİ İŞLEM GEÇMİŞİ
+
+- Tarih
+- Admin
+- İşlem
+- Entity
+- Eski değer
+- Yeni değer
+- IP
+- Correlation ID
+- Filtreleme
+- Detay drawer veya modal
+
+Eski/yeni değer farkları okunabilir diff görünümüyle sunulabilir.
+
+Hassas değerler maskelenmelidir.
+
+Normal Admin düzenleme veya silme aksiyonu görmemelidir.
+
+46. SUPERADMIN PANELİ
+
+SuperAdmin paneli Admin paneliyle aynı temel tasarım sistemini kullanmalıdır; tamamen ayrı bir ürün gibi görünmemelidir.
+
+Ek alanlar:
+
+- Admin kullanıcıları
+- Roller ve policy’ler
+- Hassas sistem ayarları
+- Audit log
+- Entegrasyon yapılandırmaları
+- Güvenlik olayları
+
+Kritik işlemler:
+
+- Ek doğrulama
+- Açık uyarı
+- Yeniden parola
+- Sonuçların özeti
+- Audit kaydı
+
+SuperAdmin görünümünde lüks tasarım operasyonel netliğin önüne geçmemelidir.
+
+47. HATA, 404, ERİŞİM ENGELLENDİ VE BAKIM SAYFALARI
+
+- Marka diliyle uyumlu
+- Büyük Mellos başlık
+- Kısa açıklama
+- Ana sayfaya dön
+- Gerekirse destek
+- Teknik stack trace yok
+- Erişim engellendi sayfasında kullanıcıyı yanlış giriş alanına yönlendirme
+- Admin oturum hatası Admin girişine
+- SuperAdmin oturum hatası SuperAdmin girişine
+- Müşteri oturum hatası müşteri girişine yönlenmelidir
+- Sinematik fakat hafif olmalıdır
+
+48. ORTAK COMPONENT SİSTEMİ
+
+Aşağıdaki reusable componentleri oluştur:
+
+- Navbar
+- Mobile menu
+- Footer
+- ProductCard
+- ProductGrid
+- PriceDisplay
+- StatusBadge
+- Pagination
+- FilterPanel
+- SearchOverlay
+- Modal
+- Drawer
+- Toast/notification
+- FormField
+- ValidationSummary
+- QuantitySelector
+- Breadcrumb
+- EmptyState
+- ErrorState
+- LoadingSkeleton
+- OrderCard
+- OrderTimeline
+- AddressCard
+- InvoiceRow
+- ReturnStatus
+- AdminTable
+- AdminFilterBar
+- AdminSidebar
+- AdminTopbar
+- ConfirmDialog
+- IdleTimeoutModal
+
+Component API’leri tutarlı olmalıdır. Aynı işlev için farklı sayfalarda farklı markup üretme.
+
+49. MOTION DESIGN KURALLARI
+
+Ana frame hero dışında hareket dili sakin, zarif, sinematik ve yüksek kaliteli olmalıdır. Hedef; yeni nesil ve ödüllü web sitelerindeki akıcılık seviyesine yaklaşan fakat kopya görünmeyen özgün bir hareket sistemi oluşturmaktır.
+
+Performans hedefi:
+
+- Desteklenen cihazlarda 60 FPS hissini hedefle.
+- Ana hareketleri transform ve opacity ağırlıklı uygula.
+- width, height, top, left, margin ve büyük blur değerlerini sürekli animate ederek layout/repaint maliyeti oluşturma.
+- requestAnimationFrame, GSAP veya seçilen motion engine’i doğru yaşam döngüsüyle kullan.
+- will-change değerini yalnızca gerekli elementlerde ve sınırlı süre kullan.
+- Görünmeyen timeline ve listenerları durdur veya temizle.
+- Düşük güçlü cihazlarda efekt yoğunluğunu azalt.
+- Ölçüm yapılmadan kesin 60 FPS garantisi verme.
+
+Sayfalar arası sinematik geçiş:
+
+- Public sayfalar arasında kontrollü sinematik geçiş altyapısı oluştur.
+- Koyu siyah veya orman yeşili maske, ince altın çizgi ve kısa tipografik işaret kullanılabilir.
+- Geçiş yeni sayfanın açılmasını gereksiz yere geciktirmemelidir.
+- Back/forward navigation, form submit, checkout, ödeme ve authentication akışları bozulmamalıdır.
+- Route değişiminden sonra focus ve scroll pozisyonunu doğru yönet.
+- Admin ve SuperAdmin panellerinde geçişi kullanma veya çok sadeleştir.
+- prefers-reduced-motion durumunda kısa fade veya doğrudan geçiş sun.
+
+Maskeli içerik geçişleri:
+
+- Büyük görsellerde, ürün fotoğraflarında, koleksiyon panellerinde ve editoryal başlıklarda mask reveal kullanılabilir.
+- Maskenin yönünü kompozisyona göre belirle.
+- Aynı koreografiyi her bölümde tekrarlama.
+- İçeriğin okunmasını veya etkileşimini geciktirme.
+- clip-path, overflow hidden veya CSS mask kullanımını gerçek tarayıcıda test et.
+
+Kullanılabilecek animasyonlar:
+
+- Fade
+- Clip reveal
+- TranslateY
+- Hafif scale
+- Line draw
+- Stagger
+- Image mask reveal
+- Navbar harf değişim animasyonu
+- Ürün kartı activation state
+- Kontrollü altın ışıltı taraması
+- Sayfalar arası koyu maske geçişi
+- Çok kontrollü parallax
+
+Kaçınılacaklar:
+
+- Bounce
+- Elastic
+- Sürekli floating
+- Sürekli dönen ikon
+- Ağır 3D tilt
+- Cursor’u takip eden gereksiz objeler
+- Her bölümde scroll pin
+- Agresif scroll hijacking
+- Kullanıcı etkileşimini geciktiren giriş animasyonları
+- Sürekli tekrarlanan shimmer
+- Tüm kartlarda aynı anda çalışan parlama
+- Neon glow
+- Aşırı manyetik buton hareketi
+- Metni okunamaz hâle getiren harf parçalama
+- Her route değişiminde uzun bekleme perdesi
+
+Önerilen motion token yaklaşımı:
+
+- micro: 140–220 ms
+- standard: 280–480 ms
+- cinematic: 600–1100 ms
+- stagger: 40–110 ms
+- easing: yumuşak ease-out veya özel cubic-bezier; bounce/elastic yok
+
+Bu değerleri gerçek tarayıcıda sahnenin ritmine göre ayarla.
+
+Elegant buton ve CTA sistemi:
+
+- Aşırı yuvarlatılmış capsule/pill buton kullanma.
+- Düşük radiuslu, keskin veya çok hafif yumuşatılmış köşeler kullan.
+- Büyük renk blokları yerine tipografi, ince çerçeve, yüzey tonu ve kontrollü hareket kullan.
+- Primary CTA koyu orman yeşili veya altın çerçeveli koyu yüzey olabilir.
+- Secondary CTA metin ve ince alt çizgi kullanabilir.
+- Tertiary CTA yalnızca metin veya küçük yön oku içerebilir.
+- Loading durumunda buton ölçüsü sıçramamalıdır.
+- Disabled durumu semantik attribute ile de belirt.
+- Hover/focus sırasında ince çizgi açılması, maskeli dolum, metin katmanı değişimi veya birkaç piksellik ok hareketi kullanılabilir.
+- Manyetik davranış yalnızca güçlü CTA’larda, pointer cihazlarda ve birkaç piksel sınırında kullanılabilir.
+- Focus-visible durumu hover kadar kaliteli ve belirgin olmalıdır.
+- Glass/blur buton, mor-mavi AI gradienti, neon dış parlama, aşırı radius ve sürekli parlayan CTA kullanma.
+
+prefers-reduced-motion:
+
+- Frame hero için poster veya sade geçiş alternatifi
+- Parallax kapalı
+- Büyük translate hareketleri kapalı
+- Sayfa geçişi doğrudan veya kısa fade
+- İçerik doğrudan erişilebilir
+- İşlev kaybı olmamalıdır
+
+50. RESPONSIVE DAVRANIŞ
+
+Breakpoints yalnızca cihaz isimlerine göre değil içerik kırılmasına göre belirlenmelidir.
+
+Desktop:
+- Geniş negatif alan
+- 3–4 kolon ürün
+- Sticky detaylar
+- Tam navbar
+
+Tablet:
+- 2–3 kolon
+- Sadeleştirilmiş navbar
+- Filtre drawer seçeneği
+- Hero kadrajı tekrar ayarlanmalı
+
+Mobil:
+- 1–2 kolon
+- Dokunmatik hedefler en az erişilebilir ölçüde
+- Formlar tek kolon
+- Sticky CTA içerik kapatmamalı
+- Canvas/frame hero performansına göre düşük çözünürlük veya poster fallback
+- Yatay taşma olmamalı
+- Mellos başlıklar taşmamalı
+- Menü keyboard ve screen reader uyumlu olmalı
+
+51. ERİŞİLEBİLİRLİK
+
+- Semantik HTML
+- Doğru heading sırası
+- Klavye navigasyonu
+- Görünür focus
+- Yeterli kontrast
+- Form label
+- Hata mesajlarının input ile ilişkisi
+- Modal focus trap
+- Escape ve kapatma davranışı
+- aria-live gereken işlem durumları
+- Alt text
+- Dekoratif görsellerde boş alt
+- Status yalnızca renk ile anlatılmamalı
+- Reduced motion
+- Screen reader için anlamlı CTA metinleri
+- Skip to content bağlantısı
+- Canvas içeriği için erişilebilir metinsel alternatif
+
+52. PERFORMANS
+
+Özellikle ana sayfa frame hero performansını koru.
+
+- Frame manifest kullan
+- Öncelikli kare yükleme
+- Lazy load
+- Responsive asset
+- Canvas DPI sınırı
+- requestAnimationFrame
+- Scroll handler throttle veya uygun engine
+- Görünmeyen animasyonları durdur
+- Görsellerde width/height belirt
+- CLS azalt
+- Ana font preload yalnızca gerekliyse
+- Font subset lisans ve teknik olarak uygunsa
+- JS modüllerini sayfa bazında yükle
+- Admin sayfalarında frame veya ağır motion bundle yükleme
+- Kritik CSS ve code splitting yaklaşımı
+- Harici kütüphane sayısını sınırlı tut
+- Lighthouse puanını tek hedef olarak değil gerçek kullanıcı deneyiminin göstergesi olarak ele al
+
+53. RAZOR VE BACKEND ENTEGRASYONU
+
+- Mevcut ViewModel alanlarını incele.
+- Entity’leri doğrudan View’a bağlama.
+- Partial View ve View Component kullan.
+- Form action, method ve antiforgery yapısını koru.
+- Validation tag helper kullan.
+- Route üretiminde sabit URL yerine asp-controller, asp-action ve asp-route kullan.
+- Admin/SuperAdmin Area route’larını doğru üret.
+- Public layout, Account layout, Admin layout ve SuperAdmin layout gerekirse ayrılmalıdır.
+- Public layout içinde yönetim giriş linki bulunmamalıdır.
+- JavaScript endpoint adreslerini hardcode etmek yerine data attribute veya üretilmiş URL ile al.
+- AJAX/Fetch işlemlerinde antiforgery token gönder.
+- Loading, success ve error durumlarını tasarla.
+- Backend izin vermediğinde butonu gizlemek yeterli değildir; gelen 403/401 cevabını doğru ele al.
+- Tasarım backend iş kurallarını taklit ederek sahte başarı göstermemelidir.
+
+54. DOSYA YAPISI
+
+Önerilen frontend düzeni:
+
+wwwroot/
+  css/
+    tokens.css
+    typography.css
+    base.css
+    layout.css
+    components/
+    pages/
+    admin/
+  js/
+    core/
+    components/
+    pages/
+      home-frame-sequence.js
+      products.js
+      product-detail.js
+      checkout.js
+    admin/
+      idle-session.js
+      tables.js
+  fonts/
+    Mellos-Regular.woff2
+  images/
+  frames/
+    home/
+      manifest.json
+      desktop/
+      tablet/
+      mobile/
+
+Views/
+  Shared/
+    Components/
+    Partials/
+  Home/
+  Products/
+  Categories/
+  Campaigns/
+  Account/
+  Customer/
+  Checkout/
+  Orders/
+  Areas/
+    Admin/
+    SuperAdmin/
+
+Dosya adlarını mevcut proje standartlarına göre uyarlayabilirsin.
+
+55. FRAME MANIFEST ÖRNEĞİ
+
+Frame sistemi sabit 300 veya başka bir sayıya bağlı olmamalıdır.
+
+Örnek manifest mantığı:
+
+{
+  "desktop": {
+    "count": "<gerçek kare sayısı>",
+    "pattern": "/frames/home/desktop/frame-{index}.webp",
+    "startIndex": 0,
+    "padLength": 4,
+    "poster": "/frames/home/desktop/poster.webp"
+  },
+  "tablet": {
+    "count": "<gerçek kare sayısı>",
+    "pattern": "/frames/home/tablet/frame-{index}.webp",
+    "startIndex": 0,
+    "padLength": 4,
+    "poster": "/frames/home/tablet/poster.webp"
+  },
+  "mobile": {
+    "count": "<gerçek kare sayısı>",
+    "pattern": "/frames/home/mobile/frame-{index}.webp",
+    "startIndex": 0,
+    "padLength": 4,
+    "poster": "/frames/home/mobile/poster.webp"
+  }
+}
+
+Scroll ilerlemesi:
+
+- progress 0 ile 1 arasında normalize edilir.
+- frameIndex = round(progress * (frameCount - 1)) mantığıyla hesaplanabilir.
+- Gerçek uygulamada mevcut yüklenmiş kare, hata toleransı ve requestAnimationFrame dikkate alınmalıdır.
+- Scroll mesafesi kare sayısına kör biçimde eşitlenmemelidir.
+- Tasarımcı tarafından belirlenen pacing ile frame count birbirinden ayrılmalıdır.
+- Frame manifest değiştiğinde JavaScript dosyasını yeniden yazmak gerekmemelidir.
+
+56. ANA SAYFA MOTION TIMELINE
+
+Örnek koreografi:
+
+Aşama A — Giriş:
+- Poster/ilk kare
+- Navbar görünür
+- Marka başlığı veya kısa manifesto
+- Scroll ipucu çok sade
+
+Aşama B — Kahve hareketi:
+- Hero pin
+- Frame progress
+- Başlık yavaşça görünmez
+- Arka plan tonu sahneye göre değişebilir
+
+Aşama C — Son kare:
+- Frame sonu
+- Kısa duraklama
+- Ürün alanının zemin tonu yaklaşır
+
+Aşama D — Ürünlerin girişi:
+- İlk kart alttan yükselir
+- Sonraki kartlar kısa stagger ile gelir
+- Kartların opacity ve translateY değerleri normalize edilir
+- Kartlar yatay hatta eşitlenir
+
+Aşama E — Serbest scroll:
+- Pin çözülür
+- Ürün bölümü normal document flow içine geçer
+- Navbar yeni yüzey durumuna geçer
+- Kullanıcı koleksiyon içeriğine devam eder
+
+Timeline scroll geriye alındığında mantıklı biçimde tersine çalışmalıdır.
+
+57. İÇERİK TONU
+
+Türkçe arayüz metinleri:
+
+- Kısa
+- Kendinden emin
+- Abartısız
+- Lüks
+- Teknik olmayan
+- Satış baskısı oluşturmayan
+
+Örnek ton:
+
+- “Kökenini keşfet”
+- “Seçkiyi incele”
+- “Ritüeline ekle”
+- “Kavrulma karakteri”
+- “Tek köken, net karakter”
+- “Siparişin hazırlanıyor”
+
+Kaçınılacak ton:
+
+- “Şimdi kap, son şans!!!”
+- Aşırı ünlem
+- Emoji
+- Yapay aciliyet
+- Uzun ve genel pazarlama cümleleri
+
+58. UYGULAMA SIRASI
+
+Aşama 1:
+- Repository analizi
+- Route/ViewModel haritası
+- Tasarım tokenları
+- Font kurulumu
+- Ortak layoutlar
+- Navbar ve footer
+
+Aşama 2:
+- Ana sayfa frame sistemi
+- Manifest
+- Canvas
+- Scroll timeline
+- Ürün kartı geçişi
+- Reduced motion
+- Responsive performans
+
+Aşama 3:
+- Ürün listesi
+- Ürün detay
+- Kategori
+- Kampanya
+- Arama
+
+Aşama 4:
+- Sepet
+- Favori
+- Checkout
+- Ödeme sonuçları
+
+Aşama 5:
+- Auth sayfaları
+- Kullanıcı paneli
+- Sipariş
+- Kargo
+- Fatura
+- İade
+- Bildirim
+
+Aşama 6:
+- Admin login
+- SuperAdmin login
+- AFK modalı
+- Admin layout
+- Dashboard
+- Liste ve form sayfaları
+- Rapor
+- Audit
+
+Aşama 7:
+- Hata sayfaları
+- Responsive kontrol
+- Klavye testi
+- Reduced motion testi
+- Performans optimizasyonu
+- Build ve entegrasyon testi
+
+Her aşama tamamlandığında mevcut backend fonksiyonlarını test et. Tasarım uğruna çalışan form, route, validasyon veya authorization akışını bozma.
+
+59. KALİTE KONTROL LİSTESİ
+
+Ana sayfa:
+
+- Frame count hardcode edilmemiş
+- Frame manifest çalışıyor
+- Canvas resize doğru
+- Ters scroll doğru
+- Son kareden ürünlere kesintisiz geçiş
+- Kartlar eşit boyutta
+- Kartlar alttan yukarı stagger ile geliyor
+- Desktop/tablet/mobile kadrajı doğru
+- Reduced motion fallback var
+- Düşük bağlantı hızında poster fallback var
+- Navbar transparan
+- Navbar’da Admin/SuperAdmin linki yok
+- Navbar harf animasyonu hover ve keyboard focus durumunda çalışıyor
+- Ürün kartı activation ve kontrollü ışıltı efekti çalışıyor
+- Public sayfa geçişi back/forward ve form akışlarını bozmuyor
+- Motion transform/opacity ağırlıklı
+- Butonlar düşük radiuslu ve AI şablonu hissinden uzak
+- Performance profili veya açık performans raporu mevcut
+
+Genel site:
+
+- Mellos doğru yükleniyor
+- Altın ton ucuz gradient gibi görünmüyor
+- Renk tokenları tutarlı
+- Formlar erişilebilir
+- Sayfalar responsive
+- Loading/empty/error durumları var
+- Tüm CTA’lar çalışıyor
+- Yatay overflow yok
+- Focus görünür
+- Kontrast yeterli
+
+Yönetim:
+
+- /admin ve /superadmin tasarım olarak ayrılmış
+- Public siteden yönetim girişi görünmüyor
+- AFK modalı çalışıyor
+- Timeout sonrası hassas ekran cache’ten görünmüyor
+- Beni Hatırla varsayılan false
+- Mobil admin tabloları kullanılabilir
+- Kritik işlemlerde onay var
+- SuperAdmin aksiyonları normal Admin’e görünmüyor
+
+60. TESLİM KRİTERLERİ VE SON TALİMAT
+
+Çalışma aşağıdaki şartlar sağlandığında tamamlanmış kabul edilir:
+
+- Tüm public sayfalar tasarlanmış ve çalışır durumda
+- Tüm müşteri paneli sayfaları tasarlanmış
+- Admin ve SuperAdmin ekranları tasarlanmış
+- Ana sayfa frame-sequence scroll animasyonu gerçek manifest ile çalışıyor
+- Frame sayısı sabit değer olarak koda gömülmemiş
+- Ürün kartlarında zarif activation ve kontrollü altın ışıltı bulunuyor
+- Public sayfalar arasında hızlı sinematik maske geçişi çalışıyor
+- Navbar harf animasyonları erişilebilir biçimde uygulanmış
+- Ana motion sistemi transform/opacity ağırlıklı geliştirilmiş
+- Buton sistemi düşük radiuslu, elegant ve hazır AI şablonu görünümünden uzak
+- Claude Code mevcut frontend skill ve MCP araçlarını keşfetmiş; kullanılan ve kullanılamayan araçları raporlamış
+- Son kareden eşit boyutlu yatay ürün kartlarına akıcı geçiş sağlanmış
+- Mellos Regular doğru alanlarda uygulanmış
+- Siyah, orman yeşili ve altın pigment sistemi tutarlı
+- Transparan metin navbar uygulanmış
+- Public sitede yönetim bağlantısı bulunmuyor
+- Responsive davranış tamamlanmış
+- Reduced motion alternatifi mevcut
+- Erişilebilirlik kontrolleri yapılmış
+- Frontend assetleri optimize edilmiş
+- Razor form, route ve validation akışları bozulmamış
+- Build başarıyla tamamlanıyor
+- Kritik kullanıcı akışları manuel veya otomatik olarak doğrulanmış
+- Yapılan tasarım kararları DESIGN_DECISIONS.md dosyasına yazılmış
+- Frame asset hazırlama ve manifest kullanımı README içinde açıklanmış
+
+Şimdi repository’yi incele. Önce aktif branch/worktree ve dosya sahipliğini doğrula; ardından mevcut sayfaları, ViewModel’leri, route’ları ve layoutları haritala. Ortamda bulunan frontend skill ve MCP araçlarını keşfet. Daha sonra ortak tasarım tokenlarını ve component sistemini kur. Ana sayfa frame-sequence deneyimini ilk kritik teslim olarak geliştir; gerçek kare sayısını manifestten oku, scroll ilerlemesine eşle, son karede eşit boyutlu ürün kartlarını yatay sıra hâlinde alttan yukarı stagger animasyonla sahneye getir ve ardından normal sayfa akışına geç. Sonrasında tüm public, müşteri, Admin ve SuperAdmin sayfalarını yukarıdaki tasarım sistemine göre sırayla uygula. Yalnızca tasarım açıklaması üretip durma; repository üzerinde gerçek dosyaları oluştur, kodu çalıştır, build hatalarını düzelt ve işlevsel teslim yap.

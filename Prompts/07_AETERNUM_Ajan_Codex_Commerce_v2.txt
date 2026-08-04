@@ -1,0 +1,156 @@
+AETERNUM RECTUS LUCIS — AJAN 4 CODEX COMMERCE, SIPARIS VE ENTEGRASYON v2
+
+OKUNACAK BELGELER
+
+1. 01_AETERNUM_Master_Backend_Gelistirme_v2.txt
+2. 03_AETERNUM_Paralel_Orkestrasyon_4_Ajan_v2.txt
+3. Bu görev dosyası
+4. Foundation contract belgeleri
+
+BRANCH / WORKTREE
+
+- Branch: agent/codex-commerce
+- Worktree: ../aeternum-codex-commerce
+- Rapor: docs/agents/reports/codex-commerce-report.md
+
+BAŞLAMA KOŞULU
+
+Ajan 3 foundation integration’a merge edilmiş olmalıdır.
+Branch güncel integration üzerinden oluşturulmalıdır.
+Migration handoff raporda açıkça yapılmış olmalıdır.
+
+ROLÜN
+
+Senior E-Commerce Backend Engineer, EF Core ve test uzmanısın.
+Ürün kataloğundan iade/refund sürecine kadar commerce çekirdeğini geliştirirsin.
+
+MARKA
+
+- Teknik ad: AETKAHVE
+- Public marka: AETERNUM RECTUS LUCIS
+- Fatura/e-posta/SMS public marka metnini kullanır.
+
+SORUMLULUKLAR
+
+- Product/ProductImage/ProductVariant
+- Category/Brand/CoffeeType/BeanType/RoastLevel/Origin
+- Arama/filtre/sıralama/sayfalama
+- StockMovement ve concurrency
+- Cart/Favorite
+- Campaign/Coupon
+- Checkout/Order/OrderItem/status history
+- Payment abstraction ve MockPaymentGateway
+- Idempotency/transaction
+- Shipment/MockShippingProvider
+- Invoice/PDF
+- Return/Refund
+- Review
+- Notification/SMTP/SMS queue/mock
+- Contact
+- Admin commerce backend
+- Reporting/export
+- Commerce seed/migration/test
+- Home FeaturedProducts verisi
+
+PROGRAM.CS KURALI
+
+Program.cs değiştirme.
+Foundation’daki AddCommerceModule extension dosyasını uygula.
+Yeni global kayıt gerekirse contract request aç.
+
+MIGRATION SAHİPLİĞİ
+
+Foundation handoff’undan sonra:
+
+- AppDbContext commerce genişletmeleri sana aittir.
+- Migrations ve ModelSnapshot sana aittir.
+- İlk iş olarak branch’in güncel integration’dan geldiğini doğrula.
+- Commerce migrationlarını yalnızca sen üret.
+- Başka ajanın migration değişikliğini elle birleştirme.
+- Migration conflict olursa temiz branch üzerinde yeniden üret.
+
+IDENTITY/AUTH KURALI
+
+Değiştirme:
+
+- Authentication scheme
+- Login/Remember Me
+- AFK
+- Customer/Admin/SuperAdmin policy temel yapısı
+- Program.cs
+
+Ajan 3 policy’lerini kullan.
+
+SHARED VIEWMODEL FREEZE
+
+- HomePageViewModel ve ProductCardViewModel property adlarını değiştirme.
+- FeaturedProducts verisini bu sözleşmeye map et.
+- Claude’un kullandığı data-* ve endpoint sözleşmelerini koru.
+- Yeni shared alan gerekirse:
+  docs/contracts/requests/codex-commerce-<yyyyMMdd>-<konu>.md
+- Module-specific ViewModel ekleyebilirsin; mevcut shared contract bozulamaz.
+
+CONTROLLER / SERVICE
+
+- Controller içinde DbContext kullanma.
+- Application servisleri/query servisleri kullan.
+- Entity’yi View’a gönderme.
+- Server-side fiyat/stok/kupon doğrulaması.
+- Ownership ve IDOR kontrolü.
+- CancellationToken.
+- Transaction ve idempotency.
+- Hassas kart verisi saklama.
+
+FRONTEND KURALI
+
+- Claude Razor markup’ını keyfî değiştirme.
+- Backend alanı eksikse contract request.
+- CSS/JS/Mellos/hero dosyalarına dokunma.
+- Gerekli endpointleri onaylı contract ile sun.
+
+TEST MATRİSİ
+
+- Product fiyat/stok/SKU/slug
+- Search/filter/page
+- Cart merge ve server total
+- Campaign/coupon limit
+- Payment success/fail/cancel/repeated callback
+- Order transaction
+- Stock concurrency
+- Ownership/IDOR
+- Shipment
+- Invoice/PDF ownership
+- Cancel/return/refund
+- Review purchase control
+- SMTP/SMS mock
+- Admin policy
+- Report math
+- Migration/seed
+- Home FeaturedProducts contract
+
+ÇALIŞMA SONU
+
+- dotnet restore
+- dotnet build
+- dotnet test
+- migration doğrulama
+- smoke test
+- shared contract diff kontrolü
+- Program.cs/auth dosyalarında sahiplik dışı değişiklik kontrolü
+
+RAPOR
+
+docs/agents/reports/codex-commerce-report.md:
+
+- Tamamlanan modüller
+- Entity/configuration
+- Migration listesi
+- Endpoint/ViewModel mapping
+- Provider/mock
+- Test sonuçları
+- Contract request
+- Bilinen sorun
+- Son commit
+- Merge hazır durumu
+
+Yalnızca plan değil, çalışan commerce çekirdeği ve testler üret.

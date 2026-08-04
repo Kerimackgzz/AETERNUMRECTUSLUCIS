@@ -1,0 +1,211 @@
+AETERNUM RECTUS LUCIS — AJAN 3 CODEX ARCHITECTURE, IDENTITY VE SECURITY v2
+
+OKUNACAK BELGELER
+
+1. 01_AETERNUM_Master_Backend_Gelistirme_v2.txt
+2. 03_AETERNUM_Paralel_Orkestrasyon_4_Ajan_v2.txt
+3. Bu görev dosyası
+
+BRANCH / WORKTREE
+
+- Branch: agent/codex-architecture-security
+- Worktree: ../aeternum-codex-architecture
+- Rapor: docs/agents/reports/codex-architecture-security-report.md
+
+ROLÜN
+
+İlk başlayan foundation ajanısın.
+Senior ASP.NET Core Architect, Identity/Security Engineer ve contract sahibisin.
+
+MARKA
+
+- Teknik solution/namespace: AETKAHVE
+- Public marka: AETERNUM RECTUS LUCIS
+- Toplu namespace rename yapma.
+
+FOUNDATION SORUMLULUKLARI
+
+- Solution ve katmanlar
+- Test projeleri
+- Nullable/analyzer
+- DI extension noktaları
+- Global exception/logging/options/health skeleton
+- AppDbContext temeli
+- Identity model/configuration
+- İlk Identity migration ve ModelSnapshot
+- Customer/Admin/SuperAdmin auth
+- /admin ve /superadmin route/policy
+- Remember Me
+- AFK backend sözleşmesi
+- Cache-Control no-store
+- Audit/auth log temeli
+- Shared ViewModel contractları
+- Public/Account/Admin/SuperAdmin layout skeleton
+- Navbar ve page-transition partial hookları
+- Styles/PageScripts sections
+- Antiforgery/data-* hooks
+- Ortak docs/contracts
+
+PROGRAM.CS KURALI
+
+Program.cs yalnızca sana aittir.
+Foundation’da şu extension noktalarını oluştur:
+
+- AddIdentityAndSecurityModule(...)
+- AddApplicationModule(...)
+- AddInfrastructureModule(...)
+- AddCommerceModule(...)
+- MapApplicationEndpoints(...)
+
+Ajan 4 AddCommerceModule implementasyonunu kendi extension dosyasında tamamlar; Program.cs değiştirmez.
+
+SHARED CONTRACT
+
+Oluştur ve sabitle:
+
+- docs/project/PROJECT_STATUS.md
+- docs/project/DECISIONS.md
+- docs/contracts/ROUTE_MAP.md
+- docs/contracts/VIEWMODEL_CONTRACTS.md
+- docs/contracts/FRONTEND_BACKEND_CONTRACT.md
+- docs/agents/AGENT_BOARD.md
+- docs/project/CONFLICT_LOG.md
+- docs/contracts/requests/.gitkeep
+- docs/agents/reports/.gitkeep
+
+Shared ViewModel:
+
+- HomePageViewModel
+- ProductCardViewModel
+- Login/Register/ForgotPassword
+- AdminLogin/SuperAdminLogin
+- Temel dashboard/status presentation modelleri
+
+HomePageViewModel en az:
+
+- FeaturedProducts
+- HeroFrameManifestUrl
+- HeroPosterUrl
+- HeroTitle
+- HeroSubtitle
+- HeroAccessibilityDescription
+- IsReducedMotionFallbackAvailable
+
+ProductCardViewModel en az:
+
+- Id
+- Name
+- Slug
+- PrimaryImageUrl
+- PrimaryImageAlt
+- CategoryName
+- OriginName
+- RoastLevelName
+- DisplayPrice
+- OriginalPrice
+- IsDiscounted
+- IsInStock
+- IsFavorite
+- AddToCartUrl
+- ToggleFavoriteUrl
+- DetailUrl
+
+FRONTEND HOOKLARI
+
+Public layout skeleton:
+
+- _Navbar partial
+- _PageTransitionOverlay partial
+- Styles section
+- PageScripts section
+- Antiforgery token hook
+- data-frame-manifest-url
+- data-poster-url
+- data-reduced-motion
+- product card motion hookları
+
+Tasarım yapma; sade iskelet bırak.
+
+MIGRATION HANDOFF
+
+Foundation tamamlanana kadar:
+
+- AppDbContext ve Migrations senin sahipliğinde.
+- İlk Identity migration’ını oluştur.
+- ModelSnapshot temiz olmalı.
+
+Foundation integration’a merge edildikten sonra:
+
+- AppDbContext, Migrations ve ModelSnapshot sahipliğini Ajan 4’e devret.
+- Artık bu dosyalara dokunma.
+- Auth değişikliği migration gerektirirse contract request aç ve Coordinator kararı bekle.
+
+FOUNDATION SONRASI SAHİPLİĞİN
+
+- Program.cs
+- Auth/security configuration
+- Account/Admin/SuperAdmin auth controller/service
+- Authorization policy
+- AFK/Remember Me backend
+- Auth/security testleri
+- Program extension iskeleti
+- Kendi benzersiz raporun
+
+Foundation sonrası değiştirmeyeceğin:
+
+- AppDbContext
+- Migrations/ModelSnapshot
+- Commerce entity/service/controller
+- Frontend CSS/JS ve gelişmiş Razor tasarım
+
+CONTRACT FREEZE
+
+Foundation merge’inden sonra ortak contract dosyalarını ajanlar değiştiremez.
+Sen de paralel aşamada doğrudan değiştirme; Coordinator ile güncelle.
+Ajanlar request dosyası oluşturur.
+
+TEST
+
+- dotnet restore
+- dotnet build
+- test foundation
+- Identity/register/login/reset
+- Customer/Admin/SuperAdmin policy
+- /admin /superadmin ayrımı
+- Remember Me session/persistent
+- AFK/keepalive/logout
+- Lockout/rate limit
+- Cache header
+- Options validation
+- Identity migration
+- Public layoutta yönetim linki bulunmaması
+
+FOUNDATION TESLİM KRİTERİ
+
+- Build başarılı
+- Test projeleri çalışıyor
+- Identity migration hazır
+- Route/policy iskeleti çalışıyor
+- Contract docs hazır
+- Shared ViewModel hazır
+- Layout hooks hazır
+- AddCommerceModule hook hazır
+- Rapor ve commit hazır
+
+Foundation merge’inden sonra diğer üç ajan başlatılır.
+
+RAPOR
+
+docs/agents/reports/codex-architecture-security-report.md:
+
+- Mimari
+- Auth scheme
+- Route/policy
+- Cookie/AFK
+- Migration handoff
+- Shared contracts
+- Build/test
+- Son commit
+- Merge hazır durumu
+
+Yalnızca açıklama değil, çalışan foundation üret.

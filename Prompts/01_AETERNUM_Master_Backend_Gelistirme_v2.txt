@@ -1,0 +1,1958 @@
+AETERNUM RECTUS LUCIS — MASTER BACKEND VE SİSTEM GELİŞTİRME PROMPTU v2
+
+1. ROLÜN VE ÇALIŞMA BİÇİMİN
+
+Sen; kıdemli bir ASP.NET Core yazılım mimarı, e-ticaret sistemleri uzmanı, backend geliştirici, veritabanı tasarımcısı, uygulama güvenliği uzmanı, test mühendisi ve DevOps mühendisi olarak çalışacaksın.
+
+
+PROJE VE MARKA ADLANDIRMA KURALI
+
+- Repository, solution, namespace ve teknik proje adı `AETKAHVE` olarak kalabilir.
+- Müşteriye görünen marka adı kesin olarak `AETERNUM RECTUS LUCIS` olacaktır.
+- Public web sitesi, navbar, sayfa başlıkları, e-posta, SMS, fatura, PDF, ürün ambalajı ve kullanıcıya gösterilen marka metinlerinde `AETERNUM RECTUS LUCIS` kullanılmalıdır.
+- Teknik sınıf, namespace, assembly, veritabanı veya deployment adlarını yalnızca marka değişti diye topluca yeniden adlandırma.
+- Bu ayrımı README.md ve DECISIONS.md içinde açıkça belgele.
+
+ÇOK AJANLI ÇALIŞMA KURALI
+
+Bu prompt paralel ajan yapısıyla kullanılıyorsa aşağıdaki belgeleri de oku:
+
+1. `03_AETERNUM_Paralel_Orkestrasyon_4_Ajan_v2.txt`
+2. Sana atanmış ajan görev dosyası
+3. Repository içindeki onaylı sözleşme belgeleri
+
+Öncelik sırası:
+
+1. Güvenlik, veri bütünlüğü ve yasal zorunluluklar
+2. Bu Master Backend Promptu
+3. Onaylı `ROUTE_MAP.md`, `VIEWMODEL_CONTRACTS.md` ve `FRONTEND_BACKEND_CONTRACT.md`
+4. Master Frontend Promptu
+5. Ajanın yerel tercihi
+
+Orkestrasyon ve ajan görev dosyaları iş kapsamını ve dosya sahipliğini sınırlar; bu master prompttaki iş kurallarını iptal etmez. Sana ait olmayan dosyalarda değişiklik yapma. `main` veya `integration` branch’ine doğrudan commit atma.
+
+Görevin yalnızca örnek kod veya yarım çalışan bir demo hazırlamak değildir. Üretime yakın kalitede, çalıştırılabilir, test edilebilir, sürdürülebilir ve genişletilebilir bir ASP.NET Core MVC e-ticaret uygulaması oluşturacaksın.
+
+Aşağıdaki kurallara uy:
+
+- Önce mevcut repository ve dosya yapısını incele.
+- Mevcut çalışan kodu gereksiz yere silme veya bozma.
+- Proje yoksa çözümü sıfırdan oluştur.
+- Büyük işi uygulanabilir geliştirme aşamalarına böl.
+- Her aşamanın sonunda projeyi derle ve oluşan hataları düzelt.
+- Bir özelliği yalnızca arayüzde gösterme; veritabanı, servis, validasyon, yetkilendirme ve hata yönetimiyle birlikte tamamla.
+- Sahte veya eksik kod, boş metot, açıklamasız TODO, çalışmayan örnek ve yalnızca görünüşte tamamlanmış özellik bırakma.
+- Gerekli bir bilgi verilmediyse güvenli ve mantıklı varsayım yap, varsayımı DECISIONS.md dosyasına yaz.
+- Gerçek ödeme, SMS, SMTP veya kargo bilgileri bulunmuyorsa uygulamayı durdurma; servis arayüzleri ve mock/sandbox uygulamalar oluştur.
+- Kullanıcıdan ancak ilerlemeyi tamamen engelleyen kritik bir bilgi eksikse soru sor.
+- Tasarım, renk, animasyon ve gelişmiş frontend çalışması yapma. Bunun için ayrı bir tasarım promptu kullanılacak.
+- Razor sayfalarını işlevsel, sade ve semantik HTML ile oluştur. Tasarım ekibinin kullanabilmesi için tutarlı element kimlikleri, sınıf isimleri ve data-* alanları bırak.
+- Kodun tamamında İngilizce sınıf, metot, property ve değişken isimleri kullan.
+- Kullanıcıya gösterilen metinleri Türkçe ve localization uygulanabilir biçimde hazırla.
+
+2. PROJENİN AMACI
+
+ASP.NET Core MVC kullanarak kahve çekirdekleri, öğütülmüş kahveler, filtre kahveler, espresso kahveleri ve farklı kahve çeşitlerinin satıldığı bir e-ticaret uygulaması geliştir.
+
+Teknik solution adı `AETKAHVE`, müşteriye görünen marka adı `AETERNUM RECTUS LUCIS` olsun.
+
+Sistem aşağıdaki süreçleri eksiksiz kapsasın:
+
+- Ürün listeleme ve ürün detayları
+- Ürün arama, filtreleme ve sıralama
+- Kullanıcı üyeliği ve hesap yönetimi
+- Sepet ve favori işlemleri
+- Adres yönetimi
+- Kampanya ve kupon kullanımı
+- Ödeme işlemleri
+- Sipariş oluşturma ve yönetme
+- Stok takibi
+- Kargo takibi
+- Fatura oluşturma
+- Sipariş iptali
+- İade talepleri ve ödeme iadesi
+- Ürün yorumları ve puanlama
+- E-posta bildirimleri
+- SMS bildirimleri
+- Kullanıcı bildirim merkezi
+- Admin paneli
+- Satış ve stok raporları
+- Yönetici işlem geçmişi
+- Loglama, güvenlik, test ve hata yönetimi
+
+3. KULLANILACAK TEKNOLOJİLER
+
+Projeyi aşağıdaki teknoloji ve prensiplerle geliştir:
+
+- ASP.NET Core MVC
+- Desteklenen güncel kararlı .NET sürümü
+- Entity Framework Core
+- SQL Server
+- ASP.NET Core Identity
+- Razor Views
+- Dependency Injection
+- FluentValidation veya Data Annotations
+- AutoMapper veya açık mapping servisleri
+- Serilog veya eşdeğer yapılandırılmış loglama sistemi
+- xUnit
+- Moq, NSubstitute veya eşdeğer mocking aracı
+- EF Core integration test altyapısı
+- Swagger yalnızca gerekli API endpointleri bulunuyorsa
+- SMTP tabanlı e-posta servisi
+- Soyutlanmış SMS servisi
+- Soyutlanmış ödeme servisi
+- Soyutlanmış kargo servisi
+- PDF fatura üretim servisi
+- Gerekli yerlerde background job veya güvenilir mesaj işleme yaklaşımı
+- Configuration, environment variables ve user secrets
+
+Belirli bir üçüncü taraf kütüphane seçerken:
+
+- Aktif olarak kullanılan ve proje sürümüyle uyumlu bir çözüm seç.
+- Gereksiz bağımlılık ekleme.
+- Seçimin nedenini DECISIONS.md dosyasına yaz.
+- Lisans veya kullanım problemi oluşturabilecek paketlerden kaçın.
+
+4. MİMARİ YAPI
+
+Projeyi sorumlulukları ayrılmış katmanlı bir mimariyle oluştur.
+
+Önerilen solution yapısı:
+
+AETKAHVE.sln
+src/
+  AETKAHVE.Domain
+  AETKAHVE.Application
+  AETKAHVE.Infrastructure
+  AETKAHVE.Web
+tests/
+  AETKAHVE.UnitTests
+  AETKAHVE.IntegrationTests
+
+Katmanların sorumlulukları:
+
+Domain:
+- Entity sınıfları
+- Enum değerleri
+- Temel domain kuralları
+- Value object yapıları
+- Domain exception sınıfları
+- Arayüz bağımlılığı olmayan temel modeller
+
+Application:
+- DTO sınıfları
+- ViewModel dışındaki uygulama modelleri
+- Servis arayüzleri
+- İş kuralları
+- Use-case servisleri
+- Validasyonlar
+- Mapping işlemleri
+- Yetki kontrollerine yardımcı politikalar
+
+Infrastructure:
+- EF Core DbContext
+- Entity configuration sınıfları
+- Repository implementasyonları
+- Identity implementasyonu
+- SMTP servisi
+- SMS servisi
+- Ödeme servisi
+- Kargo servisi
+- Dosya depolama servisi
+- PDF fatura servisi
+- Harici servis adaptörleri
+- Log ve persistence altyapıları
+
+Web:
+- MVC Controller sınıfları
+- Admin Area
+- SuperAdmin Area veya açıkça ayrılmış yönetim route yapısı
+- Razor Views
+- ViewModel sınıfları
+- Middleware yapıları
+- Filter sınıfları
+- Authorization policy yapılandırmaları
+- Model binding
+- Kullanıcıya gösterilecek hata ve başarı mesajları
+- Statik dosya bağlantıları
+
+Controller içerisinde doğrudan DbContext kullanma. Controller yalnızca HTTP akışını yönetsin; iş kuralları application servislerinde bulunsun.
+
+Generic repository yapısını yalnızca gerçekten faydalıysa kullan. Karmaşık sorgular için ihtiyaca özel repository veya query servisleri oluştur.
+
+5. KULLANICI ROLLERİ
+
+Sistemde başlangıçta şu roller bulunsun:
+
+Visitor:
+- Ürünleri görebilir.
+- Ürün arayabilir.
+- Filtreleme ve sıralama yapabilir.
+- Kategorileri ve kampanyaları inceleyebilir.
+- Sepete ürün ekleyebilir ancak ödeme öncesinde giriş yapmalıdır.
+- Kayıt ve müşteri giriş sayfalarına erişebilir.
+
+Customer:
+- Visitor yetkilerine sahiptir.
+- Profilini yönetebilir.
+- Adres ekleyebilir, güncelleyebilir ve silebilir.
+- Favorilerini yönetebilir.
+- Sipariş oluşturabilir.
+- Ödeme yapabilir.
+- Siparişlerini takip edebilir.
+- Faturasını görüntüleyebilir ve indirebilir.
+- İptal veya iade talebi oluşturabilir.
+- Satın aldığı ürünlere yorum ve puan verebilir.
+- Bildirimlerini görüntüleyebilir.
+- Şifresini değiştirebilir.
+- Hesabını silme talebi oluşturabilir.
+
+Admin:
+- Admin paneline erişebilir.
+- Ürün, kategori ve ürün özelliklerini yönetebilir.
+- Siparişleri yönetebilir.
+- Kargo bilgilerini düzenleyebilir.
+- İade taleplerini inceleyebilir.
+- Kullanıcıları yönetebilir.
+- Kampanya ve kuponları yönetebilir.
+- Yorumları yönetebilir.
+- Raporları görebilir.
+- Sistem ayarlarını yetkisi ölçüsünde yönetebilir.
+- Bildirim ve iletişim mesajlarını yönetebilir.
+
+SuperAdmin:
+- Admin yetkilerine sahiptir.
+- Admin kullanıcılarını ve rollerini yönetebilir.
+- Hassas sistem ayarlarını değiştirebilir.
+- Yönetici işlem geçmişini görüntüleyebilir.
+- Gerekirse yeni admin oluşturabilir.
+- Normal Admin rolünün yapamayacağı kritik işlemleri gerçekleştirebilir.
+
+Tüm yetkilendirmeyi yalnızca menüleri gizleyerek yapma. Controller, action, servis ve kayıt seviyesinde rol veya policy tabanlı kontrol uygula.
+
+6. KULLANICI TARAFINDA BULUNACAK SAYFALAR
+
+Aşağıdaki sayfaları işlevsel olarak oluştur:
+
+- Ana Sayfa
+- Ürünler
+- Ürün Detayı
+- Kategoriler
+- Kategori Detayı
+- Kampanyalar
+- Kampanya Detayı
+- Arama Sonuçları
+- Hakkımızda
+- İletişim
+- Sık Sorulan Sorular
+- Gizlilik Politikası
+- Mesafeli Satış Sözleşmesi
+- İade ve İptal Koşulları
+- Çerez Politikası
+- Sepet
+- Favoriler
+- Ödeme
+- Ödeme Sonucu
+- Sipariş Başarılı
+- Sipariş Başarısız
+- Giriş
+- Kayıt
+- E-posta Doğrulama
+- Telefon Doğrulama altyapısı
+- Şifremi Unuttum
+- Şifre Sıfırlama
+- Erişim Engellendi
+- 404
+- Genel Hata Sayfası
+
+Kullanıcı panelinde aşağıdaki sayfalar bulunsun:
+
+- Kullanıcı Dashboard
+- Profilim
+- Adreslerim
+- Adres Ekle
+- Adres Düzenle
+- Siparişlerim
+- Sipariş Detayı
+- Kargo Takibi
+- Faturalarım
+- Fatura Detayı
+- İade Taleplerim
+- İade Talebi Oluştur
+- İade Talebi Detayı
+- Favorilerim
+- Yorumlarım
+- Bildirimlerim
+- Şifre Değiştir
+- Hesap Güvenliği
+- Hesabı Silme Talebi
+
+Her listeleme sayfasında uygun olduğu yerlerde:
+
+- Sayfalama
+- Arama
+- Filtreleme
+- Sıralama
+- Boş veri durumu
+- Hata durumu
+- Başarı mesajı
+- Yetkisiz erişim kontrolü
+
+bulunsun.
+
+7. ADMIN PANELİ
+
+Admin panelini ASP.NET Core MVC Area yapısıyla oluştur.
+
+Önerilen route örnekleri:
+
+/Admin
+/Admin/Products
+/Admin/Orders
+/Admin/Users
+
+Admin panelinde aşağıdaki bölümler bulunsun:
+
+Dashboard:
+- Toplam sipariş sayısı
+- Günlük, haftalık ve aylık satış
+- Brüt gelir
+- Net gelir
+- Ortalama sepet tutarı
+- Toplam müşteri sayısı
+- Aktif ürün sayısı
+- Kritik stoktaki ürünler
+- Tükenen ürünler
+- Bekleyen siparişler
+- Bekleyen iade talepleri
+- Son siparişler
+- Son yönetici işlemleri
+
+Ürün yönetimi:
+- Ürün listesi
+- Ürün detayı
+- Ürün ekleme
+- Ürün düzenleme
+- Ürünü aktif veya pasif yapma
+- Ürünü öne çıkarma
+- Ürün arama ve filtreleme
+- Fiyat güncelleme
+- Stok güncelleme
+- Çoklu ürün görseli yükleme
+- Ana ürün görseli seçme
+- Ürün varyantları veya gramaj seçenekleri
+- Ürün silme yerine mümkün olduğunda soft delete
+
+Ürün özellikleri yönetimi:
+- Kategoriler
+- Markalar
+- Kahve türleri
+- Çekirdek türleri
+- Kavurma dereceleri
+- Gramajlar
+- Menşei ülkeler veya bölgeler
+
+Sipariş yönetimi:
+- Sipariş listesi
+- Sipariş detayı
+- Sipariş durumunu değiştirme
+- Ödeme kaydını görüntüleme
+- Adres snapshot bilgilerini görüntüleme
+- Sipariş notları
+- Kargo bilgileri
+- Sipariş durum geçmişi
+- İzin verilen aşamalarda sipariş iptali
+- Fatura görüntüleme
+- Kullanıcıya yeniden bildirim gönderme
+
+Diğer admin sayfaları:
+- Kargo Yönetimi
+- Fatura Yönetimi
+- İade Talepleri
+- Kullanıcı Yönetimi
+- Rol Yönetimi
+- Yorum Yönetimi
+- Kampanya Yönetimi
+- Kupon Yönetimi
+- Banner ve içerik kayıtları
+- İletişim Mesajları
+- Kullanıcı Bildirimleri
+- Satış Raporları
+- Stok Raporları
+- Yönetici İşlem Geçmişi
+- SMTP Ayarları
+- SMS Ayarları
+- Ödeme Ayarları
+- Kargo Ayarları
+- Genel Site Ayarları
+
+Hassas servis anahtarlarını admin ekranında düz metin olarak gösterme. Gerekiyorsa maskeli göster ve güvenli configuration yaklaşımı kullan.
+
+8. YÖNETİM PANELİ GİRİŞİ VE ROUTE AYRIMI
+
+- Genel kullanıcı arayüzünde Admin veya SuperAdmin girişine yönlendiren hiçbir bağlantı, buton, menü, footer bağlantısı, sitemap kaydı, uygulama içi arama sonucu veya HTML yorumu bulunmasın.
+- Admin paneline yalnızca adres çubuğuna doğrudan /admin yazılarak erişilebilsin.
+- SuperAdmin paneline yalnızca adres çubuğuna doğrudan /superadmin yazılarak erişilebilsin.
+- /admin route’u yetkisiz kullanıcıları ayrı Admin giriş sayfasına yönlendirsin.
+- /superadmin route’u yetkisiz kullanıcıları ayrı SuperAdmin giriş sayfasına yönlendirsin.
+- Normal müşteri giriş sayfası Admin veya SuperAdmin hesapları için yönetim oturumu açmasın.
+- Customer, Admin ve SuperAdmin giriş akışlarını birbirinden ayır.
+- Customer hesabı /admin ve /superadmin alanlarına erişemesin.
+- Admin hesabı /superadmin alanına erişemesin.
+- SuperAdmin hesabının Admin alanına erişebilmesine varsayılan olarak izin ver; bu davranışı açık bir authorization policy ile uygula.
+- Yönetim giriş endpointlerinde brute-force koruması, rate limiting, hesap kilitleme ve güvenli hata mesajları kullan.
+- Route’un bilinmemesi veya menüde görünmemesi güvenlik önlemi olarak kabul edilmesin.
+- Tüm yönetim controller, action, servis ve kaynak erişimlerinde rol veya policy tabanlı sunucu tarafı yetkilendirme uygula.
+- Başarılı ve başarısız yönetim girişlerini audit log sistemine kaydet.
+- Yetkisiz erişim denemelerini IP adresi, kullanıcı bilgisi, route, tarih ve correlation id ile güvenli biçimde logla.
+- Giriş sonrasında kullanıcıyı rolüne ait güvenli dashboard sayfasına yönlendir.
+- Admin veya SuperAdmin oturumu sona erdiğinde ilgili yönetim giriş sayfasına yönlendir; müşteri giriş sayfasına yönlendirme.
+- Yönetim route isimleri configuration üzerinden değiştirilebilir tasarlanabilir; buna rağmen güvenlik hiçbir zaman route gizliliğine bağlı olmasın.
+
+9. ÜRÜN MODELİ VE ÜRÜN İŞLEMLERİ
+
+Her ürün için uygun alanları oluştur:
+
+- Id
+- Name
+- Slug
+- SKU
+- ShortDescription
+- Description
+- BasePrice
+- DiscountedPrice
+- TaxRate
+- StockQuantity
+- CriticalStockLevel
+- CategoryId
+- BrandId
+- CoffeeTypeId
+- BeanTypeId
+- RoastLevelId
+- OriginId
+- IsActive
+- IsFeatured
+- CreatedAt
+- UpdatedAt
+- DeletedAt
+- RowVersion veya concurrency alanı
+
+Ürün görsellerini ayrı tabloda sakla:
+
+- ProductId
+- FilePath veya storage key
+- AltText
+- DisplayOrder
+- IsPrimary
+
+Gramaj veya varyanta göre fiyat ve stok değişiyorsa ProductVariant modeli oluştur:
+
+- ProductId
+- Weight
+- Unit
+- SKU
+- Price
+- DiscountedPrice
+- StockQuantity
+- IsActive
+
+İş kuralları:
+
+- Fiyat negatif olamaz.
+- İndirimli fiyat normal fiyattan yüksek olamaz.
+- Stok negatif olamaz.
+- SKU benzersiz olmalıdır.
+- Slug benzersiz olmalıdır.
+- Pasif ürün satın alınamaz.
+- Silinmiş ürün yeni siparişe eklenemez.
+- Ürün silinse bile eski sipariş kalemleri bozulmamalıdır.
+- Ürün fiyatları sipariş kalemlerinde snapshot olarak saklanmalıdır.
+- Stok güncellemelerinde concurrency kontrolü yapılmalıdır.
+
+10. ARAMA, FİLTRELEME VE SIRALAMA
+
+Kullanıcılar ürünleri aşağıdaki alanlara göre arayabilsin:
+
+- Ürün adı
+- Açıklama
+- Marka
+- Kategori
+- Menşei
+- Kahve türü
+
+Filtreler:
+
+- Kategori
+- Fiyat aralığı
+- Kahve türü
+- Çekirdek türü
+- Kavurma derecesi
+- Gramaj
+- Menşei
+- Stokta olanlar
+- İndirimli ürünler
+
+Sıralamalar:
+
+- Önerilen
+- En yeni
+- Fiyat artan
+- Fiyat azalan
+- En çok satan
+- En yüksek puanlanan
+
+Tüm sorguları server-side gerçekleştir. Büyük veri hacminde tüm kayıtları belleğe alma.
+
+11. SEPET SİSTEMİ
+
+Sepet hem misafir hem giriş yapmış kullanıcı için çalışabilsin.
+
+Misafir sepeti session, cookie veya güvenli bir cart identifier ile yönetilebilir. Kullanıcı giriş yaptığında misafir sepeti kullanıcı sepetiyle güvenli şekilde birleştirilsin.
+
+Sepet özellikleri:
+
+- Ürün ekleme
+- Ürün çıkarma
+- Miktar artırma ve azaltma
+- Sepeti temizleme
+- Kupon uygulama
+- Kupon kaldırma
+- Ara toplam
+- İndirim toplamı
+- Vergi
+- Kargo ücreti
+- Genel toplam
+
+Kurallar:
+
+- Sepet miktarı stok miktarını aşamaz.
+- Ürün satın alma öncesinde hâlâ aktif olmalıdır.
+- Sepette görünen fiyata güvenme.
+- Ödeme öncesinde tüm fiyatları, stokları, kuponları ve toplamları sunucu tarafında yeniden hesapla.
+- Client tarafından gönderilen toplam tutarı hiçbir zaman doğrudan kabul etme.
+- Sepet satırlarını aynı ürün ve varyant için birleştir.
+- Stok yetersizse kullanıcıya hangi ürünün yetersiz olduğunu göster.
+
+12. FAVORİLER
+
+- Yalnızca giriş yapan kullanıcı favori oluşturabilsin.
+- Aynı ürün iki kez favoriye eklenemesin.
+- Pasif veya silinmiş ürünler geçmiş kaydı bozmasın ancak satın alınamasın.
+- Kullanıcı kendi favorilerini görebilsin ve silebilsin.
+- Başka kullanıcının favori kayıtlarına erişemesin.
+
+13. SİPARİŞ SİSTEMİ
+
+Sipariş modeli aşağıdaki temel bilgileri içersin:
+
+- OrderNumber
+- UserId
+- Status
+- PaymentStatus
+- ShippingStatus
+- BillingAddressSnapshot
+- ShippingAddressSnapshot
+- Subtotal
+- DiscountTotal
+- TaxTotal
+- ShippingTotal
+- GrandTotal
+- Currency
+- CustomerNote
+- CreatedAt
+- UpdatedAt
+- PaidAt
+- ShippedAt
+- DeliveredAt
+- CancelledAt
+
+Sipariş kalemlerinde aşağıdaki snapshot bilgilerini sakla:
+
+- ProductId
+- ProductVariantId
+- ProductName
+- SKU
+- VariantName
+- UnitPrice
+- DiscountAmount
+- TaxRate
+- TaxAmount
+- Quantity
+- LineTotal
+
+Sipariş numarası tahmin edilmesi zor ve benzersiz olsun.
+
+Sipariş oluşturma sürecinde:
+
+1. Kullanıcı ve adres bilgilerini doğrula.
+2. Sepeti yeniden oku.
+3. Stokları doğrula.
+4. Kupon ve kampanya koşullarını doğrula.
+5. Fiyatları sunucu tarafında hesapla.
+6. Ödeme isteğini oluştur.
+7. Ödeme sonucunu güvenli biçimde doğrula.
+8. Başarılı ödeme sonrasında siparişi kesinleştir.
+9. Stok hareketlerini oluştur.
+10. Sepeti temizle.
+11. Faturayı oluştur.
+12. E-posta ve SMS bildirimini kuyruğa al.
+13. İşlemleri mümkün olan yerlerde transaction içerisinde yürüt.
+14. Aynı callback nedeniyle iki kez sipariş oluşmasını engelle.
+
+14. SİPARİŞ DURUMLARI
+
+Sipariş durumları:
+
+- PendingPayment
+- PaymentReceived
+- Preparing
+- Packed
+- Shipped
+- OutForDelivery
+- Delivered
+- Cancelled
+- ReturnRequested
+- Returned
+- Refunded
+
+Geçersiz durum geçişlerini engelle.
+
+Örnek:
+
+- Teslim edilmiş sipariş yeniden hazırlanıyor durumuna geçirilemez.
+- Kargoya verilmiş sipariş normal müşteri iptaliyle doğrudan iptal edilemez.
+- İade tamamlanmadan sipariş Returned olamaz.
+- Başarısız ödemeli sipariş Preparing durumuna geçemez.
+
+Her durum değişikliğinde OrderStatusHistory kaydı oluştur:
+
+- OrderId
+- PreviousStatus
+- NewStatus
+- Description
+- ChangedByUserId
+- ChangedAt
+
+15. STOK YÖNETİMİ
+
+Bir StockMovement yapısı oluştur:
+
+- ProductId veya ProductVariantId
+- MovementType
+- Quantity
+- PreviousStock
+- NewStock
+- ReferenceType
+- ReferenceId
+- Description
+- CreatedByUserId
+- CreatedAt
+
+Hareket türleri:
+
+- Purchase
+- Sale
+- Cancellation
+- Return
+- ManualIncrease
+- ManualDecrease
+- Correction
+
+Kurallar:
+
+- Başarılı sipariş sonrasında stok düşsün.
+- Başarısız ödeme stok düşürmesin.
+- İptal edilen ve henüz gönderilmemiş siparişte stok geri eklensin.
+- Onaylanmış fiziksel iade tamamlandığında stok politikaya göre geri eklensin.
+- Aynı işlem nedeniyle stok iki kez değişmesin.
+- Kritik stok seviyesi raporlansın.
+- Eş zamanlı satın almalarda negatif stok oluşmasını engelle.
+
+16. ÖDEME SİSTEMİ
+
+Ödeme sistemi sağlayıcıdan bağımsız tasarlansın.
+
+Arayüz örneği:
+
+public interface IPaymentGateway
+{
+    Task<PaymentInitializationResult> InitializeAsync(
+        PaymentRequest request,
+        CancellationToken cancellationToken);
+
+    Task<PaymentVerificationResult> VerifyAsync(
+        PaymentCallbackRequest request,
+        CancellationToken cancellationToken);
+
+    Task<RefundResult> RefundAsync(
+        RefundRequest request,
+        CancellationToken cancellationToken);
+}
+
+Gerçek sağlayıcı bilgisi bulunmuyorsa:
+
+- MockPaymentGateway
+- Başarılı ödeme senaryosu
+- Başarısız ödeme senaryosu
+- İptal edilmiş ödeme senaryosu
+- Tekrarlanan callback senaryosu
+
+oluştur.
+
+Ödeme kayıtlarında:
+
+- Provider
+- TransactionId
+- IdempotencyKey
+- Amount
+- Currency
+- Status
+- RequestReference
+- ProviderResponseCode
+- FailureReason
+- CreatedAt
+- CompletedAt
+
+sakla.
+
+Kurallar:
+
+- Kart numarasını, CVV bilgisini veya hassas ödeme bilgisini veritabanında saklama.
+- Ödeme callback sonucunu yalnızca query parametresine bakarak başarılı kabul etme.
+- Sağlayıcı doğrulaması yap.
+- Tutar ve para birimini doğrula.
+- Aynı transaction iki kez işlenmesin.
+- Webhook veya callback işlemleri idempotent olsun.
+- Ödeme başarısız olursa kullanıcıya teknik detay göstermeden açıklayıcı mesaj ver.
+
+17. KARGO YÖNETİMİ
+
+Siparişe bağlı kargo kaydı oluştur:
+
+- ShippingCompany
+- TrackingNumber
+- TrackingUrl
+- Status
+- EstimatedDeliveryDate
+- ShippedAt
+- DeliveredAt
+- ShippingNote
+
+Kullanıcı:
+
+- Kargo firmasını görebilsin.
+- Takip numarasını görebilsin.
+- Güvenli takip bağlantısına gidebilsin.
+- Kargo durum geçmişini görebilsin.
+
+Admin:
+
+- Kargo firması seçebilsin.
+- Takip numarası ekleyebilsin.
+- Tahmini teslim tarihi ekleyebilsin.
+- Kargo durumunu güncelleyebilsin.
+- Kargo notu yazabilsin.
+
+Gerçek kargo API’si yoksa:
+
+public interface IShippingProvider
+{
+    Task<ShipmentCreateResult> CreateShipmentAsync(...);
+    Task<ShipmentTrackingResult> TrackAsync(...);
+    Task<ShipmentCancelResult> CancelAsync(...);
+}
+
+arayüzünü ve MockShippingProvider implementasyonunu oluştur.
+
+18. FATURA SİSTEMİ
+
+Başarılı ödeme ve sipariş sonrasında fatura oluştur.
+
+Faturada:
+
+- Benzersiz fatura numarası
+- Sipariş numarası
+- Fatura tarihi
+- Satıcı bilgileri
+- Müşteri adı
+- Fatura adresi
+- Vergi bilgileri
+- Ürünler
+- Miktarlar
+- Birim fiyatlar
+- İndirimler
+- Vergiler
+- Kargo ücreti
+- Ara toplam
+- Genel toplam
+- Para birimi
+
+bulunsun.
+
+Fatura PDF olarak üretilebilsin.
+
+Kullanıcı yalnızca kendi faturasını görüntüleyip indirebilsin.
+
+Admin faturaları:
+
+- Listeleyebilsin
+- Sipariş numarasına göre arayabilsin
+- Tarihe göre filtreleyebilsin
+- Görüntüleyebilsin
+- Gerektiğinde yeniden oluşturabilsin
+
+Sipariş iptal veya iade edildiğinde eski faturayı silme. İade ve refund bilgilerini ayrı kayıtlarla ilişkilendir.
+
+19. İPTAL VE İADE SİSTEMİ
+
+Kullanıcı yalnızca iş kurallarının izin verdiği siparişleri iptal edebilsin.
+
+İade talebi alanları:
+
+- OrderId
+- UserId
+- Reason
+- Description
+- Status
+- RequestedAt
+- ReviewedAt
+- ReviewedByUserId
+- AdminResponse
+- RefundAmount
+
+İade kalemleri:
+
+- ReturnRequestId
+- OrderItemId
+- Quantity
+- Reason
+- Condition
+- ImagePath
+
+İade durumları:
+
+- Pending
+- UnderReview
+- Approved
+- Rejected
+- AwaitingProduct
+- ProductReceived
+- RefundPending
+- Completed
+- Cancelled
+
+Kurallar:
+
+- Kullanıcı yalnızca kendi siparişi için iade açabilsin.
+- Siparişte olmayan ürün iade edilemesin.
+- Satın alınan miktardan fazla iade miktarı girilemesin.
+- Aynı ürün için tamamlanmış iade miktarından fazla yeni iade açılamasın.
+- İade süresi configuration üzerinden yönetilsin.
+- Admin onay veya ret açıklaması yazabilsin.
+- Ödeme iadesi IPaymentGateway.RefundAsync üzerinden yapılsın.
+- Refund sonucu kaydedilsin.
+- Refund başarısız olduğunda tekrar işlenebilir durumda kalsın.
+- Stok yalnızca belirlenen iş aşamasında geri eklensin.
+- Kullanıcıya durum değişikliklerinde bildirim gönderilsin.
+
+20. KAMPANYA VE KUPON SİSTEMİ
+
+İki ayrı yapı destekle:
+
+Kampanya:
+Ürün veya kategori üzerinde otomatik indirim sağlayabilir.
+
+Kupon:
+Kullanıcının kod girerek uyguladığı indirimdir.
+
+Alanlar:
+
+- Name
+- Code
+- DiscountType
+- DiscountValue
+- MinimumCartAmount
+- MaximumDiscountAmount
+- StartDate
+- EndDate
+- TotalUsageLimit
+- PerUserUsageLimit
+- IsFirstOrderOnly
+- IsActive
+- ApplicableProductIds
+- ApplicableCategoryIds
+- ExcludedProductIds
+- CanCombineWithOtherDiscounts
+
+İndirim türleri:
+
+- Percentage
+- FixedAmount
+- FreeShipping
+
+Kurallar:
+
+- Başlangıç tarihi gelmemiş kampanya kullanılamaz.
+- Bitiş tarihi geçmiş kampanya kullanılamaz.
+- Pasif kupon kullanılamaz.
+- Minimum sepet tutarı kontrol edilir.
+- Kullanıcı başına kullanım limiti uygulanır.
+- Toplam kullanım limiti uygulanır.
+- Yüzde indirimi maksimum indirim tutarını aşamaz.
+- Belirli ürün veya kategorilere bağlı koşullar uygulanır.
+- Kullanıcının ilk sipariş şartı server-side doğrulanır.
+- Aynı siparişte birden fazla indirimin birleştirilme kuralı açıkça uygulanır.
+- Kullanılmış kupon, sipariş iptal edilirse belirlenen politikaya göre tekrar kullanılabilir hâle getirilebilir.
+- İndirim hesaplamaları ödeme öncesi tekrar yapılır.
+
+21. ÜYELİK VE IDENTITY
+
+ASP.NET Core Identity kullan.
+
+Özellikler:
+
+- Kullanıcı kaydı
+- Giriş
+- Çıkış
+- Beni Hatırla
+- E-posta doğrulama
+- Telefon doğrulama altyapısı
+- Şifremi unuttum
+- Şifre sıfırlama
+- Şifre değiştirme
+- Hesap kilitleme
+- Başarısız giriş denemesi sınırı
+- Rol yönetimi
+- Security stamp
+- Güvenli cookie ayarları
+- Hesap silme talebi
+
+Kullanıcı profilinde:
+
+- FirstName
+- LastName
+- Email
+- PhoneNumber
+- DateOfBirth isteğe bağlı
+- CreatedAt
+- LastLoginAt
+- IsActive
+- DeletedAt
+
+bulunabilir.
+
+E-posta veya kullanıcı adı üzerinden hesap varlığını saldırgana açık şekilde belli eden mesajlar kullanma.
+
+22. AFK ALGILAMA, OTURUM SÜRESİ VE BENİ HATIRLA
+
+Admin ve SuperAdmin panelleri için istemci ve sunucu tarafında çalışan bir AFK/idle session sistemi oluştur.
+
+AFK kuralları:
+
+- Admin için varsayılan hareketsizlik süresi 15 dakika olsun.
+- SuperAdmin için varsayılan hareketsizlik süresi 10 dakika olsun.
+- Bu süreler SecurityOptions üzerinden değiştirilebilir olsun.
+- Fare, klavye, dokunma, scroll ve güvenli sunucu isteği kullanıcı aktivitesi olarak değerlendirilebilsin.
+- Süre dolmadan kısa süre önce kullanıcıya “Oturumunuz sona ermek üzere” uyarısı göster.
+- Kullanıcı “Oturumu Devam Ettir” seçeneğini kullanırsa sunucuda oturum geçerliliğini kontrol ederek süreyi yenile.
+- Yalnızca JavaScript sayacına güvenme; sunucu tarafında cookie, session ve security stamp doğrulaması yap.
+- Hareketsizlik süresi dolduğunda kullanıcıyı güvenli biçimde çıkış yaptır.
+- Çıkış sırasında authentication cookie temizlensin.
+- Süresi dolmuş yönetim sayfası geri tuşuyla açıldığında hassas içerik gösterilmesin.
+- Yönetim sayfalarında uygun Cache-Control: no-store ve benzeri güvenli cache kuralları kullan.
+- Birden fazla sekme açıksa oturum süresi ve çıkış durumu sekmeler arasında senkronize edilsin.
+- AFK nedeniyle yapılan çıkış audit log sistemine IdleTimeoutLogout işlemi olarak kaydedilsin.
+- Admin ve SuperAdmin oturum süreleri müşteri oturumundan bağımsız yapılandırılsın.
+
+Beni Hatırla kuralları:
+
+- “Beni Hatırla” kutusu seçilmediğinde kalıcı cookie oluşturma.
+- Seçilmediğinde oturum yalnızca mevcut tarayıcı oturumu boyunca geçerli olan session cookie kullansın.
+- Tarayıcı kapatıldığında kullanıcı yeniden giriş yapmak zorunda kalsın.
+- “Beni Hatırla” kutusu seçildiğinde IsPersistent = true kullan ve yalnızca bu durumda kalıcı authentication cookie oluştur.
+- Kalıcı cookie süresi configuration üzerinden yönetilsin.
+- Admin ve SuperAdmin için “Beni Hatırla” süresi müşteri hesabına göre daha kısa ve daha güvenli yapılandırılabilsin.
+- AFK güvenliği, “Beni Hatırla” seçilmiş olsa bile Admin ve SuperAdmin için devre dışı bırakılmasın.
+- “Beni Hatırla” yalnızca giriş bilgisini korusun; sonsuz veya süresiz oturum oluşturmasın.
+- Cookie değerlerinde HttpOnly, Secure, uygun SameSite ve sınırlı expiration ayarları kullan.
+- Kullanıcı çıkış yaptığında persistent cookie dahil tüm ilgili authentication cookie kayıtlarını temizle.
+- Checkbox değerini sunucu tarafında açık biçimde doğrula; varsayılan değer false olsun.
+- Customer, Admin ve SuperAdmin için gerekiyorsa birbirinden ayrılmış authentication scheme veya cookie yapılandırması kullan.
+- Admin oturumunun müşteri alanında, müşteri oturumunun yönetim alanında yanlışlıkla yetki üretmesini engelle.
+
+23. ADRES YÖNETİMİ
+
+Adres alanları:
+
+- Title
+- FirstName
+- LastName
+- PhoneNumber
+- Country
+- City
+- District
+- Neighborhood
+- PostalCode
+- AddressLine
+- IsDefaultShipping
+- IsDefaultBilling
+
+Kurallar:
+
+- Kullanıcı yalnızca kendi adreslerini yönetebilir.
+- Başka kullanıcının adresi URL değiştirilerek açılamaz.
+- Sipariş sonrasında adres değişse bile sipariş adresi değişmemelidir.
+- Bu nedenle sipariş sırasında adres snapshot olarak saklanmalıdır.
+- Silinen adres eski siparişleri bozmamalıdır.
+
+24. YORUM VE PUANLAMA
+
+Kullanıcı:
+
+- Yalnızca satın aldığı ve uygun durumdaki ürünlere yorum yapabilsin.
+- Ürüne 1–5 arasında puan verebilsin.
+- Yorumunu düzenleyebilsin veya silebilsin.
+- Aynı sipariş kalemi için tekrar tekrar yorum oluşturamasın.
+
+Yorum durumları:
+
+- Pending
+- Approved
+- Rejected
+
+Admin:
+
+- Bekleyen yorumları görebilsin.
+- Yorumu onaylayabilsin.
+- Reddedebilsin.
+- Uygunsuz yorumu silebilsin.
+
+Ürün puan ortalaması onaylı yorumlardan hesaplanmalıdır.
+
+25. E-POSTA SİSTEMİ
+
+SMTP tabanlı bir e-posta servisi oluştur.
+
+Arayüz örneği:
+
+public interface IEmailSender
+{
+    Task SendAsync(
+        EmailMessage message,
+        CancellationToken cancellationToken);
+}
+
+E-posta gönderilecek durumlar:
+
+- Kayıt doğrulaması
+- Şifre sıfırlama
+- Sipariş oluşturuldu
+- Ödeme başarılı
+- Ödeme başarısız
+- Sipariş hazırlanıyor
+- Sipariş kargoya verildi
+- Sipariş teslim edildi
+- Sipariş iptal edildi
+- İade talebi alındı
+- İade durumu değişti
+- Ödeme iadesi tamamlandı
+- İletişim formu yanıtlandı
+
+Şablonları kod içinde dağınık string olarak tutma. Yeniden kullanılabilir e-posta template yapısı oluştur.
+
+E-posta gönderimi ana sipariş transaction işlemini gereksiz yere bozmasın. Gönderim başarısızsa kayıt altına alınsın ve yeniden denenebilsin.
+
+26. SMS SİSTEMİ
+
+Sağlayıcıdan bağımsız SMS servisi oluştur:
+
+public interface ISmsSender
+{
+    Task<SmsSendResult> SendAsync(
+        SmsMessage message,
+        CancellationToken cancellationToken);
+}
+
+SMS kullanım alanları:
+
+- Telefon doğrulama kodu
+- Sipariş onayı
+- Kargoya verildi bildirimi
+- Teslim edildi bildirimi
+- İade durumu bildirimi
+
+Gerçek servis bilgisi yoksa MockSmsSender oluştur.
+
+Kurallar:
+
+- Doğrulama kodlarını düz metin loglama.
+- Kodlara süre sınırı koy.
+- Yeniden gönderme sınırı uygula.
+- Brute-force kod denemelerine karşı önlem al.
+- Telefon numarasını normalize et.
+- SMS hatasının sipariş kaydını bozmasına izin verme.
+
+27. BİLDİRİM MERKEZİ
+
+Kullanıcı panelinde uygulama içi bildirim sistemi oluştur.
+
+Bildirim alanları:
+
+- UserId
+- Title
+- Message
+- Type
+- RelatedEntityType
+- RelatedEntityId
+- IsRead
+- CreatedAt
+- ReadAt
+
+Kullanıcı:
+
+- Bildirimlerini listeleyebilsin.
+- Okundu olarak işaretleyebilsin.
+- Tümünü okundu yapabilsin.
+
+Admin gerekli durumlarda belirli kullanıcıya veya kullanıcı grubuna bildirim oluşturabilsin.
+
+28. İLETİŞİM FORMU
+
+İletişim formunda:
+
+- Ad soyad
+- E-posta
+- Telefon isteğe bağlı
+- Konu
+- Mesaj
+- KVKK veya gizlilik onayı
+
+bulunsun.
+
+Kurallar:
+
+- Server-side validasyon uygula.
+- Spam ve aşırı istek saldırılarına karşı rate limiting veya benzeri koruma uygula.
+- Mesajları admin panelinde göster.
+- Admin mesajı yanıtlandı olarak işaretleyebilsin.
+- Kullanıcı girdisini güvenli biçimde göster.
+- Zararlı HTML çalıştırma.
+
+29. RAPORLAMA
+
+Admin aşağıdaki raporları görüntüleyebilsin:
+
+Satış raporları:
+- Günlük satış
+- Haftalık satış
+- Aylık satış
+- Tarih aralığına göre satış
+- Brüt gelir
+- Net gelir
+- İndirim toplamı
+- Kargo geliri
+- Vergi toplamı
+- İade toplamı
+- İptal toplamı
+- Ortalama sepet tutarı
+- Sipariş sayısı
+- Başarılı ödeme oranı
+
+Ürün raporları:
+- En çok satan ürünler
+- En az satan ürünler
+- En yüksek gelir getiren ürünler
+- En çok favoriye eklenen ürünler
+- En yüksek puanlı ürünler
+
+Kategori raporları:
+- Kategori bazlı satış
+- Kategori bazlı gelir
+- Kategori bazlı ürün adedi
+
+Kullanıcı raporları:
+- En çok sipariş veren kullanıcılar
+- En yüksek harcama yapan kullanıcılar
+- Yeni kayıt olan kullanıcılar
+- Aktif ve pasif kullanıcılar
+
+Stok raporları:
+- Mevcut stoklar
+- Kritik stoklar
+- Tükenen ürünler
+- Stok hareketleri
+- Manuel stok değişiklikleri
+
+Raporlarda:
+
+- Tarih filtreleme
+- Arama
+- Sayfalama
+- CSV dışa aktarma
+- Uygunsa Excel dışa aktarma
+
+bulunsun.
+
+İade ve iptalleri brüt satıştan ayrı göster. Net gelir hesabının nasıl yapıldığını açıkça tanımla.
+
+30. YÖNETİCİ İŞLEM GEÇMİŞİ
+
+Önemli admin işlemleri için audit log oluştur.
+
+Kaydedilecek alanlar:
+
+- AdminUserId
+- ActionType
+- EntityType
+- EntityId
+- OldValues
+- NewValues
+- Description
+- IpAddress
+- UserAgent
+- CreatedAt
+- CorrelationId
+
+Audit kaydı oluşturulacak işlemler:
+
+- Ürün ekleme ve düzenleme
+- Fiyat değiştirme
+- Stok değiştirme
+- Sipariş durumu değiştirme
+- Kargo bilgisi değiştirme
+- İade onaylama veya reddetme
+- Kullanıcı aktif veya pasif yapma
+- Rol değiştirme
+- Kampanya veya kupon değiştirme
+- Sistem ayarı değiştirme
+- Admin oluşturma
+- Başarılı veya başarısız yönetim girişi
+- Yetkisiz yönetim erişim denemesi
+- AFK nedeniyle otomatik çıkış
+
+Normal Admin audit kayıtlarını değiştirememeli veya silememeli.
+
+Hassas bilgiler audit kaydına yazılmamalı.
+
+31. VERİTABANI TASARIMI
+
+En az aşağıdaki entity veya tabloları oluştur:
+
+- ApplicationUser
+- ApplicationRole
+- Address
+- Product
+- ProductImage
+- ProductVariant
+- Category
+- Brand
+- CoffeeType
+- BeanType
+- RoastLevel
+- Origin
+- Cart
+- CartItem
+- Favorite
+- Order
+- OrderItem
+- OrderStatusHistory
+- Payment
+- Refund
+- Shipment
+- Invoice
+- StockMovement
+- Review
+- Campaign
+- CampaignProduct
+- CampaignCategory
+- Coupon
+- CouponUsage
+- ReturnRequest
+- ReturnItem
+- Notification
+- ContactMessage
+- EmailQueue veya NotificationDelivery
+- SmsQueue veya NotificationDelivery
+- SiteSetting
+- AuditLog
+
+Entity configuration işlemlerini IEntityTypeConfiguration<T> sınıflarıyla ayır.
+
+Aşağıdakileri doğru şekilde yapılandır:
+
+- Primary key
+- Foreign key
+- Unique index
+- Composite index
+- Decimal precision
+- Required alanlar
+- Maksimum string uzunlukları
+- Delete behavior
+- Concurrency token
+- Soft delete
+- CreatedAt ve UpdatedAt alanları
+
+Money alanlarında float veya double kullanma. Uygun precision ile decimal kullan.
+
+Migration oluştur ve veritabanını çalıştırılabilir hâle getir.
+
+32. DOSYA VE GÖRSEL YÜKLEME
+
+Ürün ve iade görsellerinde:
+
+- İzin verilen uzantıları kontrol et.
+- MIME type kontrolü yap.
+- Dosya boyutu sınırı uygula.
+- Rastgele güvenli dosya adı üret.
+- Kullanıcıdan gelen dosya adını doğrudan kullanma.
+- Path traversal saldırılarını engelle.
+- Çalıştırılabilir dosya yüklenmesini engelle.
+- Dosyaları web root altında veya soyutlanmış storage servisiyle sakla.
+- Veritabanında fiziksel path yerine uygun storage key saklamayı tercih et.
+- Silinen ürün görsellerinin temizlenmesi için güvenli süreç oluştur.
+
+Storage işlemleri için IFileStorageService arayüzü oluştur.
+
+33. GÜVENLİK
+
+Aşağıdaki güvenlik önlemlerini uygula:
+
+- Rol tabanlı yetkilendirme
+- Policy tabanlı yetkilendirme
+- Resource-based authorization
+- CSRF koruması
+- XSS önleme
+- SQL Injection önleme
+- IDOR önleme
+- Open redirect önleme
+- Brute-force koruması
+- Login lockout
+- Rate limiting
+- Güvenli cookie ayarları
+- HTTPS zorunluluğu
+- Güvenli dosya yükleme
+- Güvenli parola politikası
+- E-posta doğrulama
+- Telefon doğrulama altyapısı
+- Hassas işlemlerde yeniden kimlik doğrulama
+- Secret bilgiler için environment variables veya user secrets
+- Production ortamında detaylı hata kapatma
+- Güvenlik headerları
+- Uygun Content Security Policy hazırlığı
+- Yönetim alanlarında güvenli cache kontrolü
+- Ayrılmış authentication scheme veya cookie yapılandırması
+- Yönetim route ayrımı
+- AFK/idle timeout güvenliği
+
+Kullanıcının URL’deki bir Id değerini değiştirerek başka bir kullanıcının:
+
+- Siparişini
+- Adresini
+- Faturasını
+- İadesini
+- Favorisini
+- Bildirimini
+
+görmesini veya değiştirmesini kesinlikle engelle.
+
+34. VALIDASYON
+
+Tüm kullanıcı girdilerini hem client-side hem server-side doğrula.
+
+Önemli validasyonlar:
+
+- E-posta formatı
+- Telefon formatı
+- Parola kuralları
+- Adres zorunlu alanları
+- Ürün fiyatı
+- Stok miktarı
+- Kupon koşulları
+- Sipariş miktarı
+- İade miktarı
+- Dosya türü ve boyutu
+- Tarih aralıkları
+- Kampanya başlangıç ve bitiş tarihi
+- Minimum ve maksimum tutarlar
+- Beni Hatırla checkbox değerinin varsayılan false olması
+- Yönetim girişlerinin doğru role ait olması
+
+Client-side validasyona hiçbir zaman tek başına güvenme.
+
+Domain ve application seviyesindeki kritik iş kurallarını yalnızca ViewModel validasyonunda bırakma.
+
+35. HATA YÖNETİMİ
+
+Global exception handling middleware veya uygun exception handler yapısı oluştur.
+
+Özel exception sınıfları kullanılabilir:
+
+- NotFoundException
+- ValidationException
+- ForbiddenException
+- ConflictException
+- BusinessRuleException
+- ExternalServiceException
+
+Development ve production hata davranışlarını ayır.
+
+Kullanıcıya:
+
+- Teknik stack trace
+- SQL sorgusu
+- Connection string
+- API anahtarı
+- Dosya sistemi yolu
+
+gösterme.
+
+Beklenmeyen hataları correlation id ile logla ve kullanıcıya güvenli bir hata referansı göster.
+
+36. LOGLAMA
+
+Yapılandırılmış loglama kullan.
+
+Loglanacak işlemler:
+
+- Giriş denemeleri
+- Yönetim giriş denemeleri
+- Kritik yetkilendirme hataları
+- Yetkisiz yönetim route erişimleri
+- AFK nedeniyle oturum kapanması
+- Ödeme istekleri ve sonuçları
+- Sipariş oluşturma
+- Stok hareketleri
+- Kargo değişiklikleri
+- İade işlemleri
+- Refund işlemleri
+- E-posta ve SMS hataları
+- Harici servis hataları
+- Beklenmeyen exceptionlar
+- Admin işlemleri
+
+Loglara şunları yazma:
+
+- Parola
+- Şifre sıfırlama tokenı
+- Telefon doğrulama kodu
+- Kart numarası
+- CVV
+- API anahtarı
+- Connection string
+- SMTP parolası
+- Hassas kişisel veri
+
+Correlation id kullanımını destekle.
+
+37. HARİCİ SERVİS DAYANIKLILIĞI
+
+Ödeme, SMS, SMTP ve kargo çağrılarında:
+
+- Timeout
+- CancellationToken
+- Hata yakalama
+- Kontrollü retry
+- Idempotency
+- Circuit breaker uygulanabilirliği
+- Loglama
+- Kullanıcıya güvenli hata mesajı
+
+kullan.
+
+Retry işlemini ödeme gibi tekrarlandığında yan etki oluşturabilecek operasyonlarda kör şekilde uygulama.
+
+Bildirim gönderimlerini gerekiyorsa outbox veya queue benzeri güvenilir bir yaklaşımla yönet.
+
+38. CACHE VE PERFORMANS
+
+Uygun yerlerde cache kullanılabilir:
+
+- Aktif kategoriler
+- Site ayarları
+- Ana sayfa ürün listeleri
+- Sık değişmeyen ürün özellikleri
+
+Ancak:
+
+- Kullanıcıya özel verileri ortak cache’e yanlışlıkla koyma.
+- Stok ve fiyat gibi kritik verilerde eski cache nedeniyle yanlış satış yapılmasını engelle.
+- Yönetim sayfalarında hassas içeriği browser cache üzerinden göstermeme kurallarını uygula.
+- Listeleme sorgularında projection kullan.
+- Gereksiz Include kullanımından kaçın.
+- AsNoTracking gereken sorgularda kullan.
+- Tüm kayıtları belleğe alıp sonra filtreleme yapma.
+- Sayfalama uygula.
+- N+1 sorgularını kontrol et.
+
+39. TESTLER
+
+Unit testler:
+
+- Ürün fiyat validasyonu
+- Stok kontrolü
+- Sepet miktarı
+- Sepet toplamı
+- Kupon hesaplama
+- Kampanya kuralları
+- Sipariş durum geçişleri
+- İptal uygunluğu
+- İade miktarı
+- Refund hesaplama
+- Kullanıcı yetki kontrolü
+- Beni Hatırla seçimine göre cookie kalıcılığı
+- AFK timeout kuralları
+
+Integration testler:
+
+- Kullanıcı kaydı
+- Müşteri girişi
+- Admin girişi
+- SuperAdmin girişi
+- E-posta doğrulama
+- Şifre sıfırlama
+- Ürün listeleme
+- Sepete ekleme
+- Kupon uygulama
+- Başarılı ödeme
+- Başarısız ödeme
+- Sipariş oluşturma
+- Stok azaltma
+- Sipariş yetkilendirmesi
+- Admin ürün oluşturma
+- Admin sipariş güncelleme
+- İade talebi oluşturma
+- Başka kullanıcının verisine erişimin engellenmesi
+- Public web sitesinde Admin veya SuperAdmin giriş bağlantısı bulunmaması
+- Customer kullanıcının /admin ve /superadmin alanlarına erişememesi
+- Admin kullanıcının /superadmin alanına erişememesi
+- SuperAdmin kullanıcının izin verilen yönetim alanlarına erişebilmesi
+- AFK süresi dolduğunda yönetim oturumunun kapanması
+- Beni Hatırla seçilmediğinde kalıcı cookie oluşmaması
+- Beni Hatırla seçildiğinde yapılandırılmış süreli persistent cookie oluşması
+- Kalıcı cookie olsa bile Admin ve SuperAdmin AFK süresinin uygulanması
+- Çıkış işleminden sonra eski cookie ile yönetim alanına erişilememesi
+
+Güvenlik testleri:
+
+- Yetkisiz admin erişimi
+- Yetkisiz superadmin erişimi
+- IDOR denemesi
+- Geçersiz anti-forgery token
+- Zararlı HTML girişi
+- Geçersiz dosya yükleme
+- Tekrarlanan ödeme callback’i
+- Brute-force veya rate-limit davranışı
+- Yönetim giriş endpointlerinde hesap kilitleme
+- Süresi dolmuş yönetim sayfasının browser back ile hassas içerik göstermemesi
+
+Testler birbirinden bağımsız çalışabilsin.
+
+40. DEBUG VE KALİTE KURALLARI
+
+Her ana geliştirme aşamasından sonra:
+
+1. Solution restore işlemini çalıştır.
+2. Projeyi build et.
+3. Unit testleri çalıştır.
+4. Integration testleri çalıştır.
+5. Migration durumunu kontrol et.
+6. Dependency Injection hatalarını kontrol et.
+7. Razor view compile hatalarını kontrol et.
+8. Nullability uyarılarını incele.
+9. Güvenlik açısından kritik warningleri çöz.
+10. Yönetim authentication scheme ve cookie yapılandırmasını kontrol et.
+11. AFK timeout ve Beni Hatırla davranışını test et.
+12. Çözülemeyen durumları PROJECT_STATUS.md içinde açıkça belirt.
+
+Bir hatayı yalnızca exceptionı yutarak gizleme.
+
+Boş catch bloğu kullanma.
+
+async void kullanma.
+
+.Result veya .Wait() ile gereksiz senkron bloklama yapma.
+
+Null reference, concurrency, transaction, duplicate request, timezone, cookie, session ve decimal hesaplama problemlerini özellikle kontrol et.
+
+Tarihleri veritabanında mümkün olduğunca UTC sakla, kullanıcıya gösterirken uygun zaman dilimine dönüştür.
+
+41. KOD STANDARTLARI
+
+- SOLID prensiplerine uy.
+- DRY prensibine uy.
+- Separation of concerns uygula.
+- Büyük controller sınıfları oluşturma.
+- Büyük servisleri sorumluluklarına ayır.
+- Magic string ve magic number kullanma.
+- Enum, constants veya configuration kullan.
+- Anlamlı method ve sınıf isimleri seç.
+- CancellationToken parametrelerini uygun async metotlarda kullan.
+- Nullable reference types etkin olsun.
+- DTO, ViewModel ve Entity sınıflarını birbirine karıştırma.
+- Entity nesnelerini doğrudan form binding için kullanma.
+- Overposting saldırılarını önle.
+- Gereksiz yorum kullanma; karmaşık iş kurallarını açıklayan yorumlar ekle.
+- Kod biçimlendirmesini tutarlı yap.
+- Analyzer veya format kurallarını mümkün olduğunca uygula.
+
+42. SEED DATA
+
+Development ortamında aşağıdaki seed verileri oluştur:
+
+- SuperAdmin rolü
+- Admin rolü
+- Customer rolü
+- Geliştirme için örnek SuperAdmin hesabı
+- Geliştirme için örnek Admin hesabı
+- Örnek müşteri hesabı
+- Kahve kategorileri
+- Kahve türleri
+- Kavurma dereceleri
+- Menşei bilgileri
+- Örnek kahve ürünleri
+- Örnek ürün varyantları
+- Örnek kampanya
+- Örnek kupon
+- Temel site ayarları
+
+Gerçek parola veya secret bilgileri repository içine yazma.
+
+Development Admin ve SuperAdmin şifrelerini environment variable veya user secrets üzerinden al. Değer yoksa güvenli biçimde nasıl oluşturulacağını README içinde açıkla.
+
+43. CONFIGURATION
+
+Aşağıdaki configuration gruplarını strongly typed options pattern ile yönet:
+
+- DatabaseOptions
+- EmailOptions
+- SmsOptions
+- PaymentOptions
+- ShippingOptions
+- FileStorageOptions
+- SecurityOptions
+- ReturnPolicyOptions
+- InvoiceOptions
+- SiteOptions
+- AuthenticationOptions veya eşdeğer yönetim oturumu ayarları
+
+SecurityOptions veya ilgili options içinde en az aşağıdaki ayarlar bulunsun:
+
+- AdminIdleTimeoutMinutes
+- SuperAdminIdleTimeoutMinutes
+- CustomerRememberMeDays
+- AdminRememberMeHours veya Days
+- SuperAdminRememberMeHours veya Days
+- IdleWarningSeconds
+- AdminRoute
+- SuperAdminRoute
+- MaxFailedAccessAttempts
+- LockoutDuration
+- CookieSecurePolicy
+- CookieSameSiteMode
+
+Options validation kullan.
+
+Eksik kritik production ayarlarında uygulama başlangıcında anlaşılır hata üret.
+
+Secret değerleri örnek appsettings dosyasına gerçek değer olarak yazma.
+
+appsettings.Example.json veya .env.example benzeri açıklayıcı bir örnek oluştur.
+
+44. DEPLOYMENT VE PRODUCTION
+
+Development, Test ve Production ortamlarını ayır.
+
+Production ortamında:
+
+- HTTPS etkin olsun.
+- Detaylı exception sayfaları kapalı olsun.
+- Güvenli cookie ayarları kullanılsın.
+- Admin ve SuperAdmin authentication cookie ayarları production için ayrıca doğrulansın.
+- Secret bilgiler environment variable üzerinden alınsın.
+- Migration stratejisi açıkça tanımlansın.
+- Log dosyalarının büyüme politikası belirlensin.
+- Veritabanı yedekleme yaklaşımı dokümante edilsin.
+- Ürün görselleri için kalıcı storage yaklaşımı tanımlansın.
+- Health check endpointleri bulunsun.
+- Uygulama ve veritabanı health checkleri ayrı izlenebilsin.
+- Readiness ve liveness yaklaşımı açıklansın.
+- Reverse proxy kullanımına uygun yapılandırma bulunsun.
+- Forwarded headers güvenli biçimde yapılandırılsın.
+- Yönetim alanları için Cache-Control ve güvenlik headerları doğrulansın.
+
+Docker zorunlu değildir ancak uygulanabiliyorsa:
+
+- Dockerfile
+- docker-compose development örneği
+- SQL Server container yapılandırması
+
+oluştur.
+
+45. HEALTH CHECK
+
+Aşağıdaki kontrolleri ekle:
+
+- Uygulama ayakta mı
+- Veritabanına erişilebiliyor mu
+- Gerekli configuration değerleri mevcut mu
+- Kritik harici servis yapılandırmaları geçerli mi
+- Yönetim authentication configuration değerleri geçerli mi
+
+Health check cevaplarında hassas connection veya secret bilgileri gösterme.
+
+46. DOKÜMANTASYON
+
+Aşağıdaki dosyaları oluştur ve güncel tut:
+
+README.md:
+- Projenin amacı
+- Teknik ad `AETKAHVE` ile public marka `AETERNUM RECTUS LUCIS` arasındaki ayrım
+- Mimari yapı
+- Kullanılan teknolojiler
+- Gereksinimler
+- Kurulum adımları
+- Configuration alanları
+- User secrets kullanımı
+- Migration komutları
+- Seed işlemleri
+- Projeyi çalıştırma
+- Testleri çalıştırma
+- Mock servisleri kullanma
+- Admin ve SuperAdmin route erişim biçimi
+- Yönetim girişlerinin public web sitesinde neden gösterilmediği
+- AFK timeout ayarları
+- Beni Hatırla cookie davranışı
+- Production yayınlama
+- Bilinen sınırlamalar
+
+DECISIONS.md:
+- Mimari kararlar
+- Seçilen paketler
+- Yapılan varsayımlar
+- Para hesaplama yaklaşımı
+- Stok ve sipariş transaction yaklaşımı
+- İptal ve iade politikaları
+- Bildirim gönderim yaklaşımı
+- Yönetim authentication scheme seçimi
+- AFK ve persistent cookie yaklaşımı
+
+PROJECT_STATUS.md:
+- Tamamlanan modüller
+- Devam eden modüller
+- Çalışan testler
+- Bilinen sorunlar
+- Sonraki teknik görevler
+
+API veya INTEGRATIONS.md:
+- Ödeme arayüzü
+- Kargo arayüzü
+- SMS arayüzü
+- SMTP ayarları
+- Mock servislerin davranışı
+- Gerçek sağlayıcı ekleme adımları
+
+47. TASARIM KAPSAM DIŞI KURALLARI
+
+Bu prompt kapsamında gelişmiş UI/UX tasarımı yapma.
+
+Aşağıdaki işleri yapma:
+
+- Marka renkleri belirleme
+- Özel font seçme
+- Scroll-trigger animasyonları
+- Video frame animasyonu
+- Kahve dökülme animasyonu
+- GSAP animasyonları
+- Parallax tasarım
+- Gelişmiş navbar animasyonu
+- Sayfa geçiş efektleri
+- Tasarım sistemi oluşturma
+- Görsel kompozisyon oluşturma
+
+Ancak tüm sayfaların fonksiyonel olarak çalışabilmesi için sade Razor View dosyaları oluştur.
+
+Frontend tasarım promptunun daha sonra çalışabilmesi için:
+
+- Semantik HTML kullan.
+- Tutarlı bölüm isimleri kullan.
+- Anlamlı id ve class isimleri kullan.
+- Ürün kartı, sepet satırı, filtre alanı ve form bölümlerini partial view veya component hâline getir.
+- JavaScript ile çağrılacak alanlara uygun data-* attribute ekle.
+- Backend endpointlerini tasarımdan bağımsız tut.
+- ViewModel sözleşmelerini açık ve kararlı oluştur.
+- Tasarım uygulanırken iş kurallarının yeniden yazılmasına gerek kalmamasını sağla.
+
+48. UYGULAMA AŞAMALARI
+
+Çalışmayı aşağıdaki sırayla gerçekleştir:
+
+Aşama 1 — Temel solution ve mimari:
+- Solution oluştur.
+- Katmanları oluştur.
+- Proje referanslarını ayarla.
+- Temel paketleri ekle.
+- Configuration yapısını kur.
+- Loglama ve exception handling altyapısını kur.
+
+Aşama 2 — Identity, roller ve ayrılmış giriş sistemi:
+- Identity modelleri
+- Customer, Admin ve SuperAdmin rolleri
+- Müşteri kaydı ve girişi
+- Ayrı Admin girişi
+- Ayrı SuperAdmin girişi
+- Route ve Area ayrımı
+- Authentication scheme veya cookie ayrımı
+- Çıkış
+- E-posta doğrulama
+- Şifre sıfırlama
+- Kullanıcı profili
+- Adres yönetimi
+- Beni Hatırla davranışı
+- Admin ve SuperAdmin AFK sistemi
+
+Aşama 3 — Ürün kataloğu:
+- Entity modelleri
+- Migration
+- Seed data
+- Ürün listeleme
+- Ürün detayı
+- Arama
+- Filtreleme
+- Admin ürün yönetimi
+
+Aşama 4 — Sepet ve favoriler:
+- Misafir sepeti
+- Kullanıcı sepeti
+- Sepet birleştirme
+- Favoriler
+- Server-side toplam hesaplama
+
+Aşama 5 — Kampanya ve kuponlar:
+- Kampanya modelleri
+- Kupon modelleri
+- İndirim hesaplama servisi
+- Kullanım limitleri
+- Testler
+
+Aşama 6 — Ödeme ve sipariş:
+- Payment abstraction
+- Mock payment
+- Checkout
+- Sipariş oluşturma
+- Sipariş kalemleri
+- Stok düşme
+- Transaction
+- Idempotency
+
+Aşama 7 — Kargo ve fatura:
+- Shipment
+- Kargo durum geçmişi
+- Mock kargo servisi
+- PDF fatura
+- Kullanıcı indirme yetkisi
+
+Aşama 8 — İptal, iade ve refund:
+- İptal kuralları
+- İade talebi
+- Admin inceleme
+- Refund servisi
+- Stok geri ekleme politikası
+
+Aşama 9 — Bildirimler:
+- SMTP
+- SMS
+- Uygulama içi bildirim
+- Template sistemi
+- Başarısız gönderimleri kaydetme
+
+Aşama 10 — Admin, SuperAdmin ve raporlar:
+- Dashboard
+- Kullanıcı yönetimi
+- Rol yönetimi
+- Yorum yönetimi
+- Raporlar
+- CSV veya Excel export
+- Audit log
+
+Aşama 11 — Güvenlik ve test:
+- Authorization testleri
+- Yönetim route ve giriş testleri
+- AFK ve Beni Hatırla testleri
+- IDOR testleri
+- Dosya yükleme güvenliği
+- Rate limiting
+- Integration testler
+- Hata senaryoları
+
+Aşama 12 — Production hazırlığı:
+- Health check
+- Docker opsiyonu
+- Configuration validation
+- README
+- Deployment dokümantasyonu
+- Son build ve test
+
+Her aşamada projeyi çalışır durumda bırak. Önceki aşamayı bozan değişiklik yapma.
+
+49. TAMAMLANMA KRİTERLERİ
+
+Proje ancak aşağıdaki şartlar sağlandığında tamamlanmış kabul edilsin:
+
+- Solution başarıyla build oluyor.
+- Migration uygulanabiliyor.
+- Development veritabanı oluşturulabiliyor.
+- Seed data çalışıyor.
+- Kullanıcı kayıt ve giriş yapabiliyor.
+- Kullanıcı ürünleri görüntüleyebiliyor.
+- Kullanıcı sepete ürün ekleyebiliyor.
+- Kullanıcı ödeme akışını mock servisle tamamlayabiliyor.
+- Başarılı ödeme sonrasında sipariş oluşuyor.
+- Stok doğru şekilde azalıyor.
+- Aynı ödeme callback’i ikinci siparişi oluşturmuyor.
+- Kullanıcı yalnızca kendi siparişini görebiliyor.
+- Public web sitesinde Admin veya SuperAdmin giriş bağlantısı bulunmuyor.
+- Admin paneline doğrudan /admin route’u üzerinden erişilebiliyor.
+- SuperAdmin paneline doğrudan /superadmin route’u üzerinden erişilebiliyor.
+- Customer hesabı yönetim alanlarına erişemiyor.
+- Admin hesabı SuperAdmin alanına erişemiyor.
+- Admin ve SuperAdmin giriş akışları müşteri girişinden ayrılmış durumda.
+- Beni Hatırla seçilmediğinde kalıcı authentication cookie oluşmuyor.
+- Beni Hatırla seçildiğinde yalnızca yapılandırılmış süre kadar persistent cookie oluşuyor.
+- Admin ve SuperAdmin için AFK süresi çalışıyor.
+- AFK süresi dolduğunda kullanıcı güvenli şekilde çıkış yapıyor.
+- Beni Hatırla seçilmiş olsa bile yönetim AFK kuralı devre dışı kalmıyor.
+- Çıkıştan sonra eski cookie ile yönetim alanına erişilemiyor.
+- Admin ürün ve sipariş yönetebiliyor.
+- Kargo bilgileri eklenebiliyor.
+- Fatura PDF üretilebiliyor.
+- İade talebi oluşturulabiliyor.
+- Admin iade talebini yönetebiliyor.
+- Refund mock servis üzerinden çalışıyor.
+- E-posta ve SMS mock servisleri çalışıyor.
+- Kampanya ve kupon kuralları server-side uygulanıyor.
+- Audit log oluşuyor.
+- Kritik unit ve integration testleri geçiyor.
+- Hassas bilgiler kaynak kodda bulunmuyor.
+- README kurulum için yeterli bilgi içeriyor.
+- Tasarım yapılmadan tüm Razor sayfaları fonksiyonel olarak erişilebilir durumda bulunuyor.
+
+50. SON ÇALIŞMA TALİMATI
+
+Şimdi repository’yi incele ve projeyi yukarıdaki gereksinimlere göre geliştir.
+
+Paralel ajan çalışması etkinse işe başlamadan önce aktif branch’ini, worktree yolunu, dosya sahipliğini ve migration kilidinin kimde olduğunu doğrula. Ortak sözleşmelerde tek taraflı değişiklik yapma; değişiklik talebini sana atanmış benzersiz ajan raporunda belirt.
+
+İlk olarak:
+
+1. Mevcut yapıyı analiz et.
+2. Eksik ve mevcut parçaları belirle.
+3. PROJECT_STATUS.md dosyasını oluştur.
+4. Uygulama aşamalarını görev listesine dönüştür.
+5. Mimari temeli kur.
+6. Sonra aşamaları sırayla uygula.
+7. Her aşamada build ve test çalıştır.
+8. Hataları gidererek ilerle.
+9. Yapılan varsayımları DECISIONS.md dosyasına yaz.
+10. Sonuçta çalışan kodu, migrationları, testleri ve dokümantasyonu repository içinde teslim et.
+
+Yalnızca plan veya açıklama üretip durma. Repository üzerinde gerçek dosyaları oluştur, mevcut dosyaları düzenle, komutları çalıştır, build ve test sonuçlarına göre hataları gider ve sistemi mümkün olan en eksiksiz hâliyle tamamla.

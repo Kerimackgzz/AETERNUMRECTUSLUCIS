@@ -1,0 +1,155 @@
+AETERNUM RECTUS LUCIS — AJAN 1 CLAUDE DESIGN SYSTEM VE SAYFALAR v2
+
+OKUNACAK BELGELER
+
+1. 02_AETERNUM_Master_Frontend_UIUX_Motion_v2.txt
+2. 03_AETERNUM_Paralel_Orkestrasyon_4_Ajan_v2.txt
+3. Bu görev dosyası
+4. Onaylı contract belgeleri
+
+BRANCH / WORKTREE
+
+- Branch: agent/claude-design-pages
+- Worktree: ../aeternum-claude-design
+- Rapor: docs/agents/reports/claude-design-pages-report.md
+
+BAŞLAMA KOŞULU
+
+Ajan 3 foundation branch’i integration’a merge edilmiş olmalıdır.
+Başlangıçta pwd, branch, repository root ve git status raporla.
+
+ROLÜN
+
+Senior UI/UX Engineer, Design System Architect ve Razor Frontend geliştiricisisin.
+Hero, navbar ve motion runtime dışındaki frontend’in sahibisin.
+
+MARKA
+
+- Teknik ad: AETKAHVE
+- Public marka: AETERNUM RECTUS LUCIS
+- Public arayüzde public marka adını kullan.
+
+SORUMLULUKLAR
+
+- Mellos Regular font entegrasyonu
+- Renk, typography, spacing, grid, radius, motion ve z-index tokenları
+- Düşük-radius elegant buton sistemi
+- Public, Account, Customer, Admin ve SuperAdmin layoutlarının görsel uygulaması
+- Ortak form, validation, modal, drawer, toast, pagination, status, loading, empty/error componentleri
+- Hero hariç bütün public sayfalar
+- Auth ve müşteri paneli
+- Admin/SuperAdmin sayfa tasarımları
+- AFK modalının base görsel componenti
+- Responsive ve accessibility
+- ProductCard markup ve base style
+
+DOSYA SAHİPLİĞİN
+
+Değiştirebilirsin:
+
+- wwwroot/css/tokens.css
+- wwwroot/css/typography.css
+- wwwroot/css/base.css
+- wwwroot/css/layout.css
+- wwwroot/css/components/*; aşağıdaki exclusion dosyaları hariç
+- wwwroot/css/pages/*; home-hero hariç
+- wwwroot/css/admin/*
+- wwwroot/js/components/*; aşağıdaki exclusion dosyaları hariç
+- wwwroot/js/pages/*; home-frame-sequence hariç
+- wwwroot/js/admin/*
+- Public/Account/Customer/Admin/SuperAdmin layout ve view’ları
+- ProductCard markup/base CSS
+- Hero dışındaki public sayfalar
+
+DOKUNMAYACAĞIN DOSYALAR
+
+- Views/Home/Index.cshtml hero ve featured-products alanı
+- Views/Shared/_Navbar.cshtml
+- Views/Shared/_PageTransitionOverlay.cshtml
+- wwwroot/css/pages/home-hero.css
+- wwwroot/css/components/navbar.css
+- wwwroot/css/components/product-card-motion.css
+- wwwroot/css/core/page-transition.css
+- wwwroot/js/pages/home-frame-sequence.js
+- wwwroot/js/components/navbar-motion.js
+- wwwroot/js/components/product-card-motion.js
+- wwwroot/js/core/page-transition.js
+- wwwroot/frames/home/*
+- Domain/Application/Infrastructure
+- Controller, policy, DbContext ve migration
+- Shared ViewModel property adları
+- Ortak contract dosyaları
+
+LAYOUT KURALI
+
+Layoutların görsel sahibi sensin; ancak foundation’daki şu hookları silme:
+
+- _Navbar
+- _PageTransitionOverlay
+- Styles section
+- PageScripts section
+- Antiforgery hookları
+- Hero data hookları
+
+Navbar ve transition partial içeriğini değiştirme.
+
+PRODUCT CARD KURALI
+
+- Markup ve base CSS sana aittir.
+- Ajan 2’nin motion dosyaları için onaylı data-* hooklarını koru.
+- Hook adını değiştirme.
+- Eksik sözleşme varsa contract request aç.
+
+TASARIM KURALI
+
+- Mellos logo, hero dışındaki büyük başlıklar ve seçili ürün isimlerinde
+- Uzun metin/form/admin tablolarında okunabilir sans-serif
+- Siyah/orman yeşili/altın
+- Aşırı pill, glassmorphism, neon, AI gradient yok
+- Lüks, editoryal, sakin
+- Status sadece renkle anlatılmaz
+- Focus-visible belirgin
+
+SKILL / MCP
+
+Mevcut frontend, UI/UX, accessibility ve performance skill’lerini keşfet.
+Browser/screenshot/accessibility/console MCP varsa kullan.
+Var olmayan araç adı uydurma.
+Gerçek tarayıcı ve farklı viewport doğrulaması yap.
+
+CONTRACT
+
+- Entity’yi View’a bağlama.
+- Shared ViewModel adlarını değiştirme.
+- Route’u hardcode etme.
+- AJAX antiforgery sözleşmesine uy.
+- Contract değişikliği gerekirse:
+  docs/contracts/requests/claude-design-<yyyyMMdd>-<konu>.md
+- Ortak contract dosyasını doğrudan değiştirme.
+
+TEST
+
+- dotnet build
+- Razor compile
+- Browser console
+- Desktop/tablet/mobile
+- Keyboard/focus
+- Form loading/error/validation
+- Checkout/auth markup akışı
+- Public sitede Admin/SuperAdmin linki bulunmaması
+- Hero/navbar/motion dosyalarında sahiplik dışı değişiklik bulunmaması
+
+TESLİM
+
+Raporunda:
+
+- Tamamlanan sayfalar
+- Değiştirilen dosyalar
+- Kullanılan skill/MCP
+- Build ve browser sonuçları
+- Contract request
+- Bilinen sorunlar
+- Son commit hash
+- Merge hazır durumu
+
+Yalnızca kendi sahiplik alanında gerçek kod üret.

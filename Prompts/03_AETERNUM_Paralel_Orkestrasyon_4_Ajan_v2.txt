@@ -1,0 +1,369 @@
+AETERNUM RECTUS LUCIS — 4 AJAN PARALEL ÇALIŞMA ORKESTRASYON PROMPTU v2
+
+1. AMAÇ
+
+Bu belge iki Claude Code ve iki Codex ajanının aynı Git repository üzerinde çakışmadan çalışmasını sağlar.
+
+Teknik proje adı:
+- AETKAHVE
+
+Public marka:
+- AETERNUM RECTUS LUCIS
+
+Kaynak master belgeler:
+- 01_AETERNUM_Master_Backend_Gelistirme_v2.txt
+- 02_AETERNUM_Master_Frontend_UIUX_Motion_v2.txt
+
+Bu belge bütün ajanlar tarafından okunmalıdır.
+
+2. ÖNEMLİ GERÇEK: DÖRT AYRI SOHBET TEK BAŞINA PARALEL ÇALIŞMA DEĞİLDİR
+
+Ajanların birbirlerinin dosyalarını görebilmesi için:
+
+- Aynı yerel Git repository’nin ayrı worktree’lerinde çalışmaları veya
+- Aynı Git remote üzerindeki ayrı branch’lere bağlı cloud workspace kullanmaları gerekir.
+
+Dört bağımsız sohbet sekmesi aynı repository/worktree’ye bağlı değilse otomatik iş birliği yapamaz.
+Her ajan başlangıçta şu komutların sonucunu raporlamalıdır:
+
+- pwd
+- git branch --show-current
+- git status --short
+- git rev-parse --show-toplevel
+
+3. DÖRT AJAN
+
+Ajan 1 — Claude Design System ve Sayfalar
+- Branch: agent/claude-design-pages
+- Public, Account, Customer, Admin ve SuperAdmin sayfa tasarımları
+- Tasarım tokenları, Mellos, base/layout, ortak componentler
+- Hero ve navbar hariç frontend
+
+Ajan 2 — Claude Home Hero ve Motion
+- Branch: agent/claude-home-hero
+- Home hero, frame sequence, navbar, product-card motion
+- Page-transition overlay ve motion runtime
+- Hero dışındaki sayfa markup’ını değiştirmez
+
+Ajan 3 — Codex Architecture, Identity ve Security
+- Branch: agent/codex-architecture-security
+- İlk başlayan ajan
+- Solution, Identity, route/policy, AFK, contracts ve foundation
+- Foundation merge’inden sonra AppDbContext/migration sahipliğini Ajan 4’e devreder
+
+Ajan 4 — Codex Commerce
+- Branch: agent/codex-commerce
+- Product, cart, campaign, order, payment, shipment, invoice, return, integrations ve commerce testleri
+- Foundation integration’a alınmadan başlamaz
+
+4. GERÇEK ÇALIŞMA SIRASI
+
+Aşama 1:
+- Yalnızca Ajan 3 çalışır.
+- Solution ve sözleşme foundation’ını oluşturur.
+- Build ve temel testleri geçirir.
+- Coordinator Ajan 3 branch’ini integration’a merge eder.
+
+Aşama 2:
+- Ajan 1, Ajan 2 ve Ajan 4 güncel integration üzerinden ayrı branch/worktree’de paralel başlar.
+- Ajan 3 kalan auth/security işlerine devam edebilir; ancak devredilmiş dosyalara dokunamaz.
+
+Aşama 3:
+- Feature branch’ler integration’a kontrollü merge edilir.
+- Build, test, migration, browser, accessibility ve performance kontrolleri yapılır.
+- Sorunlar ilgili branch sahibine geri gönderilir.
+
+Aşama 4:
+- Integration temiz olduğunda main’e merge edilir.
+
+Dört ajanı sıfırdan aynı anda başlatma. Önce foundation gerekir.
+
+5. BRANCH VE WORKTREE KURULUMU
+
+Repository kökünde:
+
+git checkout main
+git pull
+git switch -c integration
+git push -u origin integration
+
+Foundation:
+
+git worktree add -b agent/codex-architecture-security ../aeternum-codex-architecture integration
+
+Foundation merge’inden sonra:
+
+git worktree add -b agent/claude-design-pages ../aeternum-claude-design integration
+git worktree add -b agent/claude-home-hero ../aeternum-claude-hero integration
+git worktree add -b agent/codex-commerce ../aeternum-codex-commerce integration
+
+Branch mevcutsa `-b` kullanma; mevcut branch’i worktree’ye bağla.
+
+6. KORUNAN BRANCH KURALLARI
+
+- Hiçbir ajan main’e doğrudan commit veya push yapamaz.
+- Hiçbir ajan integration’a doğrudan commit veya kontrolsüz push yapamaz.
+- Force push yapma.
+- Her ajan yalnızca kendi branch’inde çalışır.
+- Merge işlemini Coordinator yapar.
+- Küçük ve anlamlı commitler oluştur.
+- Her ajan merge öncesi branch’ini integration ile günceller.
+- Çakışmayı mümkünse dosya sahibi çözer.
+
+7. KAYNAK GERÇEKLİK VE ÖNCELİK
+
+Çelişki durumunda:
+
+1. Güvenlik, veri bütünlüğü ve yasal zorunluluklar
+2. Master Backend Promptu
+3. Onaylı sözleşme dosyaları
+4. Master Frontend Promptu
+5. Bu orkestrasyon belgesindeki sahiplik ve süreç kuralları
+6. Ajan görev dosyası
+7. Ajanın yerel tercihi
+
+Orkestrasyon belgesi kapsamı ve sahipliği sınırlar; master iş gereksinimlerini silmez.
+
+8. ORTAK SÖZLEŞME DOSYALARI
+
+Ajan 3 foundation aşamasında oluşturur:
+
+- docs/project/PROJECT_STATUS.md
+- docs/project/DECISIONS.md
+- docs/contracts/ROUTE_MAP.md
+- docs/contracts/VIEWMODEL_CONTRACTS.md
+- docs/contracts/FRONTEND_BACKEND_CONTRACT.md
+- docs/agents/AGENT_BOARD.md
+- docs/project/CONFLICT_LOG.md
+
+Foundation integration’a alındıktan sonra bu dosyalar ajanlar için read-only kabul edilir.
+Doğrudan değiştirme yerine benzersiz talep dosyası oluştur:
+
+docs/contracts/requests/<agent>-<yyyyMMdd>-<kisa-konu>.md
+
+Coordinator talebi değerlendirir ve ortak sözleşmeyi kendisi günceller.
+
+9. BENZERSİZ AJAN RAPORLARI
+
+Aynı AGENT_REPORT.md adını dört branch’te kullanma.
+
+- Ajan 1: docs/agents/reports/claude-design-pages-report.md
+- Ajan 2: docs/agents/reports/claude-home-hero-report.md
+- Ajan 3: docs/agents/reports/codex-architecture-security-report.md
+- Ajan 4: docs/agents/reports/codex-commerce-report.md
+
+Ajanlar yalnızca kendi raporunu günceller.
+AGENT_BOARD.md dosyasını Coordinator günceller.
+
+10. DOSYA SAHİPLİĞİ — FRONTEND
+
+Ajan 1 owns:
+- wwwroot/css/tokens.css
+- wwwroot/css/typography.css
+- wwwroot/css/base.css
+- wwwroot/css/layout.css
+- wwwroot/css/components/* (aşağıdaki istisnalar hariç)
+- wwwroot/css/pages/* (home-hero hariç)
+- wwwroot/css/admin/*
+- wwwroot/js/components/* (aşağıdaki istisnalar hariç)
+- wwwroot/js/pages/* (home-frame-sequence hariç)
+- wwwroot/js/admin/*
+- Public/Account/Customer/Admin/SuperAdmin layout ve view’ları
+- ProductCard markup ve base stili
+
+Ajan 1 exclusions:
+- Views/Home/Index.cshtml hero ve featured-products bölümü
+- Views/Shared/_Navbar.cshtml
+- Views/Shared/_PageTransitionOverlay.cshtml
+- wwwroot/css/pages/home-hero.css
+- wwwroot/css/components/navbar.css
+- wwwroot/css/components/product-card-motion.css
+- wwwroot/css/core/page-transition.css
+- wwwroot/js/pages/home-frame-sequence.js
+- wwwroot/js/components/navbar-motion.js
+- wwwroot/js/components/product-card-motion.js
+- wwwroot/js/core/page-transition.js
+- wwwroot/frames/home/*
+
+Ajan 2 yalnızca yukarıdaki exclusion dosyalarının sahibidir.
+Ajan 2 tokens/base/layout dosyalarını değiştiremez.
+
+11. LAYOUT VE HOOK SÖZLEŞMESİ
+
+Ajan 3 foundation layout iskeletlerinde şunları sağlar:
+
+- Styles section
+- PageScripts section
+- Public layout içinde `_Navbar`
+- Public layout içinde `_PageTransitionOverlay`
+- Antiforgery token için ortak hook
+- Hero/featured product markup’ı için onaylı data-* sözleşmeleri
+
+Foundation sonrasında:
+
+- Ajan 1 layoutların görsel sahibidir.
+- Ajan 2 layoutları değiştirmez.
+- Ajan 2 `_Navbar` ve `_PageTransitionOverlay` partiallarını geliştirir.
+- Hook eksikse contract request açılır; başka ajanın dosyası doğrudan değiştirilmez.
+
+12. PRODUCT CARD SÖZLEŞMESİ
+
+- Ajan 1 ProductCard markup ve base CSS sahibidir.
+- Ajan 2 yalnızca motion enhancement CSS/JS sahibidir.
+- Motion hookları FRONTEND_BACKEND_CONTRACT.md içinde sabitlenir.
+- Ajan 2 markup property veya data attribute adı değiştiremez.
+- Eksik hook varsa contract request oluşturur.
+
+13. BACKEND SAHİPLİĞİ VE HANDOFF
+
+Ajan 3 foundation öncesi owns:
+- Solution/csproj
+- Program.cs
+- AppDbContext temeli
+- Identity entity/configuration
+- İlk Identity migration ve ModelSnapshot
+- Authentication/authorization
+- Shared contracts
+- Layout skeleton
+- Test foundation
+
+Foundation merge’inden sonra:
+
+- Program.cs ve auth/security configuration Ajan 3’te kalır.
+- AppDbContext, commerce DbSet’leri, Migrations klasörü ve ModelSnapshot sahipliği Ajan 4’e devredilir.
+- Ajan 3 artık AppDbContext veya migration dosyalarını değiştirmez.
+- Yeni auth şema değişikliği migration gerektiriyorsa contract request açılır ve migration gate üzerinden sıraya alınır.
+
+Ajan 4:
+- Commerce entity/configuration
+- Commerce application/infrastructure
+- Commerce controller/query/ViewModel
+- AppDbContext commerce genişletmeleri
+- Foundation sonrası migration ve snapshot
+- Commerce testleri
+
+14. MIGRATION GATE
+
+Migrations klasörü ve ModelSnapshot üzerinde aynı anda yalnızca bir ajan çalışabilir.
+
+Sıra:
+
+1. Ajan 3 ilk Identity migration’ını oluşturur.
+2. Foundation integration’a merge edilir.
+3. Migration ownership Ajan 4’e devredilir.
+4. Ajan 4 branch’ini güncel integration üzerinden oluşturur.
+5. Bundan sonra Ajan 4 commerce migrationlarını üretir.
+
+Diğer ajanlar migration oluşturamaz, silemez veya yeniden adlandıramaz.
+Migration conflict elle birleştirilmez; gerekirse son migration temiz branch üzerinde yeniden üretilir.
+
+15. PROGRAM.CS VE DI ÇAKIŞMASINI ÖNLEME
+
+Program.cs yalnızca Ajan 3 tarafından değiştirilir.
+
+Ajan 3 foundation’da şu extension noktalarını hazırlar:
+
+- AddIdentityAndSecurityModule(...)
+- AddApplicationModule(...)
+- AddInfrastructureModule(...)
+- AddCommerceModule(...)
+- MapApplicationEndpoints(...)
+
+Ajan 4 kendi extension metotlarının içini uygular; Program.cs değiştirmez.
+Program.cs değişikliği gerekirse contract request açar.
+
+16. SHARED VIEWMODEL FREEZE
+
+Foundation’da aşağıdaki shared sözleşmeler sabitlenir:
+
+- HomePageViewModel
+- ProductCardViewModel
+- Login/Register/ForgotPassword
+- AdminLogin/SuperAdminLogin
+- Temel dashboard ve status presentation modelleri
+
+Ajan 4 bu modelleri veriye bağlar fakat property adlarını değiştirmez.
+Ajan 1 ve Ajan 2 sadece okur/kullanır.
+Yeni alan gerekirse contract request gerekir.
+
+Module-specific ViewModel’ler ilgili backend modülünde eklenebilir; mevcut shared sözleşme bozulamaz.
+
+17. MARKA KURALI
+
+- Teknik ad: AETKAHVE
+- Public marka: AETERNUM RECTUS LUCIS
+- Public UI, navbar, footer, e-posta, SMS, fatura ve PDF’de public marka
+- Namespace, project ve assembly’de teknik ad
+- Ajanlar toplu namespace rename yapmaz
+
+18. CLAUDE SKILL VE MCP
+
+Claude ajanları:
+
+- Mevcut frontend, UI/UX, accessibility, motion ve performance skill’lerini keşfeder.
+- Erişilebilir MCP araçlarını kullanabilir.
+- Var olmayan araç ismi uydurmaz.
+- Browser, console, responsive ve performance doğrulaması yapar.
+- MCP yoksa işi durdurmaz.
+
+19. MERGE SIRASI
+
+Önerilen sıra:
+
+1. Ajan 3 foundation
+2. Ajan 4 commerce backend
+3. Ajan 1 design/pages
+4. Ajan 2 hero/motion
+5. Integration düzeltmeleri
+
+Gerçek bağımlılığa göre Ajan 1 ve Ajan 2’nin sırası değişebilir; ancak layout/token branch’i hero branch’inden önce merge edilirse çatışma azalır.
+
+20. MERGE ÖNCESİ ZORUNLU KONTROL
+
+Her ajan:
+
+- integration ile güncel
+- git status temiz
+- build başarılı
+- ilgili testler başarılı
+- benzersiz rapor güncel
+- sözleşme ihlali yok
+- sahiplik dışı dosya değişikliği yok
+- son commit hash raporda
+
+Coordinator integration’da:
+
+- dotnet restore
+- dotnet build
+- dotnet test
+- migration doğrulama
+- browser smoke test
+- console/network kontrolü
+- responsive kontrol
+- accessibility kontrolü
+- reduced-motion
+- public sitede admin/superadmin linki bulunmaması
+- /admin ve /superadmin policy testleri
+
+21. AJANIN İŞİ BİTİNCE
+
+Ajan doğrudan main veya integration’a merge etmez.
+
+Şunları bildirir:
+
+- Branch adı
+- Son commit hash
+- Değiştirilen dosyalar
+- Build/test sonuçları
+- Contract request var mı
+- Bilinen sorunlar
+- Merge için hazır mı
+
+22. SON TALİMAT
+
+Bu sistemde paralellik, aynı dosyaları eş zamanlı düzenlemek anlamına gelmez.
+Önce Ajan 3 foundation’ı kurar.
+Ardından Ajan 1, Ajan 2 ve Ajan 4 ayrı worktree’lerde paralel çalışır.
+Ortak sözleşmeler dondurulur.
+Migration, Program.cs, layout, navbar, ProductCard ve report sahiplikleri açıktır.
+Integration doğrulanmadan main’e merge yapılmaz.

@@ -1,0 +1,61 @@
+AETERNUM RECTUS LUCIS — 4 AJANI BASLATMA VE KULLANMA REHBERI v2
+
+PAKETTEKI DOSYALAR
+
+01 — Master Backend
+02 — Master Frontend/UIUX/Motion
+03 — 4 Ajan Orkestrasyon
+04 — Claude Design/Pages görevi
+05 — Claude Hero/Motion görevi
+06 — Codex Architecture/Security görevi
+07 — Codex Commerce görevi
+
+HER AJANA NE VERECEKSIN?
+
+Claude Design sohbeti:
+- 02 Master Frontend
+- 03 Orkestrasyon
+- 04 Claude Design görevi
+- Foundation sonrası oluşan contract dosyaları
+
+Claude Hero sohbeti:
+- 02 Master Frontend
+- 03 Orkestrasyon
+- 05 Claude Hero görevi
+- Foundation sonrası oluşan contract dosyaları
+
+Codex Architecture sohbeti:
+- 01 Master Backend
+- 03 Orkestrasyon
+- 06 Codex Architecture görevi
+
+Codex Commerce sohbeti:
+- 01 Master Backend
+- 03 Orkestrasyon
+- 07 Codex Commerce görevi
+- Foundation sonrası oluşan contract dosyaları
+
+BASLATMA SIRASI
+
+1. Git repository ve integration branch’i hazırla.
+2. Yalnızca Codex Architecture ajanını başlat.
+3. Foundation build/test ve contract dosyaları tamamlanınca integration’a merge et.
+4. Claude Design, Claude Hero ve Codex Commerce ajanlarını ayrı worktree’lerde paralel başlat.
+5. Her ajanın branch, worktree ve rapor yolunu doğrula.
+6. Feature branch’leri doğrudan main’e alma.
+7. Integration üzerinde bütün testleri geçir.
+8. Sonra main’e merge et.
+
+AJANA ILK MESAJ ORNEGI
+
+“Repository’ye bağlı olduğundan emin ol. Önce pwd, git branch --show-current, git status --short ve git rev-parse --show-toplevel sonuçlarını göster. Sana verdiğim üç promptu sırayla oku. Yalnızca görev dosyandaki sahiplik alanında çalış. Ortak contract dosyalarını değiştirme; gerekirse request dosyası oluştur. İş bitiminde sana atanmış benzersiz raporu güncelle ve son commit hash’ini yaz.”
+
+DIKKAT
+
+Sadece dört sohbet sekmesi açmak dosya paylaşımı sağlamaz.
+Her sohbet/ajan aynı Git remote’a veya aynı yerel repository’nin ayrı worktree’sine bağlı olmalıdır.
+
+PUBLIC MARKA
+
+- Public marka: AETERNUM RECTUS LUCIS
+- Teknik solution/namespace: AETKAHVE
