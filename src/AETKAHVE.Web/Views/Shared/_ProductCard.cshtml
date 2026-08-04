@@ -1,0 +1,51 @@
+@using System.Globalization
+@model ProductCardViewModel
+@{
+    var currency = new CultureInfo("tr-TR");
+}
+<article class="product-card" data-product-card data-product-id="@Model.Id">
+    <div class="product-card__surface" data-product-card-surface>
+        <a href="@Model.DetailUrl" data-detail-url="@Model.DetailUrl" aria-label="@Model.Name — detayları görüntüle">
+            <img data-product-card-image src="@Model.PrimaryImageUrl" alt="@Model.PrimaryImageAlt" loading="lazy" width="480" height="600" />
+        </a>
+        <div class="product-card__badges">
+            @if (Model.IsDiscounted)
+            {
+                <span class="product-card__badge">İndirim</span>
+            }
+            @if (!Model.IsInStock)
+            {
+                <span class="product-card__badge product-card__badge--muted">Stokta yok</span>
+            }
+        </div>
+        <button type="button"
+                class="product-card__favorite"
+                data-toggle-favorite-url="@Model.ToggleFavoriteUrl"
+                aria-pressed="@Model.IsFavorite.ToString().ToLowerInvariant()"
+                aria-label="@(Model.IsFavorite ? "Favorilerden çıkar" : "Favorilere ekle")">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 20.5s-7.5-4.6-10-9.2C.6 8 2 4.5 5.4 3.7c2-.5 4 .3 5.1 2 .3.5.5 1 .5 1s.2-.5.5-1c1.1-1.7 3.1-2.5 5.1-2 3.4.8 4.8 4.3 3.4 7.6-2.5 4.6-8 9.2-8 9.2Z" />
+            </svg>
+        </button>
+    </div>
+    <div class="product-card__body">
+        <p class="product-card__meta text-eyebrow">@Model.CategoryName · @Model.OriginName</p>
+        <h3 class="product-card__title product-name">
+            <a href="@Model.DetailUrl" data-detail-url="@Model.DetailUrl">@Model.Name</a>
+        </h3>
+        <p class="product-card__roast text-sm text-muted">@Model.RoastLevelName</p>
+        <div class="product-card__price-row">
+            <span data-product-card-price>@Model.DisplayPrice.ToString("N2", currency) ₺</span>
+            @if (Model.IsDiscounted && Model.OriginalPrice.HasValue)
+            {
+                <span class="product-card__price--original">@Model.OriginalPrice.Value.ToString("N2", currency) ₺</span>
+            }
+        </div>
+        <button type="button"
+                class="btn btn--primary btn--block product-card__add-to-cart"
+                data-add-to-cart-url="@Model.AddToCartUrl"
+                disabled="@(!Model.IsInStock ? "disabled" : null)">
+            @(Model.IsInStock ? "Sepete Ekle" : "Stokta Yok")
+        </button>
+    </div>
+</article>
