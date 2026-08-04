@@ -4,6 +4,7 @@ using AETKAHVE.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AETKAHVE.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260804170153_AddCommerceCheckoutAndFulfillment")]
+    partial class AddCommerceCheckoutAndFulfillment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -415,63 +418,6 @@ namespace AETKAHVE.Infrastructure.Persistence.Migrations
                     b.ToTable("CoffeeTypes");
                 });
 
-            modelBuilder.Entity("AETKAHVE.Domain.Commerce.ContactMessage", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset?>("AnsweredAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("AnsweredByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("CreatedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(320)
-                        .HasColumnType("nvarchar(320)");
-
-                    b.Property<string>("FullName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasMaxLength(5000)
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PhoneNumber")
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<bool>("PrivacyAccepted")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<string>("Subject")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<DateTimeOffset>("UpdatedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Status", "CreatedAtUtc");
-
-                    b.ToTable("ContactMessages");
-                });
-
             modelBuilder.Entity("AETKAHVE.Domain.Commerce.Coupon", b =>
                 {
                     b.Property<Guid>("Id")
@@ -650,125 +596,6 @@ namespace AETKAHVE.Infrastructure.Persistence.Migrations
                         .IsUnique();
 
                     b.ToTable("Invoices");
-                });
-
-            modelBuilder.Entity("AETKAHVE.Domain.Commerce.Notification", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("CreatedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<DateTimeOffset?>("ReadAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("RelatedEntityId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("RelatedEntityType")
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(80)
-                        .HasColumnType("nvarchar(80)");
-
-                    b.Property<DateTimeOffset>("UpdatedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId", "IsRead", "CreatedAtUtc");
-
-                    b.ToTable("Notifications");
-                });
-
-            modelBuilder.Entity("AETKAHVE.Domain.Commerce.NotificationDelivery", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("AttemptCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Channel")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<Guid>("ConcurrencyToken")
-                        .IsConcurrencyToken()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("CreatedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<DateTimeOffset?>("DeliveredAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Destination")
-                        .IsRequired()
-                        .HasMaxLength(320)
-                        .HasColumnType("nvarchar(320)");
-
-                    b.Property<string>("LastError")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTimeOffset?>("NextAttemptAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("NotificationId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("PayloadJson")
-                        .IsRequired()
-                        .HasMaxLength(8000)
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<string>("TemplateKey")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<DateTimeOffset>("UpdatedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("NotificationId");
-
-                    b.HasIndex("Status", "NextAttemptAtUtc");
-
-                    b.ToTable("NotificationDeliveries");
                 });
 
             modelBuilder.Entity("AETKAHVE.Domain.Commerce.Order", b =>
@@ -1359,168 +1186,6 @@ namespace AETKAHVE.Infrastructure.Persistence.Migrations
                     b.HasIndex("PaymentId");
 
                     b.ToTable("Refunds");
-                });
-
-            modelBuilder.Entity("AETKAHVE.Domain.Commerce.ReturnItem", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Condition")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<DateTimeOffset>("CreatedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("ImageStorageKey")
-                        .HasMaxLength(512)
-                        .HasColumnType("nvarchar(512)");
-
-                    b.Property<Guid>("OrderItemId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<Guid>("ReturnRequestId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("UpdatedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrderItemId");
-
-                    b.HasIndex("ReturnRequestId");
-
-                    b.ToTable("ReturnItems");
-                });
-
-            modelBuilder.Entity("AETKAHVE.Domain.Commerce.ReturnRequest", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("AdminResponse")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<Guid>("ConcurrencyToken")
-                        .IsConcurrencyToken()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTimeOffset>("CreatedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("Description")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<Guid>("OrderId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Reason")
-                        .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
-
-                    b.Property<decimal>("RefundAmount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTimeOffset>("RequestedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<bool>("RestockApproved")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTimeOffset?>("ReviewedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("ReviewedByUserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<DateTimeOffset>("UpdatedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrderId");
-
-                    b.HasIndex("UserId", "OrderId");
-
-                    b.ToTable("ReturnRequests");
-                });
-
-            modelBuilder.Entity("AETKAHVE.Domain.Commerce.Review", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("AdminResponse")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<string>("Comment")
-                        .IsRequired()
-                        .HasMaxLength(3000)
-                        .HasColumnType("nvarchar(3000)");
-
-                    b.Property<DateTimeOffset>("CreatedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<DateTimeOffset?>("DeletedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid>("OrderItemId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("Rating")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<DateTimeOffset>("UpdatedAtUtc")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrderItemId");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("UserId", "OrderItemId")
-                        .IsUnique();
-
-                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("AETKAHVE.Domain.Commerce.RoastLevel", b =>
@@ -2162,16 +1827,6 @@ namespace AETKAHVE.Infrastructure.Persistence.Migrations
                     b.Navigation("Order");
                 });
 
-            modelBuilder.Entity("AETKAHVE.Domain.Commerce.NotificationDelivery", b =>
-                {
-                    b.HasOne("AETKAHVE.Domain.Commerce.Notification", "Notification")
-                        .WithMany()
-                        .HasForeignKey("NotificationId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Notification");
-                });
-
             modelBuilder.Entity("AETKAHVE.Domain.Commerce.OrderItem", b =>
                 {
                     b.HasOne("AETKAHVE.Domain.Commerce.Order", "Order")
@@ -2282,55 +1937,6 @@ namespace AETKAHVE.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Payment");
-                });
-
-            modelBuilder.Entity("AETKAHVE.Domain.Commerce.ReturnItem", b =>
-                {
-                    b.HasOne("AETKAHVE.Domain.Commerce.OrderItem", "OrderItem")
-                        .WithMany()
-                        .HasForeignKey("OrderItemId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("AETKAHVE.Domain.Commerce.ReturnRequest", "ReturnRequest")
-                        .WithMany("Items")
-                        .HasForeignKey("ReturnRequestId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("OrderItem");
-
-                    b.Navigation("ReturnRequest");
-                });
-
-            modelBuilder.Entity("AETKAHVE.Domain.Commerce.ReturnRequest", b =>
-                {
-                    b.HasOne("AETKAHVE.Domain.Commerce.Order", "Order")
-                        .WithMany()
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Order");
-                });
-
-            modelBuilder.Entity("AETKAHVE.Domain.Commerce.Review", b =>
-                {
-                    b.HasOne("AETKAHVE.Domain.Commerce.OrderItem", "OrderItem")
-                        .WithMany()
-                        .HasForeignKey("OrderItemId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("AETKAHVE.Domain.Commerce.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("OrderItem");
-
-                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("AETKAHVE.Domain.Commerce.Shipment", b =>
@@ -2473,11 +2079,6 @@ namespace AETKAHVE.Infrastructure.Persistence.Migrations
                     b.Navigation("Images");
 
                     b.Navigation("Variants");
-                });
-
-            modelBuilder.Entity("AETKAHVE.Domain.Commerce.ReturnRequest", b =>
-                {
-                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("AETKAHVE.Domain.Commerce.Shipment", b =>
