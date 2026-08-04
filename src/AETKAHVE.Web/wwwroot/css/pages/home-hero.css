@@ -1,0 +1,205 @@
+/* AETERNUM RECTUS LUCIS — Home Hero Frame Sequence
+   Kok hook (docs/contracts/FRONTEND_BACKEND_CONTRACT.md — frozen):
+   <section id="home-hero" data-home-hero data-frame-manifest-url="..." data-poster-url="..." data-reduced-motion="...">
+     <div class="hero-frame-sequence__pin" data-hero-pin>
+       <canvas class="hero-frame-sequence__canvas" data-hero-canvas></canvas>
+       <div class="hero-frame-sequence__content">...</div>
+     </div>
+   </section>
+   Featured-products ayrı bir section'dir ([data-featured-products]); hero kendi pininde biter,
+   urun reveal'i product-card-motion.js/css'in sorumlulugundadir (bkz. o dosyalar).
+   tokens.css henuz kurulmadigi icin renk/degerler yerel fallback ile var() kullanir;
+   tokens.css eklendiginde ayni degisken adlari otomatik devralinir.
+
+   @font-face gecici olarak burada (Ajan 2'nin kendi dosyasinda) tanimlanir — typography.css
+   (Ajan 1) henuz bu ismi tanimlamadigindan. typography.css'te ayni "Mellos" adiyla tanimlanirsa
+   @font-face tekrari zararsizdir; bu blok o zaman kaldirilabilir. */
+
+@font-face {
+  font-family: "Mellos";
+  src: url("/font/Mellos-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+[data-home-hero] {
+  position: relative;
+  height: calc(var(--hero-pin-vh, 400) * 1vh);
+  background-color: var(--color-ink, #050505);
+}
+
+.hero-frame-sequence__pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-ink, #050505);
+}
+
+.hero-frame-sequence__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.hero-frame-sequence__content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  text-align: center;
+  color: var(--color-cream, #f2ede4);
+  pointer-events: none;
+  opacity: calc(1 - var(--hero-progress, 0) * 0.5);
+}
+
+.hero-frame-sequence__eyebrow {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-gold-muted, #dac298);
+  animation: hero-text-rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.hero-frame-sequence__title {
+  margin: 0;
+  font-family: var(--font-display, "Mellos", serif);
+  font-size: clamp(1.75rem, 4vw, 3.25rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-cream, #f2ede4);
+  animation: hero-text-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+}
+
+/* Altin parilti: background-clip:text destekleyen taraycilarda kontrollu, yavas bir isilti gecisi.
+   Desteklenmezse duz krem renk (yukaridaki color) olarak kalir. */
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  .hero-frame-sequence__title {
+    background-image: linear-gradient(
+      100deg,
+      var(--color-cream, #f2ede4) 0%,
+      var(--color-cream, #f2ede4) 38%,
+      #fff6d9 50%,
+      var(--color-gold-muted, #dac298) 58%,
+      var(--color-cream, #f2ede4) 70%,
+      var(--color-cream, #f2ede4) 100%
+    );
+    background-size: 260% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation:
+      hero-text-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both,
+      hero-title-shimmer 6s ease-in-out 1s infinite alternate;
+  }
+}
+
+@keyframes hero-text-rise {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes hero-title-shimmer {
+  from {
+    background-position: 0% 0;
+  }
+  to {
+    background-position: 100% 0;
+  }
+}
+
+.hero-frame-sequence__scroll-hint {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-cream, #f2ede4);
+  opacity: calc(0.5 * (1 - var(--hero-progress, 0)));
+  pointer-events: none;
+}
+
+[data-featured-products] {
+  padding: clamp(2.5rem, 6vw, 5rem) clamp(1rem, 4vw, 3rem);
+}
+
+[data-featured-products] h2 {
+  text-align: center;
+  margin: 0 0 clamp(1.5rem, 4vw, 2.5rem);
+}
+
+[data-product-card-list] {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(0.75rem, 1.5vw, 1.5rem);
+  max-width: 90rem;
+  margin: 0 auto;
+}
+
+@media (max-width: 899px) {
+  [data-product-card-list] {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 599px) {
+  [data-product-card-list] {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Manifest/breakpoint bulunamadi veya reduced-motion: pin iptal, sade poster gorunumu */
+[data-home-hero].hero-frame-sequence--fallback,
+[data-home-hero].hero-frame-sequence--static {
+  height: 100vh;
+}
+
+.hero-frame-sequence--fallback .hero-frame-sequence__pin,
+.hero-frame-sequence--static .hero-frame-sequence__pin {
+  position: relative;
+}
+
+.hero-frame-sequence--static .hero-frame-sequence__content {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-home-hero] {
+    height: 100vh;
+  }
+
+  .hero-frame-sequence__pin {
+    position: relative;
+  }
+
+  .hero-frame-sequence__content {
+    opacity: 1;
+    transition: none;
+  }
+
+  .hero-frame-sequence__eyebrow,
+  .hero-frame-sequence__title {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
