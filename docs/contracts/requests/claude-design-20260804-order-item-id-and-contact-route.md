@@ -1,6 +1,6 @@
 # Contract Request — OrderDetails.Items OrderItemId ve /contact GET rotası
 
-Durum: Coordinator incelemesine hazır
+Durum: Uygulandı (`90a7efd`) — `OrderLineDetails.OrderItemId`, `/contact` GET/POST sayfası ve sipariş detayındaki iade/yorum formları tamamlandı.
 Kaynak: Ajan 1 (`agent/claude-design-pages`)
 Kapsam: Yalnızca iki küçük, geriye dönük uyumlu ek — mevcut frozen ViewModel/route sözleşmelerini bozmaz.
 

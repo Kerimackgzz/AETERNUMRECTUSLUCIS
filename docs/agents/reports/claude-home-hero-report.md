@@ -7,7 +7,7 @@
 - Son commit: `956d3c1` — "feat: add home hero frame-sequence engine and product-card reveal motion" (446 dosya). Worktree'de temiz bir `dotnet restore`+`build`+`test` ile tekrar doğrulandı (0 hata/uyarı, 8/8 + 16/16).
 - **Güncelleme (aynı gün, ikinci tur):** `agent/claude-home-hero` bu sırada zaten `integration`'a merge edilmişti (`1d42fe4`); branch'im `git merge integration` ile güncel `integration` ucuna (`7c0568d`) senkronize edildi (fast-forward, çakışmasız). Bu, Ajan 1'in `_ProductCard.cshtml`'ini, Coordinator'ın `data-product-card-list`→partial bağlantısını, ve kullanıcının eklediği `navbar.css`/`navbar-motion.js` taslağı ile `HomePageViewModel.IsReducedMotionFallbackAvailable` varsayılan-değer düzeltmesini branch'ime taşıdı. Navbar harf-mask + page-transition eklendi, commit `94b5f10`.
 - **Güncelleme (üçüncü tur):** `integration` bu sırada Ajan 4'ün commerce backend'ini (58 test) ve Ajan 1'in karşılık gelen commerce Razor view'larını (Products/Cart/Checkout/Favorites/Addresses/Orders) almıştı — branch'im tekrar `git merge integration` ile senkronize edildi (çakışmasız, "ort" stratejisiyle merge commit). Yeni eklenen `tests/AETKAHVE.IntegrationTests/CommerceContractTests.cs` içindeki `Public_home_renders_the_hero_and_navbar_motion_contract` testi (hero + navbar çıktımı birebir kilitleyen bir regresyon testi) dahil **tüm testler (21 unit + 39 integration) geçti** — navbar harf-mask eklemem mevcut sözleşmeyi bozmadı.
-- **Önemli ortam değişikliği**: commerce backend merge sonrası `HomeController` gerçek DB sorgusu yaptığından, bu ortamda SQL Server olmadığı için **artık `dotnet run` ile canlı HTTP smoke test yapılamıyor** (DB bağlantı hatasıyla başlıyor) — bu Coordinator'ın notuyla da doğrulandı. `dotnet test` (SQLite fixture) etkilenmiyor ve doğrulama için güvenilir kalan tek yöntem.
+- **Ortam değişikliği (sonradan çözüldü)**: Commerce backend'in ilk merge anında SQL Server olmadığı için canlı HTTP smoke duruyordu. Ajan 4'ün Development SQLite runtime'ı (`f4af055`, integration `62e4de5`) bu engeli kaldırdı; `dotnet run` ve seeded localhost smoke artık çalışıyor.
 
 ## Yapılan iş (bu oturum)
 
@@ -66,7 +66,7 @@ Kök `wwwroot/` klasörü (ve içindeki geçici `_preview-hero.html` QA dosyam) 
 
 - **Navbar harf-mask animasyonu**: Kullanıcının eklediği basit `navbar.css`/`navbar-motion.js` (transparan→koyu scroll geçişi) **korunarak**, üzerine `[data-navbar-brand]` metnini runtime'da harflere bölüp (`.navbar-brand__letter-mask` > `.navbar-brand__letter`) staggered `translateY` reveal ile giriş animasyonu eklendi. JS çalışmazsa düz metin görünür kalır (progressive enhancement); `prefers-reduced-motion`'da animasyon iptal.
 - **Page transition runtime**: `Views/Shared/_PageTransitionOverlay.cshtml` hook'u zaten vardı ama onu kullanan hiçbir kod yoktu. `wwwroot/css/core/page-transition.css` + `wwwroot/js/core/page-transition.js` eklendi: yalnızca aynı-origin `<a>` tıklamalarını yakalar (form submit/yeni sekme/modifier-key/download/hash-only/farklı-origin'e hiç dokunmaz), kısa bir opacity-fade overlay gösterip navigasyonu tamamlar; `pageshow` ile ilk yükleme ve bfcache geri dönüşünde overlay her zaman temiz başlar, `popstate`'e kasıtlı olarak dokunulmadı (back/forward akışı bozulmasın diye).
-- **Layout bağlantısı benim yapamadığım kısım**: `page-transition.js/css`'in `_PublicLayout.cshtml`'e bağlanması (script/link tag'i) layout sahibinin işi — `docs/contracts/requests/claude-hero-20260804-page-transition-script-tag.md` ile contract request bırakıldı (navbar.css/navbar-motion.js için `7c0568d`'de yapılanın aynısı istendi).
+- **Layout bağlantısı**: Contract request Coordinator tarafından `c4a669d` ile uygulandı; `page-transition.js/css` `_PublicLayout.cshtml` içinde yükleniyor ve integration contract testi asset/tag/hook davranışını kilitliyor.
 
 ## Kullanılan skill/MCP
 
@@ -74,16 +74,16 @@ Kayıtlı bir frontend/motion/performance skill'i veya browser/screenshot MCP ar
 
 ## Contract request
 
-`docs/contracts/requests/claude-hero-20260804-page-transition-script-tag.md` — `_PublicLayout.cshtml`'e `page-transition.css/js` için link/script tag'i eklenmesi rica edildi (layout dosyasına ben dokunamıyorum). **Henüz işlenmedi** — güncel `integration`'da layout'a yalnızca `toast.css` eklenmiş, page-transition için hiçbir `<link>`/`<script>` yok; isteğim muhtemelen sıradaki Coordinator turunda değerlendirilecek. Frozen ViewModel/contract dosyalarına dokunulmadı.
+`docs/contracts/requests/claude-hero-20260804-page-transition-script-tag.md` uygulandı (`c4a669d`); `_PublicLayout.cshtml` hem CSS hem module script tag'ini içeriyor.
 
 ## Bilinen sınırlamalar
 
-- **Gerçek tarayıcı/görsel doğrulama yapılamadı** — yalnızca HTTP durum kodu + HTML içerik kontrolü yapıldı (Ajan 1'in raporundaki dürüst sınırlamayla aynı durum).
-- `Model.HeroPosterUrl` şu an `/images/home/hero-poster.webp` değerini taşıyor ama bu dosya **yok** (404) — muhtemelen backend/seed verisi henüz gerçek içerik sağlamıyor (Ajan 4'ün alanı). JS bunu sessizce (catch) tolere ediyor, sayfa kırılmıyor; breakpoint manifest posterleri (`/frames/home/{bp}/poster.webp`) zaten mevcut ve devreye giriyor.
+- Development SQLite runtime sayesinde birleşik integration üzerinde gerçek localhost HTTP/HTML ve asset smoke yapılabiliyor.
+- `HeroPosterUrl`, shipped `/frames/home/desktop/poster.webp` asset'ine bağlandı ve 200 contract testiyle doğrulandı (`1de48f8`).
 - `data-reduced-motion` artık `HomePageViewModel.IsReducedMotionFallbackAvailable` varsayılanı `false` olacak şekilde düzeltildi (`7c0568d`, kullanıcı tarafından) — hero artık varsayılan olarak canlı/scroll-scrub modda başlıyor, HTTP smoke testte doğrulandı (`data-reduced-motion="false"`).
-- Ajan 1'in `45b43b5`/`50918f9` commit'leriyle eklediği gerçek `_ProductCard.cshtml` incelendi: tüm hook'lar (`data-product-card`, `data-product-card-surface`, vb.) benim `product-card-motion.js/css`'imin beklediğiyle **birebir uyuşuyor**. `data-product-count="0"` hâlâ boş (commerce/seed verisi yok, Ajan 4'ün alanı) — gerçek ürün verisiyle tarayıcıda görsel doğrulama hâlâ yapılamadı.
-- Navbar harf-mask ve page-transition runtime bu turda yazıldı (bkz. yukarı); page-transition'ın layout'a bağlanması bir contract request'e bağlı, o adım tamamlanana kadar `page-transition.js/css` sayfada aktif olmayacak (dosyalar mevcut ve 200 dönüyor, ama hiçbir `<script>`/`<link>` onları henüz çağırmıyor).
+- ProductCard hook'ları motion katmanıyla birebir uyumlu; Development seed'indeki `Eternal Light` kartı ve görseli localhost smoke'ta doğrulandı.
+- Navbar harf-mask, transparan→koyu scroll davranışı ve page-transition runtime integration'da aktif; tag ve hook'lar contract testiyle korunuyor.
 
 ## Merge hazır durumu
 
-Evet. Build/test/HTTP smoke doğrulamasından geçti, `agent/claude-home-hero` branch'i `integration` ile senkron, sahiplik dışı dosya değişikliği yok, ana checkout'a müdahale edilmedi. Tek açık nokta: page-transition contract request'inin layout sahibi tarafından uygulanması.
+Tamamlandı ve `6113dac` ile integration'a merge edildi; layout bağlantısı `c4a669d`, poster düzeltmesi `1de48f8` ile kapandı.

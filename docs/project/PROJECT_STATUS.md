@@ -1,7 +1,7 @@
 # Project Status
 
 Son güncelleme: 2026-08-04
-Foundation, Ajan 1 (design system + commerce view'larının tamamı: Public/Account/Admin), Ajan 2 (home hero/motion) ve Ajan 4 (commerce backend) `integration`'a merge edildi. Ajan 4'ün açtığı her route'un bir view'ı var. Sırada: gerçek SQL Server ortamı, 2 küçük contract eki (`/contact` GET, `OrderItemId`), ve gerçek tarayıcı doğrulaması.
+Foundation, Ajan 1 (design system + Public/Account/Admin commerce view'ları), Ajan 2 (home hero/navbar/motion) ve Ajan 4 (commerce backend + Development SQLite) `integration`'a merge edildi. Public navbar hedefleri, contact ve post-purchase iade/yorum akışları da tamamlandı. Birleşik doğrulama kapısı 23 unit + 44 integration = 67/67.
 
 ## Tamamlandı
 
@@ -19,21 +19,21 @@ Foundation, Ajan 1 (design system + commerce view'larının tamamı: Public/Acco
 - ProductCard base markup + motion entegrasyonu; `data-product-card-list` gerçek partial'a bağlandı (Coordinator).
 - Commerce backend: katalog/sepet/checkout/sipariş/ödeme/iade/fatura/stok/engagement servisleri, migration'lar, Product/Cart/Checkout/Favorites/Notifications/Admin-commerce controller'ları (Ajan 4).
 - Commerce Razor view'ları — tamamı: Products (liste+filtre+detay), Categories, Campaigns, Cart, Checkout, Favorites, Account'un tamamı (Addresses/Orders/Invoices/Returns/Reviews/Notifications), 11 Admin commerce sayfası (Catalog/Products/Orders/Invoices/Shipments/Campaigns/Coupons/Returns/Reviews/Messages/Reports) (Ajan 1).
-- 21 unit ve 39 integration test, hepsi geçiyor.
+- 23 unit ve 44 integration test, hepsi geçiyor.
 
 ## Sonraki Aşamalar
 
 - [x] Coordinator foundation branch'ini `integration` üzerine merge etti (`bcfbf8d`).
 - [x] Ajan 1, Ajan 2 ve Ajan 4 `integration`'a merge edildi; her merge sonrası build/test doğrulandı.
 - [x] Ajan 1, Ajan 4'ün açtığı **her** route için view ekledi — Public shop akışı, Account'un tamamı, tüm Admin commerce sayfaları.
-- **Kalan**: `/contact` sayfası için `ContactController`'a `[HttpGet]` eklenmesi; `OrderDetails.Items`'a `OrderItemId` eklenmesi (Return/Review oluşturma akışını açar) — ikisi de `docs/contracts/requests/claude-design-20260804-order-item-id-and-contact-route.md`'de talep edildi, Ajan 4/Coordinator kararı bekliyor.
+- **Kapatıldı (`90a7efd`)**: `/contact` GET/JSON POST, `OrderLineDetails.OrderItemId` ve sipariş detayındaki Return/Review oluşturma akışları integration'da.
 - Production SMTP/outbox ve kalıcı Data Protection key store eklenir.
-- Bu ortamda çalışan bir SQL Server olmadığı için gerçek tarayıcı/`dotnet run` doğrulaması yapılamıyor (bkz. Bilinen Sınırlamalar).
+- [x] Development SQLite + deterministik seed ile `dotnet run` ve localhost HTTP/HTML/asset smoke tamamlandı.
 
 ## Bilinen Sınırlamalar
 
 - Gerçek SMTP bilgisi olmadığı için Identity mesajları in-memory mock sender’a gider.
-- SQL Server instance’ı bu ortamda çalıştırılmadı; migration üretimi/script/model kontrolleri SQL Server sağlayıcısıyla yapılır, çalışan testler SQLite kullanır. Bu yüzden `dotnet run` ile canlı tarayıcı doğrulaması yapılamıyor; tüm yeni commerce sayfaları SQLite tabanlı `WebApplicationFactory` testleriyle (200 render) doğrulandı.
+- SQL Server instance’ı bu ortamda çalıştırılmadı; production migration üretimi/script/model kontrolleri SQL Server sağlayıcısıyla yapılır. Development runtime ve integration testleri SQLite kullanır; localhost uygulaması çalışır.
 - AFK uyarı modalının istemci runtime’ı frontend sahibine bırakılmıştır; timeout sunucuda zorunlu olarak uygulanır (uygulandı: `js/admin/idle-session.js`).
-- `Model.FeaturedProducts` artık gerçek katalog verisiyle dolduruluyor (Ajan 4); yalnızca gerçek SQL Server ortamında görünür hale gelecek.
+- `Model.FeaturedProducts` gerçek katalog verisiyle dolduruluyor; Development seed'indeki `Eternal Light` kartı localhost smoke'ta görünür.
 - Gerçek tarayıcı/ekran görüntüsü doğrulaması (scroll/reduced-motion/responsive görsel inceleme) yapılmadı; yalnızca HTTP/HTML/Razor render doğrulaması yapıldı.

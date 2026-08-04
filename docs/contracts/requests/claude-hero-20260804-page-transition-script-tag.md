@@ -1,5 +1,7 @@
 # Contract Request — page-transition.js/css için layout bağlantısı
 
+Durum: Uygulandı (`c4a669d`) — CSS/JS `_PublicLayout.cshtml` içine bağlandı ve integration contract testiyle kilitlendi.
+
 **Ajan:** Ajan 2 — Claude Home Hero ve Motion
 **Tarih:** 2026-08-04
 **Konu:** `_PublicLayout.cshtml`'e page-transition asset'lerinin bağlanması

@@ -7,10 +7,10 @@
 - Güncel taban: `integration` / `f008db0` (commerce çekirdeği, Ajan 1 commerce Razor view'ları ve Ajan 3 invalid-cookie sertleştirmesi dahil)
 - Uygulama commit'i: `2673542` (`feat: implement commerce core`)
 - Development SQLite runtime commit'i: `f4af055` (`feat: enable sqlite commerce development runtime`)
-- Güncel integration merge commit'i: `f6e4ed3` (`Merge branch 'integration' into agent/codex-commerce`)
+- Integration teslim merge commit'i: `62e4de5` (`Merge branch 'agent/codex-commerce' into integration`)
 - Entegrasyon contract regresyon testi: `9c940fa` (`test: lock hero and navbar integration contract`)
 - Frontend JSON uyumluluk düzeltmesi: `099f0b4` (`fix: align commerce mutations with frontend JSON`)
-- Merge durumu: Commerce çekirdeği `6b2b47d`, Ajan 1 commerce view'ları `3d0179a` ile integration geçmişine alındı. Development SQLite runtime'ı, navbar contract testi ve son JSON mutation düzeltmesi henüz integration'da değildir; Coordinator güncel `agent/codex-commerce` HEAD'ini almalıdır.
+- Merge durumu: Güncel Ajan 4 HEAD'i Development SQLite, navbar contract testi ve JSON mutation düzeltmeleriyle birlikte `62e4de5` üzerinden integration'a alındı. Coordinator post-purchase/public navigation boşluklarını `90a7efd` ile kapattı.
 - Kök worktree ve Ajan 1/2'nin Razor/CSS/JS kaynakları Ajan 4 uygulama commit'inde değiştirilmedi.
 
 ## Tamamlanan kapsam
@@ -62,12 +62,12 @@ EF doğrulamaları:
 
 ## Route ve ViewModel mapping
 
-- Public: `/products`, `/products/{slug}`, `/search`, `/categories/{slug}`, `/campaigns`, `/cart`, `/favorites`, `/checkout`, `/payments/{provider}/callback`.
+- Public: `/products`, `/products/{slug}`, `/search`, `/categories`, `/categories/{slug}`, `/about`, `/contact`, `/campaigns`, `/cart`, `/favorites`, `/checkout`, `/payments/{provider}/callback`.
 - Customer: `/account/addresses`, `/account/orders`, `/account/invoices`, `/account/returns`, `/account/reviews`, `/account/notifications`.
 - Admin: `/admin/products`, `/admin/catalog`, `/admin/orders`, `/admin/shipments`, `/admin/invoices`, `/admin/returns`, `/admin/campaigns`, `/admin/coupons`, `/admin/reviews`, `/admin/messages`, `/admin/reports`.
 - Ayrıntılı method ve ViewModel sözleşmesi: `docs/contracts/requests/codex-commerce-20260804-commerce-routes-viewmodels.md`.
 - `HomeController` async featured query'ye bağlandı; frozen Home/ProductCard property şekilleri aynen korundu ve endpoint URL'leri server-side üretildi.
-- Cart, checkout ve address input'ları Ajan 1'in `application/json` fetch sözleşmesine `[FromBody]` ile bağlandı; antiforgery header doğrulaması aynen korundu.
+- Cart, checkout, address, contact, return ve review input'ları `application/json` fetch sözleşmesine `[FromBody]` ile bağlandı; antiforgery header doğrulaması aynen korundu.
 - Razor, CSS ve JavaScript dosyaları Ajan 4 uygulama commit'lerinde değiştirilmedi. Ajan 1 commerce view'ları integration üzerinden branch'e alındı; anasayfanın hero/navbar markup ve asset bağlantıları integration contract testiyle doğrulandı.
 
 ## Test sonucu
@@ -75,18 +75,18 @@ EF doğrulamaları:
 - Restore: başarılı.
 - Build: 0 uyarı, 0 hata.
 - Unit: 23/23 geçti.
-- Integration/contract: 42/42 geçti.
-- Toplam: 65/65 geçti.
+- Integration/contract: 44/44 geçti.
+- Toplam: 67/67 geçti.
 - NuGet direct/transitive vulnerability taraması: tüm projeler temiz.
 - Anasayfa navbar CSS/JS bağlantıları, `is-scrolled` davranış kancaları ve hero reduced-motion değerinin yanlışlıkla zorlanmaması için regresyon testi eklendi.
-- Development browser smoke: `/`, `/products`, `/products/eternal-light`, `/categories/nitelikli-kahve`, `/campaigns` ve `/cart` 200; korumalı customer/admin route'ları 302 challenge; seeded `Eternal Light` kartı ile görseli yüklendi.
+- Development browser smoke: `/`, `/products`, `/products/eternal-light`, `/categories`, `/categories/nitelikli-kahve`, `/about`, `/contact`, `/campaigns` ve `/cart` 200; korumalı customer/admin route'ları 302 challenge; seeded `Eternal Light` kartı ile görseli yüklendi.
 - Gerçek JSON mutation smoke: CSRF header ile varyantsız add `200`, quantity update `200`, uyumsuz campaign+coupon kuralı `409`, remove `200`; kaldırma sonrası item count `0`.
 
 Kapsanan senaryolar: domain price/SKU/slug/stock kuralları, state transition, çok sayfalı PDF, katalog filtre/paging/projection, favorite/cart ownership, guest merge, JSON model binding, varsayılan varyant seçimi, kampanya-kupon matematiği ve limitleri, checkout idempotency, success/fail, tekrar callback, tekrar provider transaction, ödeme sonrası stok tükenmesi/refund, concurrency token ile negatif stok önleme, cancellation restore-once, invoice/order/return IDOR, delivered-purchase review, return restock, rapor matematiği/CSV, outbox mock delivery, route aileleri, antiforgery ve admin policy.
 
 ## Bilinen entegrasyon notları
 
-- Ajan 1'in ürün liste/detay, cart, checkout, favorites, orders ve addresses Razor view'ları bu branch'tedir ve route smoke'u tamamlandı. Return/review/notification ve admin commerce view'ları için backend route/ViewModel'leri hazırdır; markup ayrı frontend kapsamı olarak kalır.
+- Public, Account ve Admin commerce view'ları integration'dadır. Contact sayfası ile teslim edilmiş sipariş satırından return/review oluşturma formları `90a7efd` ile tamamlandı; `OrderLineDetails` gerçek `OrderItemId` taşır.
 - SQL Server LocalDB/runtime eksikliği Development SQLite override ile giderildi; `dotnet run` ve gerçek tarayıcı smoke artık çalışır. Development SQLite `EnsureCreated` kullandığı için ileride model değiştiğinde yerel `.db` dosyası yeniden oluşturulmalıdır; production migration akışı SQL Server olarak değişmeden kalır.
 - Production tax oranı varsayılmadı; ürün verisinden gelir. Production shipping threshold/fee, provider ve SMTP/SMS değerleri deployment configuration ile açıkça verilmelidir.
 - `Program.cs`, auth/security configuration ve dondurulmuş contract dosyaları değiştirilmedi.
