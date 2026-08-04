@@ -30,9 +30,15 @@
 - `Views/Shared/_IdleWarningDialog.cshtml` (`[data-idle-warning-dialog]`, `[data-idle-remaining]`, `[data-idle-continue]` hook'ları), `wwwroot/css/components/idle-warning.css`.
 - `wwwroot/js/admin/idle-session.js`: status/keep-alive/logout sözleşmesini uygular (status poll aktivite saymaz, keep-alive antiforgery header'ı gönderir, 401'de login'e yönlendirir); Admin Home/Index ve SuperAdmin Home/Index'teki foundation'ın geçici inline scaffold'ı (tekrarlı dialog/logout) kaldırılıp bu ortak component'e devredildi.
 
+**ProductCard (base markup + style)** — ikinci dilim (`45b43b5`)
+- `Views/Shared/_ProductCard.cshtml`: `ProductCardViewModel`'i frozen contract'taki tüm hook'larla render eder (`data-product-card`, `data-product-id`, `data-product-card-surface`, `data-product-card-image`, `data-product-card-price`, `data-add-to-cart-url`, `data-toggle-favorite-url`, `data-detail-url`); fiyat `tr-TR` kültürüyle biçimlendirilir; stokta yokken `disabled` attribute'u koşullu render edilir (Razor boolean-attribute davranışı doğrulandı).
+- `wwwroot/css/components/product-card.css`: yalnız base görsel (yüzey, rozetler, favori butonu, fiyat satırı) — reveal/shimmer motion `product-card-motion.css`'te (Ajan 2, dokunulmadı) kalıyor.
+- `typography.css`: Ajan 2'nin ürettiği `Mellos-Regular.woff2`'yi birincil kaynak yaptım (otf/ttf fallback olarak kaldı) — home-hero.css'teki geçici `@font-face` artık tamamen aynı önceliği kullanıyor, çakışma yok.
+- **Not:** `Views/Home/Index.cshtml` (hero+featured-products) tamamen Ajan 2 sahipliğinde olduğu için dokunulmadı. Container zaten hazır (`data-product-card-list`); entegrasyon için tek satır yeterli: `@foreach (var p in Model.FeaturedProducts) { <partial name="_ProductCard" model="p" /> }`.
+
 ## Değiştirilen dosyalar
 
-`git show --stat 28dc5a9` — 31 dosya (17 değişiklik, 14 yeni dosya), tamamı `src/AETKAHVE.Web/**` altında. Detaylı liste commit mesajında ve repoda mevcuttur.
+`git show --stat 28dc5a9` (foundation dilimi) ve `git show --stat 45b43b5` (ProductCard dilimi) — toplam 35 dosya, tamamı `src/AETKAHVE.Web/**` altında. Detaylı liste commit mesajlarında ve repoda mevcuttur.
 
 ## Kullanılan skill/MCP
 
@@ -41,9 +47,10 @@ Bu ortamda frontend/UI-UX/accessibility/performance skill'i veya browser/screens
 ## Build ve test sonuçları
 
 - `dotnet restore AETKAHVE.sln`: başarılı.
-- `dotnet build AETKAHVE.sln --no-restore`: başarılı, 0 uyarı / 0 hata.
+- `dotnet build AETKAHVE.sln --no-restore`: başarılı, 0 uyarı / 0 hata (her iki dilimde de, Ajan 2'nin çalışma dizinindeki commit'siz dosyalarıyla birlikte).
 - `dotnet test AETKAHVE.sln --no-restore`: 8/8 unit, 16/16 integration başarılı (Ajan 3'ün foundation testleri; bu oturum yeni test eklemedi).
 - HTTP smoke test (`dotnet run`, yerel curl): `/`, `/account/login`, `/account/register`, `/account/forgot-password`, `/admin/login`, `/superadmin/login` → 200; `/admin` (anonim) → 302; `/css/tokens.css`, `/css/admin/admin.css`, `/font/Mellos.otf`, `/js/admin/idle-session.js` → 200. `/account/login` içeriğinde `account-card`/`csrf-token`/`tokens.css`; `/` içeriğinde `data-frame-manifest-url`/`data-product-card-list` (hero hook'ları bozulmamış); `/admin/login` içeriğinde `admin-topbar` **yok** (doğru — kimliksiz sayfa).
+- ProductCard doğrulaması: `Views/Home/Index.cshtml`'e **geçici olarak** (Ajan 2 sahipliğindeki dosyada, commit edilmeden) iki örnek `ProductCardViewModel` ile `_ProductCard` partial'ı bağlanıp `dotnet run` + curl ile gerçek render alındı — tüm data-* hook'ları, `tr-TR` fiyat biçimi ("349,90 ₺") ve stok durumuna göre koşullu `disabled` attribute'u doğru render edildi. Doğrulama sonrası dosya `git diff` ile bire bir Ajan 2'nin haline geri alındı (kalıntı yok, doğrulandı).
 
 ## Contract request
 
@@ -51,16 +58,15 @@ Yok. Shared ViewModel property'leri, route'lar ve frozen contract dosyaları de�
 
 ## Bilinen sorunlar
 
-- **ProductCard markup/base CSS henüz yok** — Home hero'nun `data-product-card-list` container'ı hâlâ boş; bu, kapsamın bir sonraki parçası.
 - **Gerçek tarayıcı/ekran görüntüsü doğrulaması yapılmadı** — yalnızca HTTP durum kodu ve HTML içerik grep'i ile doğrulandı; görsel/responsive/klavye-focus/renk kontrastı incelemesi kullanıcı veya browser MCP ile teyit edilmeli.
-- **Ajan 2'nin kök `wwwroot/` çıktısı yanlış konumda**: foundation yokken oluşturulduğu için `src/AETKAHVE.Web/wwwroot/` yerine repo kökünde duruyor (`AGENT_BOARD.md`'de not edildi); bu oturumda dokunulmadı, Ajan 2'nin kendi taşıma adımını beklemekte.
+- **`Views/Home/Index.cshtml`'e ProductCard entegrasyonu henüz yapılmadı** — dosya tamamen Ajan 2 sahipliğinde; `data-product-card-list` container'ına `@foreach` + `<partial name="_ProductCard" />` satırının eklenmesi gerekiyor (yukarıda belirtildi).
+- Ajan 2'nin çalışma dizinindeki değişiklikleri (home-hero.css, product-card-motion.css/js, home-frame-sequence.js, frames/, Mellos-Regular.woff2, Views/Home/Index.cshtml, kendi raporu) hâlâ commit'siz — bu oturum onlara dokunmadı, kendi branch/commit/rapor adımını bekliyor.
 - Cross-tab AFK senkronizasyonu (contract: "frontend runtime sahibindedir") uygulanmadı; her sekme kendi 30 saniyelik status poll'una güveniyor — kabul edilebilir ama geliştirilebilir bir basitleştirme.
-- Mellos yalnızca otf/ttf olarak sunuluyor; woff2 sıkıştırması yok (bu ortamda font dönüştürme aracı bulunmuyor).
 
 ## Son commit hash
 
-`28dc5a9` (Coordinator merge: `bcfbf8d`; Coordinator status update: `eb80222`).
+`45b43b5` (ProductCard); önceki: `28dc5a9` (foundation dilimi), `d1bac17` (ilk rapor), `4f0fa19` (Coordinator board düzeltmesi). Coordinator merge: `bcfbf8d`; Coordinator status update: `eb80222`.
 
 ## Merge hazır durumu
 
-Bu dilim (design system foundation + Account/Admin/SuperAdmin auth+dashboard sayfaları) build/test/HTTP smoke doğrulamasından geçti ve merge'e hazırdır. Kapsamın geri kalanı (Public ürün/kategori/sepet/checkout sayfaları, ProductCard markup, ortak modal/drawer/toast/pagination component'leri) sonraki bir iş dilimidir — henüz üretilmedi.
+Bu iki dilim (design system foundation + Account/Admin/SuperAdmin auth+dashboard sayfaları; ProductCard base markup/style) build/test/HTTP smoke doğrulamasından geçti ve merge'e hazırdır. Kapsamın geri kalanı (Public ürün/kategori/sepet/checkout sayfaları — Ajan 4'ün Controller/ViewModel'leri olmadan üretilemez, ortak modal/drawer/toast/pagination component'leri) sonraki bir iş dilimidir — henüz üretilmedi.
