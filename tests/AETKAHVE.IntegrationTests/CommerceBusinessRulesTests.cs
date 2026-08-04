@@ -182,6 +182,22 @@ public sealed class CommerceBusinessRulesTests(AeternumWebApplicationFactory fac
     }
 
     [Fact]
+    public async Task Customer_order_details_expose_owned_order_item_ids_for_return_and_review_actions()
+    {
+        await using var scope = factory.Services.CreateAsyncScope();
+        var services = scope.ServiceProvider;
+        var user = await GetUserAsync(services, AeternumWebApplicationFactory.CustomerEmail);
+        var purchase = await CreateDeliveredPurchaseAsync(services, user.Id, 2, 0);
+
+        var details = await services.GetRequiredService<IOrderService>().GetForUserAsync(user.Id, purchase.OrderId, default);
+
+        Assert.NotNull(details);
+        var line = Assert.Single(details.Items);
+        Assert.Equal(purchase.OrderItemId, line.OrderItemId);
+        Assert.Equal(2, line.Quantity);
+    }
+
+    [Fact]
     public async Task Reporting_separates_components_refunds_and_emits_utf8_safe_csv()
     {
         await using var scope = factory.Services.CreateAsyncScope();

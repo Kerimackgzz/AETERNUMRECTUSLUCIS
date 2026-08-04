@@ -86,7 +86,7 @@ public sealed class CommerceContractTests(AeternumWebApplicationFactory factory)
             .OfType<RouteEndpoint>().Select(x => x.RoutePattern.RawText).OfType<string>().ToHashSet(StringComparer.OrdinalIgnoreCase);
         string[] expected =
         [
-            "products", "products/{slug}", "search", "categories/{slug}", "campaigns", "cart", "favorites", "checkout",
+            "products", "products/{slug}", "search", "categories", "categories/{slug}", "about", "contact", "campaigns", "cart", "favorites", "checkout",
             "payments/{provider}/callback", "account/addresses", "account/orders", "account/invoices",
             "account/returns", "account/reviews", "account/notifications", "admin/products", "admin/catalog", "admin/orders", "admin/invoices",
             "admin/shipments", "admin/returns", "admin/campaigns", "admin/coupons", "admin/reviews", "admin/messages", "admin/reports",
@@ -107,6 +107,41 @@ public sealed class CommerceContractTests(AeternumWebApplicationFactory factory)
             ["reference"] = "unknown", ["transactionId"] = "unknown", ["status"] = "fail",
         }));
         Assert.Equal(HttpStatusCode.Conflict, callback.StatusCode);
+    }
+
+    [Fact]
+    public async Task Public_navigation_destinations_render_and_contact_json_is_persisted()
+    {
+        using var client = factory.CreateClientWithoutRedirects();
+        foreach (var path in new[] { "/categories", "/about", "/contact" })
+        {
+            var response = await client.GetAsync(path);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        var contactResponse = await client.GetAsync("/contact");
+        var contactHtml = await contactResponse.Content.ReadAsStringAsync();
+        Assert.Contains("data-contact-form", contactHtml, StringComparison.Ordinal);
+        Assert.Contains("/js/pages/contact.js", contactHtml, StringComparison.Ordinal);
+        var antiforgery = Regex.Match(contactHtml, "<meta name=\"csrf-token\" content=\"([^\"]+)\"", RegexOptions.IgnoreCase);
+        Assert.True(antiforgery.Success, "Contact antiforgery meta token was not rendered.");
+
+        var email = $"contact-{Guid.NewGuid():N}@test.local";
+        using var request = CreateJsonMutation("/contact", antiforgery.Groups[1].Value, new
+        {
+            fullName = "Contract Contact",
+            email,
+            phoneNumber = "+905551112233",
+            subject = "Integration contract",
+            message = "Public contact form JSON payload.",
+            privacyAccepted = true,
+        });
+        var submitResponse = await client.SendAsync(request);
+        Assert.Equal(HttpStatusCode.OK, submitResponse.StatusCode);
+
+        await using var scope = factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.True(await db.ContactMessages.AnyAsync(x => x.Email == email));
     }
 
     [Fact]

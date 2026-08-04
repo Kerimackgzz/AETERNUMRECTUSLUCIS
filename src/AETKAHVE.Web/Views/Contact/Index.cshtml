@@ -1,0 +1,50 @@
+@model ContactInputModel
+@{
+    ViewData["Title"] = "İletişim";
+}
+<header class="container shop-header">
+    <p class="text-eyebrow">Bize Ulaşın</p>
+    <h1>İletişim</h1>
+    <p class="text-muted">Ürünler, siparişler veya iş birlikleri hakkında bize yazın.</p>
+</header>
+<section class="container container--narrow section--tight">
+    <div class="surface surface--padded">
+        <form class="commerce-form" method="post" action="@Url.Action("Submit", "Contact")" data-contact-form novalidate>
+            <div class="field">
+                <label asp-for="FullName">Ad soyad</label>
+                <input asp-for="FullName" autocomplete="name" required />
+            </div>
+            <div class="field">
+                <label asp-for="Email">E-posta</label>
+                <input asp-for="Email" autocomplete="email" required />
+            </div>
+            <div class="field">
+                <label asp-for="PhoneNumber">Telefon <span class="text-muted">(isteğe bağlı)</span></label>
+                <input asp-for="PhoneNumber" autocomplete="tel" />
+            </div>
+            <div class="field">
+                <label asp-for="Subject">Konu</label>
+                <input asp-for="Subject" required />
+            </div>
+            <div class="field">
+                <label asp-for="Message">Mesaj</label>
+                <textarea asp-for="Message" rows="7" required></textarea>
+            </div>
+            <label class="commerce-form__check">
+                <input asp-for="PrivacyAccepted" />
+                İletişim bilgilerimin talebimin yanıtlanması amacıyla işlenmesini kabul ediyorum.
+            </label>
+            <button type="submit" class="btn btn--primary btn--block">Mesajı Gönder</button>
+            <p class="commerce-form__status text-sm" data-contact-status aria-live="polite"></p>
+        </form>
+    </div>
+</section>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/shop.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/commerce-forms.css" asp-append-version="true" />
+}
+
+@section PageScripts {
+    <script type="module" src="~/js/pages/contact.js" asp-append-version="true"></script>
+}

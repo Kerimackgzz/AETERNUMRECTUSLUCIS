@@ -220,7 +220,8 @@ public sealed record SmsMessage(string Destination, string Body);
 public sealed record DeliveryResult(bool Succeeded, string? ProviderReference, string? FailureReason);
 
 public sealed record OrderSummary(Guid Id, string OrderNumber, OrderStatus Status, PaymentStatus PaymentStatus, decimal GrandTotal, string Currency, DateTimeOffset CreatedAtUtc);
-public sealed record OrderDetails(OrderSummary Summary, IReadOnlyList<InvoiceLine> Items, ShipmentStatus ShippingStatus, string ShippingAddress, string BillingAddress);
+public sealed record OrderLineDetails(Guid OrderItemId, string Name, string Sku, int Quantity, decimal UnitPrice, decimal Discount, decimal Tax, decimal Total);
+public sealed record OrderDetails(OrderSummary Summary, IReadOnlyList<OrderLineDetails> Items, ShipmentStatus ShippingStatus, string ShippingAddress, string BillingAddress);
 public sealed record InvoiceFile(Stream Content, string FileName);
 public sealed record InvoiceSummary(Guid Id, string InvoiceNumber, string OrderNumber, decimal GrandTotal, string Currency, DateTimeOffset InvoiceDateUtc);
 

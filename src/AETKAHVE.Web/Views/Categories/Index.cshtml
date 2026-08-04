@@ -1,0 +1,35 @@
+@model CategoryListViewModel
+@{
+    ViewData["Title"] = "Koleksiyonlar";
+}
+<header class="container shop-header">
+    <p class="text-eyebrow">Kahve Atlası</p>
+    <h1>Koleksiyonlar</h1>
+    <p class="text-muted">Karakterine, kökenine ve kavrum yaklaşımına göre seçilmiş kahveleri keşfedin.</p>
+</header>
+<div class="container section--tight">
+    @if (Model.Categories.Count == 0)
+    {
+        <div class="surface empty-state">
+            <p class="empty-state__title">Henüz koleksiyon bulunmuyor</p>
+            <a class="btn btn--primary" asp-controller="Products" asp-action="Index">Tüm ürünlere git</a>
+        </div>
+    }
+    else
+    {
+        <div class="grid-auto">
+            @foreach (var category in Model.Categories)
+            {
+                <article class="surface surface--padded campaign-card">
+                    <p class="text-eyebrow">Koleksiyon</p>
+                    <h2 class="product-name">@category.Name</h2>
+                    <a class="btn btn--outline btn--block" asp-controller="Categories" asp-action="Detail" asp-route-slug="@category.Slug">Ürünleri incele</a>
+                </article>
+            }
+        </div>
+    }
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/shop.css" asp-append-version="true" />
+}

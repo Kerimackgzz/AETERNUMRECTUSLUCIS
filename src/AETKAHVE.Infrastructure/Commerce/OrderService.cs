@@ -35,7 +35,7 @@ public sealed class OrderService(
         await dbContext.Orders.AsNoTracking().Where(x => x.Id == orderId && x.UserId == userId)
             .Select(x => new OrderDetails(
                 new OrderSummary(x.Id, x.OrderNumber, x.Status, x.PaymentStatus, x.GrandTotal, x.Currency, x.CreatedAtUtc),
-                x.Items.Select(i => new InvoiceLine(i.ProductName, i.Sku, i.Quantity, i.UnitPrice, i.DiscountAmount, i.TaxAmount, i.LineTotal)).ToList(),
+                x.Items.Select(i => new OrderLineDetails(i.Id, i.ProductName, i.Sku, i.Quantity, i.UnitPrice, i.DiscountAmount, i.TaxAmount, i.LineTotal)).ToList(),
                 x.ShippingStatus, x.ShippingAddressSnapshot, x.BillingAddressSnapshot)).SingleOrDefaultAsync(cancellationToken);
 
     public async Task<PagedResult<InvoiceSummary>> GetInvoicesForUserAsync(Guid userId, int page, int pageSize, CancellationToken cancellationToken)
