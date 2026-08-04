@@ -1,7 +1,7 @@
 # Project Status
 
 Son güncelleme: 2026-08-04
-Aktif foundation branch’i: `agent/codex-architecture-security`
+Foundation `integration`'a merge edildi (`bcfbf8d`). Aktif branch: `agent/claude-design-pages` (Ajan 1).
 
 ## Tamamlandı
 
@@ -18,8 +18,8 @@ Aktif foundation branch’i: `agent/codex-architecture-security`
 
 ## Sonraki Aşamalar
 
-- Coordinator foundation branch’ini `integration` üzerine merge eder.
-- Merge sonrasında `AppDbContext`, migration klasörü ve snapshot Ajan 4’e devredilir.
+- [x] Coordinator foundation branch'ini `integration` üzerine merge etti (`bcfbf8d`).
+- Merge sonrasında `AppDbContext`, migration klasörü ve snapshot Ajan 4'e devredilir.
 - Ajan 4 commerce modülünü ve `AddCommerceModule` içini tamamlar.
 - Ajan 1/2 dondurulmuş ViewModel ve hook sözleşmelerini kullanarak frontend’i geliştirir.
 - Production SMTP/outbox ve kalıcı Data Protection key store eklenir.
