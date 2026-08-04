@@ -2,12 +2,9 @@
 
 ## Branch / Repo durumu
 
-- Branch: `agent/claude-home-hero` **henüz oluşturulamadı**. `.git` artık doğru konumda (`AETERNUMRECTUSLUCIS` kökü — önceki ev-dizini sorunu foundation tarafından çözülmüş), ama repository başka bir Windows kullanıcısı (`DESKTOP-GVQ8QBP\CodexSandboxOffline`) tarafından oluşturulmuş. Bu makinede (`Kerim Açıkgöz` kullanıcısı) herhangi bir git komutu çalıştırmaya çalıştığımda Git'in "dubious ownership" güvenlik korumasına takılıyorum:
-  ```
-  fatal: detected dubious ownership in repository at '...'
-  ```
-  Çözümü `git config --global --add safe.directory '...'` çalıştırmak — **ancak bu bir git config değişikliğidir ve kesin güvenlik kuralım gereği (`NEVER update the git config`) bunu kendim çalıştıramam.** Bu adımı ya siz çalıştırmalısınız ya da `CodexSandboxOffline` hesabının kendisi.
-- Son commit hash: yok (yukarıdaki sebeple hiçbir commit atamadım).
+- Branch: `agent/claude-home-hero` — worktree: `../aeternum-claude-hero`. `git config --global --add safe.directory` kullanıcı tarafından çalıştırıldıktan sonra "dubious ownership" engeli kalktı.
+- Branch, ana checkout o sırada `agent/claude-design-pages` üzerinde ve **aktif** olduğu için (Ajan 1 paralel çalışıyordu — commit `50918f9` benim worktree kurulumum sırasında geldi), doğrudan `integration`'dan değil, Ajan 1'in o anki ucundan (`agent/claude-design-pages`) forklandı; böylece ana checkout'a hiç dokunulmadı/kesintiye uğratılmadı. Kendi dosyalarım ayrı worktree'ye taşındıktan sonra ana checkout tamamen temiz bırakıldı (`git status` boş).
+- Son commit: `956d3c1` — "feat: add home hero frame-sequence engine and product-card reveal motion" (446 dosya). Worktree'de temiz bir `dotnet restore`+`build`+`test` ile tekrar doğrulandı (0 hata/uyarı, 8/8 + 16/16).
 
 ## Yapılan iş (bu oturum)
 
@@ -70,13 +67,12 @@ Yok. Frozen ViewModel/contract dosyalarına dokunulmadı; sadece onlara **uyum s
 
 ## Bilinen sınırlamalar
 
-- **Git commit atılamadı** — yukarıda açıklanan "dubious ownership" engeli nedeniyle. Bu, sizin veya `CodexSandboxOffline` hesabının çözmesi gereken bir adım.
 - **Gerçek tarayıcı/görsel doğrulama yapılamadı** — yalnızca HTTP durum kodu + HTML içerik kontrolü yapıldı (Ajan 1'in raporundaki dürüst sınırlamayla aynı durum).
 - `Model.HeroPosterUrl` şu an `/images/home/hero-poster.webp` değerini taşıyor ama bu dosya **yok** (404) — muhtemelen backend/seed verisi henüz gerçek içerik sağlamıyor (Ajan 4'ün alanı). JS bunu sessizce (catch) tolere ediyor, sayfa kırılmıyor; breakpoint manifest posterleri (`/frames/home/{bp}/poster.webp`) zaten mevcut ve devreye giriyor.
-- `data-reduced-motion="true"` şu an sunucudan geliyor (muhtemelen içerik/seed verisi eksikliğinden), yani hero şu an varsayılan olarak **statik** modda render oluyor — bu benim kodumun değil, mevcut verinin bir sonucu; gerçek içerik/`FeaturedProducts` verisi geldiğinde (`data-product-count="0"` şu an boş) bu değer muhtemelen değişecek.
-- ProductCard markup'ı hâlâ yok (`data-product-count="0"`) — Ajan 1'in kapsamının bir sonraki dilimi; benim motion katmanım `[data-product-card]` göründüğü an doğru çalışacak şekilde hazır.
-- Navbar/page-transition için yalnızca temel dosya sahipliğim var; `navbar-motion.js`/`page-transition.js` (transparan→blur navbar, harf-mask, sayfa geçiş runtime'ı) henüz yazılmadı — kapsam bu oturumda dosya taşıma + mimari düzeltmeye odaklandı.
+- `data-reduced-motion` şu an sunucudan `IsReducedMotionFallbackAvailable` ile geliyor, seed/mock veri durumuna bağlı olarak hero statik modda render olabilir — bu benim kodumun değil, mevcut verinin bir sonucu.
+- Ajan 1'in `45b43b5`/`50918f9` commit'leriyle eklediği gerçek `_ProductCard.cshtml` incelendi: `data-product-card`, `data-product-card-surface`, `data-product-card-image`, `data-product-card-price`, `data-add-to-cart-url`, `data-toggle-favorite-url`, `data-detail-url` hook'larının tümü benim `product-card-motion.js/css`'imin beklediğiyle **birebir uyuşuyor** — ek değişiklik gerekmedi. Gerçek ürün verisiyle (şu an `FeaturedProducts` muhtemelen boş/az) tarayıcıda görsel doğrulama hâlâ yapılamadı.
+- Navbar/page-transition için yalnızca temel dosya sahipliğim var; `navbar-motion.js`/`page-transition.js` (transparan→blur navbar, harf-mask, sayfa geçiş runtime'ı) henüz yazılmadı — kapsam bu oturumda dosya taşıma + mimari düzeltme + commit'e odaklandı.
 
 ## Merge hazır durumu
 
-Kod/build/test/HTTP smoke açısından hazır, **ancak commit atılamadığı için branch'e alınamadı**. Git sahiplik sorunu çözülür çözülmez (`git config --global --add safe.directory` + muhtemelen `agent/claude-home-hero` branch/worktree kurulumu) ilk iş bu değişiklikleri commit etmek olacak.
+Evet. Build/test/HTTP smoke doğrulamasından geçti, `agent/claude-home-hero` branch'inde commit'li (`956d3c1`), sahiplik dışı dosya değişikliği yok, ana checkout'a müdahale edilmedi.
