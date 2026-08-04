@@ -1,0 +1,24 @@
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    var antiforgery = Antiforgery.GetAndStoreTokens(Context);
+}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content="@antiforgery.RequestToken" />
+    <title>@ViewData["Title"] — AETERNUM RECTUS LUCIS</title>
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <a href="#main-content">İçeriğe geç</a>
+    <partial name="_Navbar" />
+    <partial name="_PageTransitionOverlay" />
+    <main id="main-content">
+        @RenderBody()
+    </main>
+    @await RenderSectionAsync("PageScripts", required: false)
+</body>
+</html>
+

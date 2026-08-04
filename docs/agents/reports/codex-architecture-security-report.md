@@ -1,0 +1,67 @@
+# Codex Architecture & Security Foundation Report
+
+## Mimari
+
+- .NET 10.0.301; Domain, Application, Infrastructure, MVC Web, UnitTests ve IntegrationTests.
+- `Program.cs` yalnız Ajan 3 sahipliğinde; gerekli beş module/endpoint extension çağrısı hazır.
+- SQL Server runtime, SQLite integration test sağlayıcısı.
+
+## Authentication Scheme
+
+- `AETKAHVE.Customer` / `AETKAHVE.Customer.Auth`
+- `AETKAHVE.Admin` / `AETKAHVE.Admin.Auth`
+- `AETKAHVE.SuperAdmin` / `AETKAHVE.SuperAdmin.Auth`
+- `AETKAHVE.Management` policy selector Admin alanında Admin veya SuperAdmin cookie’sini seçer.
+
+## Route ve Policy
+
+- `CustomerOnly`: Customer scheme + Customer rolü.
+- `AdminArea`: Management selector + Admin veya SuperAdmin rolü.
+- `SuperAdminArea`: yalnız SuperAdmin scheme + SuperAdmin rolü.
+- Public sayfalarda yönetim giriş bağlantısı yoktur.
+
+## Cookie / AFK
+
+- Remember Me false: session cookie; true: yapılandırılmış süreli persistent cookie.
+- Customer 30 gün; Admin 12 saat; SuperAdmin 4 saat mutlak üst sınır.
+- Admin AFK 15, SuperAdmin AFK 10 dakika; 60 saniye uyarı sözleşmesi.
+- Session/status polling aktivite sayılmaz; keep-alive ve logout antiforgery korumalıdır.
+- Yönetim cevaplarında `Cache-Control: no-store`, CSP, frame/content-type/referrer headerları ve correlation ID bulunur.
+
+## Migration Handoff
+
+- Migration: `InitialIdentity` (`20260804155915_InitialIdentity`).
+- Identity, `ManagementSessions`, `AuditLogs` ve concurrency token dahildir.
+- Foundation integration’a merge edilince `AppDbContext`, `Persistence/Migrations/*` ve snapshot sahipliği Ajan 4’e geçer. Ajan 3 bundan sonra doğrudan değiştirmez.
+
+## Shared Contracts
+
+- Route, ViewModel ve frontend/backend sözleşmeleri `docs/contracts` altında oluşturulup donduruldu.
+- Public/Account/Admin/SuperAdmin layout; navbar, transition, CSRF, hero, product-card ve AFK hookları hazır.
+
+## Build / Test
+
+- `dotnet restore AETKAHVE.sln`: başarılı.
+- `dotnet build AETKAHVE.sln --no-restore`: başarılı, 0 warning / 0 error.
+- Unit: 8/8 başarılı.
+- Integration: 16/16 başarılı.
+- `dotnet format --verify-no-changes`: başarılı.
+- `dotnet ef migrations list`: `20260804155915_InitialIdentity` listelendi; yerel SQL Server bulunmadığı için uygulanmış/pending veritabanı durumu sorgulanamadı.
+- `dotnet ef migrations has-pending-model-changes`: model değişikliği yok.
+- Idempotent SQL üretimi: başarılı; `artifacts/InitialIdentity.sql` 9.809 bayt ve gerekli Identity/session/audit tablolarını içeriyor.
+
+## Commit
+
+- Foundation implementation commit: `1ec0439`
+- Initial repository commit: `b3c22b9`
+- Final documentation/verification commit hash’i teslim mesajında bildirilecektir.
+
+## Bilinen Konular
+
+- Gerçek SMTP/outbox production entegrasyonu yok; in-memory mock kullanılır.
+- AFK frontend runtime’ı sözleşmeyle ayrılmıştır; sunucu enforcement çalışır.
+- Bu oturum dışında oluşan Ajan 2 kök `wwwroot/*` ve raporu korunmuş, Ajan 3 commit’lerinden dışlanmıştır.
+
+## Merge Hazır Durumu
+
+Foundation, final EF ve Git kontrolleri başarılı olduktan sonra Coordinator review/merge için hazırdır. Ajan 3 doğrudan `integration` veya `main` üzerine merge yapmaz.

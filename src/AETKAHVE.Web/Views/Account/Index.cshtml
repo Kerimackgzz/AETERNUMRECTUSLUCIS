@@ -1,0 +1,8 @@
+@model DashboardSummaryViewModel
+@{
+    Layout = "_AccountLayout";
+    ViewData["Title"] = Model.Title;
+}
+<h1>@Model.Title</h1>
+<form asp-action="Logout" method="post"><button type="submit">Çıkış</button></form>
+

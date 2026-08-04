@@ -1,0 +1,21 @@
+﻿@model HomePageViewModel
+@{
+    ViewData["Title"] = "Ana Sayfa";
+}
+
+<section id="home-hero"
+         data-home-hero
+         data-frame-manifest-url="@Model.HeroFrameManifestUrl"
+         data-poster-url="@Model.HeroPosterUrl"
+         data-reduced-motion="@Model.IsReducedMotionFallbackAvailable.ToString().ToLowerInvariant()"
+         aria-label="@Model.HeroAccessibilityDescription">
+    <h1>@Model.HeroTitle</h1>
+    <p>@Model.HeroSubtitle</p>
+</section>
+
+<section id="featured-products" data-featured-products aria-labelledby="featured-products-title">
+    <h2 id="featured-products-title">Seçili Kahveler</h2>
+    <div data-product-card-list data-product-count="@Model.FeaturedProducts.Count">
+        @* ProductCard markup Ajan 1 sahipliğindedir; bu container sözleşme hook’udur. *@
+    </div>
+</section>

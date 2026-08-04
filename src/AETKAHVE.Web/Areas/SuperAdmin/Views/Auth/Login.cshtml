@@ -1,0 +1,14 @@
+@model SuperAdminLoginViewModel
+@{
+    ViewData["Title"] = "SuperAdmin Girişi";
+}
+<h1>SuperAdmin Girişi</h1>
+<form action="/superadmin/login" method="post">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" role="alert"></div>
+    <input asp-for="ReturnUrl" type="hidden" />
+    <label asp-for="Email">E-posta</label><input asp-for="Email" autocomplete="username" /><span asp-validation-for="Email"></span>
+    <label asp-for="Password">Parola</label><input asp-for="Password" autocomplete="current-password" /><span asp-validation-for="Password"></span>
+    <label><input asp-for="RememberMe" /> Beni Hatırla</label>
+    <button type="submit">Giriş Yap</button>
+</form>

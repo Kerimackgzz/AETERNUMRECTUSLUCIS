@@ -1,0 +1,25 @@
+@model LoginViewModel
+@{
+    Layout = "_AccountLayout";
+    ViewData["Title"] = "Giriş";
+}
+<h1>Giriş</h1>
+@if (TempData["StatusMessage"] is string statusMessage)
+{
+    <p role="status">@statusMessage</p>
+}
+<form asp-action="Login" method="post">
+    <div asp-validation-summary="ModelOnly" role="alert"></div>
+    <input asp-for="ReturnUrl" type="hidden" />
+    <label asp-for="Email">E-posta</label>
+    <input asp-for="Email" autocomplete="email" />
+    <span asp-validation-for="Email"></span>
+    <label asp-for="Password">Parola</label>
+    <input asp-for="Password" autocomplete="current-password" />
+    <span asp-validation-for="Password"></span>
+    <label><input asp-for="RememberMe" /> Beni Hatırla</label>
+    <button type="submit">Giriş Yap</button>
+</form>
+<a asp-action="ForgotPassword">Şifremi unuttum</a>
+<a asp-action="Register">Kayıt ol</a>
+
