@@ -5,6 +5,18 @@ function init() {
   const root = document.querySelector("[data-catalog-page]");
   if (!root) return;
 
+  root.querySelectorAll("[data-copy-id]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const id = button.getAttribute("data-copy-id");
+      try {
+        await navigator.clipboard.writeText(id);
+        showToast("ID kopyalandı.", "success");
+      } catch {
+        showToast(id, "info");
+      }
+    });
+  });
+
   root.querySelectorAll("[data-catalog-form]").forEach((form) => {
     form.addEventListener("submit", async (event) => {
       event.preventDefault();

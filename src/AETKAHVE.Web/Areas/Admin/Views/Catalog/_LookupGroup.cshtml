@@ -8,10 +8,13 @@
     }
     else
     {
-        <ul class="mb-4">
+        <ul class="mb-4 lookup-list">
             @foreach (var item in Model.Items)
             {
-                <li>@item.Name <span class="text-muted text-sm">(@item.Slug)</span></li>
+                <li>
+                    @item.Name <span class="text-muted text-sm">(@item.Slug)</span>
+                    <button type="button" class="lookup-list__copy" data-copy-id="@item.Id" title="ID'yi kopyala">@item.Id</button>
+                </li>
             }
         </ul>
     }

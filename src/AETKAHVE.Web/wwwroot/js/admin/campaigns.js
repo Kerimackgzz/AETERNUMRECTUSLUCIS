@@ -8,6 +8,14 @@ function slugify(name) {
     .replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
 }
 
+function parseIdList(value) {
+  const ids = (value || "")
+    .split(/[\s,]+/)
+    .map((id) => id.trim())
+    .filter(Boolean);
+  return ids.length > 0 ? ids : null;
+}
+
 function init() {
   const root = document.querySelector("[data-admin-campaigns-page]");
   if (!root) return;
@@ -28,6 +36,8 @@ function init() {
       endDateUtc: new Date(form.querySelector("[name=endDate]").value).toISOString(),
       isActive: true,
       canCombineWithOtherDiscounts: form.querySelector("[name=canCombine]").checked,
+      productIds: parseIdList(form.querySelector("[name=productIds]").value),
+      categoryIds: parseIdList(form.querySelector("[name=categoryIds]").value),
     });
     if (ok) {
       window.location.reload();
