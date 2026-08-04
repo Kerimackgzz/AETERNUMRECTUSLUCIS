@@ -1,4 +1,6 @@
 using System.Net;
+using System.Net.Http.Json;
+using System.Text.RegularExpressions;
 using AETKAHVE.IntegrationTests.Infrastructure;
 
 namespace AETKAHVE.IntegrationTests;
@@ -74,6 +76,43 @@ public sealed class RateLimitTests(AeternumWebApplicationFactory factory)
 
         Assert.Equal(HttpStatusCode.TooManyRequests, statuses[^1]);
         Assert.NotNull(lastResponse);
+        Assert.True(lastResponse.Headers.TryGetValues("Retry-After", out var values));
+        Assert.True(int.TryParse(Assert.Single(values), out var retryAfterSeconds));
+        Assert.InRange(retryAfterSeconds, 1, 60);
+    }
+
+    [Fact]
+    public async Task Public_contact_submission_is_rate_limited()
+    {
+        using var client = factory.CreateClientWithoutRedirects();
+        var page = await client.GetStringAsync("/contact");
+        var tokenMatch = Regex.Match(
+            page,
+            "<meta name=\"csrf-token\" content=\"([^\"]+)\"",
+            RegexOptions.IgnoreCase);
+        Assert.True(tokenMatch.Success);
+
+        HttpResponseMessage? lastResponse = null;
+        for (var attempt = 0; attempt < 6; attempt++)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, "/contact")
+            {
+                Content = JsonContent.Create(new
+                {
+                    fullName = "Rate Limit Test",
+                    email = $"contact-{attempt}@test.local",
+                    phoneNumber = (string?)null,
+                    subject = "Rate limit",
+                    message = "Public contact abuse control integration test.",
+                    privacyAccepted = true,
+                }),
+            };
+            request.Headers.Add("RequestVerificationToken", tokenMatch.Groups[1].Value);
+            lastResponse = await client.SendAsync(request);
+        }
+
+        Assert.NotNull(lastResponse);
+        Assert.Equal(HttpStatusCode.TooManyRequests, lastResponse.StatusCode);
         Assert.True(lastResponse.Headers.TryGetValues("Retry-After", out var values));
         Assert.True(int.TryParse(Assert.Single(values), out var retryAfterSeconds));
         Assert.InRange(retryAfterSeconds, 1, 60);

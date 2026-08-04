@@ -36,6 +36,8 @@ public sealed class SecurityOptions
 
     public int PasswordRecoveryRequestsPerMinute { get; set; } = 5;
 
+    public int ContactRequestsPerMinute { get; set; } = 5;
+
     public CookieSecurePolicy CookieSecurePolicy { get; set; } = CookieSecurePolicy.SameAsRequest;
 
     public SameSiteMode CookieSameSiteMode { get; set; } = SameSiteMode.Lax;

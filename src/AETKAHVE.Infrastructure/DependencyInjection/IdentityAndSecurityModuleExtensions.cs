@@ -20,6 +20,8 @@ public static class SecurityRateLimitPolicies
     public const string SuperAdminLogin = "SuperAdminLogin";
     public const string CustomerRegistration = "CustomerRegistration";
     public const string PasswordRecovery = "PasswordRecovery";
+
+    public const string Contact = "Contact";
 }
 
 public static class IdentityAndSecurityModuleExtensions

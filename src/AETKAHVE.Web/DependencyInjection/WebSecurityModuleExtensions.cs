@@ -29,6 +29,13 @@ public static class WebSecurityModuleExtensions
             AddIpPolicy(options, SecurityRateLimitPolicies.SuperAdminLogin, security => security.SuperAdminLoginRequestsPerMinute);
             AddIpPolicy(options, SecurityRateLimitPolicies.CustomerRegistration, security => security.CustomerRegistrationRequestsPerMinute);
             AddIpPolicy(options, SecurityRateLimitPolicies.PasswordRecovery, security => security.PasswordRecoveryRequestsPerMinute);
+            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+                IsContactMutation(context)
+                    ? CreateIpFixedWindowPartition(
+                        context,
+                        SecurityRateLimitPolicies.Contact,
+                        security => security.ContactRequestsPerMinute)
+                    : RateLimitPartition.GetNoLimiter("unlimited"));
         });
         return services;
     }
@@ -38,15 +45,25 @@ public static class WebSecurityModuleExtensions
         string policyName,
         Func<SecurityOptions, int> permitLimit)
     {
-        options.AddPolicy(policyName, context => RateLimitPartition.GetFixedWindowLimiter(
-            context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        options.AddPolicy(policyName, context => CreateIpFixedWindowPartition(context, policyName, permitLimit));
+    }
+
+    private static RateLimitPartition<string> CreateIpFixedWindowPartition(
+        HttpContext context,
+        string policyName,
+        Func<SecurityOptions, int> permitLimit) =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            $"{policyName}:{context.Connection.RemoteIpAddress?.ToString() ?? "unknown"}",
             _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = permitLimit(context.RequestServices.GetRequiredService<IOptions<SecurityOptions>>().Value),
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0,
                 AutoReplenishment = true,
-            }));
-    }
+            });
+
+    private static bool IsContactMutation(HttpContext context) =>
+        HttpMethods.IsPost(context.Request.Method) &&
+        string.Equals(context.Request.Path.Value, "/contact", StringComparison.OrdinalIgnoreCase);
 }
 
