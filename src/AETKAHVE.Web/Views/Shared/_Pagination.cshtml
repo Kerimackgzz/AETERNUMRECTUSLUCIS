@@ -1,0 +1,31 @@
+@model (int Page, int TotalPages)
+@{
+    var preserved = Context.Request.Query.Where(q => q.Key != "page")
+        .ToDictionary(q => q.Key, q => q.Value.ToString());
+
+    string PageUrl(int page)
+    {
+        var parts = new List<string>(preserved.Select(kv => $"{Uri.EscapeDataString(kv.Key)}={Uri.EscapeDataString(kv.Value)}"))
+        {
+            $"page={page}"
+        };
+        return Context.Request.Path + "?" + string.Join("&", parts);
+    }
+}
+@if (Model.TotalPages > 1)
+{
+    <nav class="pagination" aria-label="Sayfalama">
+        @if (Model.Page > 1)
+        {
+            <a class="pagination__link" href="@PageUrl(Model.Page - 1)" rel="prev" aria-label="Önceki sayfa">‹</a>
+        }
+        @for (var i = 1; i <= Model.TotalPages; i++)
+        {
+            <a class="pagination__link" href="@PageUrl(i)" aria-current="@(i == Model.Page ? "page" : null)">@i</a>
+        }
+        @if (Model.Page < Model.TotalPages)
+        {
+            <a class="pagination__link" href="@PageUrl(Model.Page + 1)" rel="next" aria-label="Sonraki sayfa">›</a>
+        }
+    </nav>
+}

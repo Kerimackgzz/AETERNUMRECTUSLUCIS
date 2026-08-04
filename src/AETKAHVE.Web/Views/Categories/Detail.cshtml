@@ -1,0 +1,17 @@
+@model ProductListViewModel
+@{
+    var categoryName = Model.Lookups.Categories.FirstOrDefault(c => c.Id == Model.Query.CategoryId)?.Name ?? "Koleksiyon";
+    ViewData["Title"] = categoryName;
+}
+<header class="container shop-header">
+    <p class="text-eyebrow">Koleksiyon</p>
+    <h1>@categoryName</h1>
+</header>
+<div class="container">
+    <partial name="_ProductListing" model="Model" />
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/shop.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/pagination.css" asp-append-version="true" />
+}
