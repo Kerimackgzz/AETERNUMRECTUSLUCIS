@@ -58,17 +58,20 @@ public sealed class CommerceContractTests(AeternumWebApplicationFactory factory)
         Assert.Contains("/js/core/page-transition.js", html, StringComparison.Ordinal);
         Assert.Contains("data-page-transition-overlay", html, StringComparison.Ordinal);
         Assert.Contains("data-frame-manifest-url=\"/frames/home/manifest.json\"", html, StringComparison.Ordinal);
+        Assert.Contains("data-poster-url=\"/frames/home/desktop/poster.webp\"", html, StringComparison.Ordinal);
         Assert.Contains("data-reduced-motion=\"false\"", html, StringComparison.Ordinal);
 
         var navbarCss = await client.GetAsync("/css/components/navbar.css");
         var navbarScript = await client.GetAsync("/js/components/navbar-motion.js");
         var transitionCss = await client.GetAsync("/css/core/page-transition.css");
         var transitionScript = await client.GetAsync("/js/core/page-transition.js");
+        var heroPoster = await client.GetAsync("/frames/home/desktop/poster.webp");
 
         Assert.Equal(HttpStatusCode.OK, navbarCss.StatusCode);
         Assert.Equal(HttpStatusCode.OK, navbarScript.StatusCode);
         Assert.Equal(HttpStatusCode.OK, transitionCss.StatusCode);
         Assert.Equal(HttpStatusCode.OK, transitionScript.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, heroPoster.StatusCode);
         var navbarCssText = await navbarCss.Content.ReadAsStringAsync();
         var navbarScriptText = await navbarScript.Content.ReadAsStringAsync();
         Assert.Contains("[data-navbar].is-scrolled", navbarCssText, StringComparison.Ordinal);
