@@ -18,6 +18,11 @@ public sealed class CommerceSeedHostedService(
         if (!environment.IsDevelopment() || !options.Value.SeedDevelopmentData) return;
         await using var scope = scopeFactory.CreateAsyncScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        if (db.Database.ProviderName?.Contains("Sqlite", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            await db.Database.EnsureCreatedAsync(cancellationToken);
+        }
+
         var seededAt = new DateTimeOffset(2026, 8, 4, 0, 0, 0, TimeSpan.Zero);
         var category = await FindOrAddAsync(db.Categories, "2f97391d-918a-45b5-9f04-489ba4b455a1", "Nitelikli Kahve", "nitelikli-kahve", seededAt, cancellationToken);
         var brand = await FindOrAddAsync(db.Brands, "a9c8f3bd-0891-4948-a4d4-b3dfc1f269b0", "AETERNUM RECTUS LUCIS", "aeternum-rectus-lucis", seededAt, cancellationToken);
@@ -40,9 +45,28 @@ public sealed class CommerceSeedHostedService(
                 Category = category, Brand = brand, CoffeeType = coffeeType, BeanType = beanType, RoastLevel = roast, Origin = origin,
                 IsFeatured = true, CreatedAtUtc = seededAt, UpdatedAtUtc = seededAt,
             };
-            product.Images.Add(new ProductImage { Id = Guid.Parse("2764536f-11e8-49a4-9bc1-5e307553022b"), StorageKey = "images/products/eternal-light.webp", AltText = "Eternal Light kahve paketi", IsPrimary = true, CreatedAtUtc = seededAt, UpdatedAtUtc = seededAt });
             product.Variants.Add(new ProductVariant { Id = Guid.Parse("d050cf93-efb1-4612-a074-a1956f88f67b"), Weight = 250, Unit = WeightUnit.Gram, Sku = "ARL-EL-250", Price = 480m, DiscountedPrice = 430m, StockQuantity = 100, CreatedAtUtc = seededAt, UpdatedAtUtc = seededAt });
             db.Products.Add(product);
+        }
+
+        var imageId = Guid.Parse("2764536f-11e8-49a4-9bc1-5e307553022b");
+        var image = product.Images.SingleOrDefault(x => x.Id == imageId);
+        if (image is null)
+        {
+            product.Images.Add(new ProductImage
+            {
+                Id = imageId,
+                StorageKey = "frames/home/desktop/poster.webp",
+                AltText = "Eternal Light kahve paketi",
+                IsPrimary = true,
+                CreatedAtUtc = seededAt,
+                UpdatedAtUtc = seededAt,
+            });
+        }
+        else if (image.StorageKey == "images/products/eternal-light.webp")
+        {
+            image.StorageKey = "frames/home/desktop/poster.webp";
+            image.UpdatedAtUtc = seededAt;
         }
 
         var campaignId = Guid.Parse("0ebacaf8-36f8-4678-945b-f6255947406a");

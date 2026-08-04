@@ -1,11 +1,38 @@
 using AETKAHVE.Application.Commerce;
 using AETKAHVE.Infrastructure.Commerce;
+using AETKAHVE.Infrastructure.DependencyInjection;
+using AETKAHVE.Infrastructure.Persistence;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using PdfSharp.Pdf.IO;
 
 namespace AETKAHVE.UnitTests;
 
 public sealed class CommerceProviderTests
 {
+    [Theory]
+    [InlineData("SqlServer", "Server=(localdb)\\mssqllocaldb;Database=ProviderTest;Trusted_Connection=True", "Microsoft.EntityFrameworkCore.SqlServer")]
+    [InlineData("Sqlite", "Data Source=:memory:", "Microsoft.EntityFrameworkCore.Sqlite")]
+    public void Infrastructure_module_selects_the_configured_database_provider(
+        string configuredProvider,
+        string connectionString,
+        string expectedProvider)
+    {
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Database:Provider"] = configuredProvider,
+            ["Database:ConnectionString"] = connectionString,
+        }).Build();
+        var services = new ServiceCollection();
+        services.AddInfrastructureModule(configuration);
+
+        using var provider = services.BuildServiceProvider();
+        using var scope = provider.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        Assert.Equal(expectedProvider, db.Database.ProviderName);
+    }
+
     [Fact]
     public async Task Mock_payment_gateway_verifies_initialized_amount_and_status()
     {
