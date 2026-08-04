@@ -45,6 +45,14 @@
 - İki gerçek hata düzeltildi: (1) sıralama `<select>`'i inline `onchange` ile submit ediyordu, mevcut CSP (`default-src 'self'`, unsafe-inline yok) bunu engelliyordu — görünür buton yapıldı; (2) `.empty-state` yalnız `admin.css`'te tanımlıydı, public sayfalarda stil almıyordu — `base.css`'e taşındı, ayrıca ortak `.status-badge` component'i eklendi.
 - `ProductSummary` → `ProductCardViewModel` dönüşümü, `HomeController`'ın kullandığı aynı desenle (`Url.Action` tabanlı) her listeleme view'ında `@functions` bloğuyla tekrarlandı (Controller'a dokunmadan yapılabilecek tek yol).
 
+**Kalan Account + tüm Admin commerce view'ları** — dördüncü dilim (`2988382`, Coordinator merge sonrası)
+- Account: `Invoices/Index.cshtml` (liste+PDF indir), `Returns/Index.cshtml` (liste — oluşturma bloklu), `Reviews/Index.cshtml` (liste+sil), `Notifications/Index.cshtml` (liste+okundu işaretle/tümünü okundu işaretle).
+- Admin (Ajan 4'ün `Areas/Admin/Controllers/CommerceControllers.cs`'teki 11 controller'ının tamamı): `Catalog` (kind bazlı lookup ekleme — `_LookupGroup.cshtml` partial'ı 6 kez reuse edilir), `Products` (liste + stok +/-), `Orders` (liste + durum geçiş formu), `Invoices` (liste+indir), `Shipments` (oluştur/takip et/iptal), `Campaigns`, `Coupons` (ikisi de oluşturma formu + liste), `Returns` (durum+restock kararı), `Reviews` (moderasyon), `Messages` (durum), `Reports` (satış özet kutuları + CSV export linki).
+- `commerce-api.js`'e `postForm()` eklendi: Admin Orders/Returns/Reviews'ın `Status` action'ları `[FromQuery]` + `[FromForm]` karışımı bekliyor (JSON body kabul etmiyor) — `postCommerce`'in JSON gövdesi bunlarla çalışmıyordu.
+- `base.css`'e genel `input/select/textarea` zemin stili eklendi — bu dilimdeki birçok form (admin formları, shipment/campaign/coupon oluşturma) `account-form`/`shop-filters` gibi özel context'lerin dışında düz kontrol kullanıyordu, aksi halde tarayıcı varsayılanıyla (beyaz zemin) koyu tema üzerinde bozuk görünürdü.
+- **Contract request açıldı** (`docs/contracts/requests/claude-design-20260804-order-item-id-and-contact-route.md`): `OrderDetails.Items`'ta `OrderItemId` yok (Return/Review oluşturma formu bu yüzden kurulamadı, yalnız liste var); `ContactController`'da `[HttpGet]` action yok (`/contact` şu an 404).
+- İkinci geçici (commit edilmeyen) smoke test: 4 kalan Account sayfası + 11 Admin sayfası, giriş yapmış customer/admin olarak SQLite test host'unda 200 döndü.
+
 ## Değiştirilen dosyalar
 
 `git show --stat 28dc5a9` (foundation dilimi) ve `git show --stat 45b43b5` (ProductCard dilimi) — toplam 35 dosya, tamamı `src/AETKAHVE.Web/**` altında. Detaylı liste commit mesajlarında ve repoda mevcuttur.
@@ -68,14 +76,16 @@ Yok. Shared ViewModel property'leri, route'lar ve frozen contract dosyaları de�
 ## Bilinen sorunlar
 
 - **Gerçek tarayıcı/ekran görüntüsü doğrulaması yapılmadı** — bu ortamda SQL Server olmadığı için `dotnet run` gerçek veriyle başlatılamıyor; doğrulama SQLite tabanlı `WebApplicationFactory` testleri ve HTML içerik kontrolüyle yapıldı. Görsel/responsive/klavye-focus/renk kontrastı incelemesi kullanıcı veya browser MCP ile teyit edilmeli.
-- **Kalan sayfalar**: Account invoices/returns/reviews/notifications, `/contact` formu, tüm Admin commerce sayfaları (products/catalog/orders/shipments/invoices/returns/campaigns/coupons/reviews/messages/reports) — henüz üretilmedi, sonraki dilim.
+- **İki contract-bloklu gap**: `/contact` sayfası (GET action yok, navbar linki 404 verir), Return/Review "yeni talep oluştur" formları (`OrderItemId` yok) — ikisi de contract request'te belgelendi, Ajan 4/Coordinator kararı bekliyor.
+- Admin Products sayfasında yalnız stok +/- var, yeni ürün oluşturma formu yok — `ProductsController.Index` (Admin) view'a kategori/marka gibi lookup verisini geçmiyor, tam bir "yeni ürün" formu için ayrı bir veri kaynağı gerekir (küçük bir ek gap, contract request'e dahil edilmedi).
+- Admin Shipments/Campaigns/Coupons'ta "yeni oluştur" formları var ama ürün/kategori hedefleme (campaign'in `ProductIds`/`CategoryIds` alanları) UI'da yok — kampanya varsayılan olarak genel kapsamlı oluşturuluyor.
 - Cross-tab AFK senkronizasyonu (contract: "frontend runtime sahibindedir") uygulanmadı; her sekme kendi 30 saniyelik status poll'una güveniyor — kabul edilebilir ama geliştirilebilir bir basitleştirme.
 - Adres düzenleme (yalnız ekleme/silme var) ve checkout'ta adres CRUD'unun tam entegrasyonu (şu an checkout sayfası adres yoksa Addresses'e yönlendiriyor, aynı akışta ekleyip geri dönme yok) basitleştirildi.
 
 ## Son commit hash
 
-`2f53f36` (commerce view'ları); önceki: `45b43b5` (ProductCard), `28dc5a9` (foundation dilimi). Coordinator merge'ler: `bcfbf8d` (foundation), Ajan 1/2 merge zinciri, Ajan 4 merge (`6b2b47d`→ff), bu dilimin merge'i (Ajan 1 → integration, commerce view'ları).
+`2988382` (kalan Account + tüm Admin view'ları); önceki: `2f53f36` (public commerce view'ları), `45b43b5` (ProductCard), `28dc5a9` (foundation dilimi). Coordinator merge'ler: `bcfbf8d` (foundation), Ajan 1/2 merge zinciri, Ajan 4 merge, bu son iki dilimin merge'i (Ajan 1 → integration).
 
 ## Merge hazır durumu
 
-Üç dilim de (design system foundation + Account/Admin/SuperAdmin sayfaları; ProductCard; commerce view'ları) build/test ve SQLite tabanlı render smoke testinden geçti, `integration`'a merge edildi. Kalan kapsam (Account invoices/returns/reviews/notifications, Contact, tüm Admin commerce sayfaları) sonraki bir iş dilimidir.
+Ajan 4'ün açtığı **her route** için bir view var. Dört dilim de (design system foundation + Account/Admin/SuperAdmin auth sayfaları; ProductCard; public commerce view'ları; kalan Account + Admin commerce view'ları) build/test ve SQLite tabanlı render smoke testinden geçti, `integration`'a merge edildi. Kalan iş: yukarıdaki iki contract gap'inin Ajan 4 tarafından kapatılması ve gerçek SQL Server ortamında/tarayıcıda uçtan uca doğrulama.

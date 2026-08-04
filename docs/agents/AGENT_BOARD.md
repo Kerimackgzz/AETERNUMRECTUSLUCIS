@@ -3,7 +3,7 @@
 | Ajan | Branch | Durum | Gate |
 |---|---|---|---|
 | Ajan 3 — Architecture/Security | `agent/codex-architecture-security` | Foundation integration’a merge edildi (`bcfbf8d`) | Tamamlandı; Ajan 3 sonrasında yalnızca kalan auth/security işlerine devam eder, devredilen dosyalara dokunmaz |
-| Ajan 1 — Design/Pages | `agent/claude-design-pages` | Integration'a merge edildi (2. dilim) | Design system + sayfalar + ProductCard + Products/Categories/Campaigns/Cart/Checkout/Favorites/Account(Addresses,Orders) view'ları tamamlandı. **Kalan**: Account invoices/returns/reviews/notifications, Contact, tüm Admin commerce sayfaları (products/catalog/orders/shipments/invoices/returns/campaigns/coupons/reviews/messages/reports) |
+| Ajan 1 — Design/Pages | `agent/claude-design-pages` | Integration'a merge edildi (3. dilim) — **kapsam tamamlandı** | Design system, tüm sayfalar, ProductCard, Ajan 4'ün açtığı her route için view (Public shop akışı + Account'un tamamı + 11 Admin commerce sayfası). Kalan: `/contact` GET route'u yok, `OrderDetails.Items`'ta `OrderItemId` yok (bkz. contract request `claude-design-20260804-order-item-id-and-contact-route.md`) — bu ikisi Ajan 4/Coordinator kararı bekliyor |
 | Ajan 2 — Hero/Motion | `agent/claude-home-hero` | Integration'a merge edildi | Tamamlandı (frame pipeline + motion engine + Home/Index entegrasyonu) |
 | Ajan 4 — Commerce | `agent/codex-commerce` | Integration'a merge edildi | Tamamlandı (domain/service/controller/migration katmanı, 58/58 test); **bilinçli olarak Razor view'ları yok** — bu artık Ajan 1'in sırada bekleyen işi |
 
