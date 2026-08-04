@@ -23,7 +23,10 @@
 <section id="featured-products" data-featured-products aria-labelledby="featured-products-title">
     <h2 id="featured-products-title">Seçili Kahveler</h2>
     <div data-product-card-list data-product-count="@Model.FeaturedProducts.Count">
-        @* ProductCard markup Ajan 1 sahipliğindedir; bu container sözleşme hook’udur. *@
+        @foreach (var product in Model.FeaturedProducts)
+        {
+            <partial name="_ProductCard" model="product" />
+        }
     </div>
 </section>
 
