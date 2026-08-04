@@ -6,7 +6,7 @@ public sealed class HomePageViewModel
 
     public string HeroFrameManifestUrl { get; init; } = "/frames/home/manifest.json";
 
-    public string HeroPosterUrl { get; init; } = "/images/home/hero-poster.webp";
+    public string HeroPosterUrl { get; init; } = "/frames/home/desktop/poster.webp";
 
     public string HeroTitle { get; init; } = "AETERNUM RECTUS LUCIS";
 
