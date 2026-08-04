@@ -24,6 +24,8 @@ public sealed class SecurityOptionsValidator : IValidateOptions<SecurityOptions>
 
         ValidateRoute(options.AdminRoute, nameof(options.AdminRoute), failures);
         ValidateRoute(options.SuperAdminRoute, nameof(options.SuperAdminRoute), failures);
+        ValidateFixedRoute(options.AdminRoute, "admin", nameof(options.AdminRoute), failures);
+        ValidateFixedRoute(options.SuperAdminRoute, "superadmin", nameof(options.SuperAdminRoute), failures);
 
         if (string.Equals(options.AdminRoute, options.SuperAdminRoute, StringComparison.OrdinalIgnoreCase))
         {
@@ -48,6 +50,18 @@ public sealed class SecurityOptionsValidator : IValidateOptions<SecurityOptions>
         if (string.IsNullOrWhiteSpace(value) || value.Contains('/') || value.Contains('\\'))
         {
             failures.Add($"{name} must be a non-empty single URL segment.");
+        }
+    }
+
+    private static void ValidateFixedRoute(
+        string value,
+        string expectedValue,
+        string name,
+        ICollection<string> failures)
+    {
+        if (!string.Equals(value, expectedValue, StringComparison.OrdinalIgnoreCase))
+        {
+            failures.Add($"{name} must be '{expectedValue}' because management endpoint routes are fixed by contract.");
         }
     }
 }
