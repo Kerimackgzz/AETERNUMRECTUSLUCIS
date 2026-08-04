@@ -1,0 +1,56 @@
+@using AETKAHVE.Application.Commerce
+@model FavoritePageViewModel
+@{
+    ViewData["Title"] = "Favorilerim";
+}
+<header class="container shop-header">
+    <p class="text-eyebrow">Koleksiyonum</p>
+    <h1>Favorilerim</h1>
+</header>
+<div class="container section--tight">
+    @if (Model.Products.Items.Count == 0)
+    {
+        <div class="surface empty-state">
+            <p class="empty-state__title">Henüz favori ürününüz yok</p>
+            <p class="text-muted">Beğendiğiniz ürünlerin üzerindeki kalp ikonuna dokunun.</p>
+            <a asp-controller="Products" asp-action="Index" class="btn btn--primary">Ürünlere göz at</a>
+        </div>
+    }
+    else
+    {
+        <div class="grid-auto" data-product-card-list data-product-count="@Model.Products.Items.Count">
+            @foreach (var product in Model.Products.Items)
+            {
+                <partial name="_ProductCard" model="ToCard(product)" />
+            }
+        </div>
+        <partial name="_Pagination" model="(Model.Products.Page, Model.Products.TotalPages)" />
+    }
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/shop.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/pagination.css" asp-append-version="true" />
+}
+
+@functions {
+    ProductCardViewModel ToCard(ProductSummary product) => new()
+    {
+        Id = product.Id,
+        Name = product.Name,
+        Slug = product.Slug,
+        PrimaryImageUrl = product.ImageUrl,
+        PrimaryImageAlt = product.ImageAlt,
+        CategoryName = product.CategoryName,
+        OriginName = product.OriginName,
+        RoastLevelName = product.RoastLevelName,
+        DisplayPrice = product.DisplayPrice,
+        OriginalPrice = product.OriginalPrice,
+        IsDiscounted = product.IsDiscounted,
+        IsInStock = product.IsInStock,
+        IsFavorite = product.IsFavorite,
+        AddToCartUrl = Url.Action("Add", "Cart") ?? "/cart/items",
+        ToggleFavoriteUrl = Url.Action("Toggle", "Favorites", new { productId = product.Id }) ?? $"/favorites/{product.Id}/toggle",
+        DetailUrl = Url.Action("Detail", "Products", new { slug = product.Slug }) ?? $"/products/{product.Slug}",
+    };
+}

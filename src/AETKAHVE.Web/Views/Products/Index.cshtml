@@ -1,0 +1,16 @@
+@model ProductListViewModel
+@{
+    ViewData["Title"] = "Ürünler";
+}
+<header class="container shop-header">
+    <p class="text-eyebrow">Koleksiyon</p>
+    <h1>Kahve Seçkimiz</h1>
+</header>
+<div class="container">
+    <partial name="_ProductListing" model="Model" />
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/shop.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/pagination.css" asp-append-version="true" />
+}

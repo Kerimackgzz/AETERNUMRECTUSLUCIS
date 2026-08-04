@@ -1,0 +1,213 @@
+/*
+  AETERNUM RECTUS LUCIS — Cart / Checkout
+*/
+
+.cart-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-8);
+  padding-block: var(--space-10) var(--space-20);
+  align-items: start;
+}
+
+@media (min-width: 960px) {
+  .cart-layout {
+    grid-template-columns: minmax(0, 1fr) 360px;
+  }
+}
+
+.cart-lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.cart-line {
+  display: grid;
+  grid-template-columns: 88px 1fr auto;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-4);
+}
+
+.cart-line__image {
+  width: 88px;
+  height: 88px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background-color: var(--color-bg-elevated-2);
+}
+
+.cart-line__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cart-line__name {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.cart-line__variant {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.cart-line__controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.qty-stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.qty-stepper button {
+  width: 2rem;
+  height: 2rem;
+  background: none;
+  border: none;
+  color: var(--color-ink);
+  cursor: pointer;
+  font-size: var(--text-base);
+}
+
+.qty-stepper input {
+  width: 2.5rem;
+  text-align: center;
+  background: none;
+  border: none;
+  border-left: 1px solid var(--color-border);
+  border-right: 1px solid var(--color-border);
+  color: var(--color-ink);
+  padding: var(--space-1) 0;
+}
+
+.cart-line__remove {
+  background: none;
+  border: none;
+  color: var(--color-ink-faint);
+  font-size: var(--text-xs);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.cart-line__remove:hover {
+  color: var(--color-error);
+}
+
+.cart-summary {
+  position: sticky;
+  top: calc(var(--space-16) + var(--space-8));
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.cart-summary__row {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--text-sm);
+  color: var(--color-ink-muted);
+}
+
+.cart-summary__row--total {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--text-lg);
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.cart-summary__coupon {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.cart-summary__coupon input {
+  flex: 1;
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink);
+}
+
+.cart-warning {
+  font-size: var(--text-xs);
+  color: var(--color-warning);
+}
+
+.cart-warning::before {
+  content: "⚠ ";
+}
+
+/* Checkout adres kartları */
+.address-picker {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+@media (min-width: 640px) {
+  .address-picker {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.address-card {
+  display: block;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.address-card input {
+  margin-right: var(--space-2);
+}
+
+.address-card:has(input:checked) {
+  border-color: var(--color-gold-400);
+}
+
+.address-card__title {
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.address-card__body {
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+  margin-top: var(--space-1);
+}
+
+.checkout-section {
+  margin-bottom: var(--space-8);
+}
+
+.checkout-section__title {
+  margin-bottom: var(--space-4);
+}
+
+.checkout-card {
+  max-width: 720px;
+}
+
+.checkout-note {
+  width: 100%;
+  padding: var(--space-3);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink);
+  font-family: inherit;
+  resize: vertical;
+}

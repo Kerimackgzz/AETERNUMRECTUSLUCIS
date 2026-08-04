@@ -1,0 +1,139 @@
+@using AETKAHVE.Application.Commerce
+@model ProductListViewModel
+@{
+    var query = Model.Query;
+}
+<div class="shop-layout">
+    <aside class="surface shop-filters">
+        <form method="get" asp-controller="Products" asp-action="Index">
+            <details class="shop-filters__group" open>
+                <summary>Koleksiyon</summary>
+                <select name="categoryId">
+                    <option value="">Tümü</option>
+                    @foreach (var c in Model.Lookups.Categories)
+                    {
+                        <option value="@c.Id" selected="@(query.CategoryId == c.Id ? "selected" : null)">@c.Name</option>
+                    }
+                </select>
+            </details>
+            <details class="shop-filters__group" open>
+                <summary>Fiyat aralığı</summary>
+                <div class="shop-filters__range">
+                    <input type="number" name="minimumPrice" placeholder="Min" min="0" step="0.01" value="@query.MinimumPrice" />
+                    <span>—</span>
+                    <input type="number" name="maximumPrice" placeholder="Maks" min="0" step="0.01" value="@query.MaximumPrice" />
+                </div>
+            </details>
+            <details class="shop-filters__group">
+                <summary>Kahve tipi</summary>
+                <select name="coffeeTypeId">
+                    <option value="">Tümü</option>
+                    @foreach (var c in Model.Lookups.CoffeeTypes)
+                    {
+                        <option value="@c.Id" selected="@(query.CoffeeTypeId == c.Id ? "selected" : null)">@c.Name</option>
+                    }
+                </select>
+            </details>
+            <details class="shop-filters__group">
+                <summary>Çekirdek tipi</summary>
+                <select name="beanTypeId">
+                    <option value="">Tümü</option>
+                    @foreach (var c in Model.Lookups.BeanTypes)
+                    {
+                        <option value="@c.Id" selected="@(query.BeanTypeId == c.Id ? "selected" : null)">@c.Name</option>
+                    }
+                </select>
+            </details>
+            <details class="shop-filters__group">
+                <summary>Kavurma</summary>
+                <select name="roastLevelId">
+                    <option value="">Tümü</option>
+                    @foreach (var c in Model.Lookups.RoastLevels)
+                    {
+                        <option value="@c.Id" selected="@(query.RoastLevelId == c.Id ? "selected" : null)">@c.Name</option>
+                    }
+                </select>
+            </details>
+            <details class="shop-filters__group">
+                <summary>Menşei</summary>
+                <select name="originId">
+                    <option value="">Tümü</option>
+                    @foreach (var c in Model.Lookups.Origins)
+                    {
+                        <option value="@c.Id" selected="@(query.OriginId == c.Id ? "selected" : null)">@c.Name</option>
+                    }
+                </select>
+            </details>
+            <label class="shop-filters__option">
+                <input type="checkbox" name="inStockOnly" value="true" checked="@(query.InStockOnly ? "checked" : null)" />
+                Yalnız stoktakiler
+            </label>
+            <label class="shop-filters__option">
+                <input type="checkbox" name="discountedOnly" value="true" checked="@(query.DiscountedOnly ? "checked" : null)" />
+                Yalnız indirimliler
+            </label>
+            <input type="hidden" name="sort" value="@query.Sort" />
+            <button type="submit" class="btn btn--outline btn--block">Filtrele</button>
+        </form>
+    </aside>
+
+    <div>
+        <div class="shop-toolbar">
+            <p class="shop-toolbar__count">@Model.Products.TotalCount ürün</p>
+            <form method="get" asp-controller="Products" asp-action="Index" class="shop-toolbar__sort">
+                @if (query.CategoryId is not null) { <input type="hidden" name="categoryId" value="@query.CategoryId" /> }
+                @if (query.MinimumPrice is not null) { <input type="hidden" name="minimumPrice" value="@query.MinimumPrice" /> }
+                @if (query.MaximumPrice is not null) { <input type="hidden" name="maximumPrice" value="@query.MaximumPrice" /> }
+                <label class="visually-hidden" for="sort-select">Sırala</label>
+                <select id="sort-select" name="sort">
+                    <option value="recommended" selected="@(query.Sort == "recommended" ? "selected" : null)">Önerilen</option>
+                    <option value="price-asc" selected="@(query.Sort == "price-asc" ? "selected" : null)">Fiyat: Düşükten yükseğe</option>
+                    <option value="price-desc" selected="@(query.Sort == "price-desc" ? "selected" : null)">Fiyat: Yüksekten düşüğe</option>
+                    <option value="newest" selected="@(query.Sort == "newest" ? "selected" : null)">En yeni</option>
+                </select>
+                <button type="submit" class="btn btn--ghost btn--sm">Uygula</button>
+            </form>
+        </div>
+
+        @if (Model.Products.Items.Count == 0)
+        {
+            <div class="surface empty-state">
+                <p class="empty-state__title">Bu kriterlere uyan ürün bulunamadı</p>
+                <p class="text-muted">Filtreleri gevşetmeyi deneyin.</p>
+            </div>
+        }
+        else
+        {
+            <div class="grid-auto" data-product-card-list data-product-count="@Model.Products.Items.Count">
+                @foreach (var product in Model.Products.Items)
+                {
+                    <partial name="_ProductCard" model="ToCard(product)" />
+                }
+            </div>
+        }
+
+        <partial name="_Pagination" model="(Model.Products.Page, Model.Products.TotalPages)" />
+    </div>
+</div>
+
+@functions {
+    ProductCardViewModel ToCard(ProductSummary product) => new()
+    {
+        Id = product.Id,
+        Name = product.Name,
+        Slug = product.Slug,
+        PrimaryImageUrl = product.ImageUrl,
+        PrimaryImageAlt = product.ImageAlt,
+        CategoryName = product.CategoryName,
+        OriginName = product.OriginName,
+        RoastLevelName = product.RoastLevelName,
+        DisplayPrice = product.DisplayPrice,
+        OriginalPrice = product.OriginalPrice,
+        IsDiscounted = product.IsDiscounted,
+        IsInStock = product.IsInStock,
+        IsFavorite = product.IsFavorite,
+        AddToCartUrl = Url.Action("Add", "Cart") ?? "/cart/items",
+        ToggleFavoriteUrl = Url.Action("Toggle", "Favorites", new { productId = product.Id }) ?? $"/favorites/{product.Id}/toggle",
+        DetailUrl = Url.Action("Detail", "Products", new { slug = product.Slug }) ?? $"/products/{product.Slug}",
+    };
+}

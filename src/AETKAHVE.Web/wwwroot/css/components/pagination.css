@@ -1,0 +1,42 @@
+/*
+  AETERNUM RECTUS LUCIS — Pagination
+*/
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-10);
+}
+
+.pagination__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  padding-inline: var(--space-2);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  color: var(--color-ink-muted);
+  text-decoration: none;
+  font-size: var(--text-sm);
+}
+
+.pagination__link:hover {
+  border-color: var(--color-gold-400);
+  color: var(--color-gold-400);
+}
+
+.pagination__link[aria-current="page"] {
+  background-color: var(--color-gold-500);
+  border-color: var(--color-gold-500);
+  color: var(--color-ink-on-inverse);
+  font-weight: 600;
+}
+
+.pagination__ellipsis {
+  color: var(--color-ink-faint);
+  padding-inline: var(--space-1);
+}

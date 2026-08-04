@@ -149,6 +149,64 @@ th {
   letter-spacing: var(--tracking-wide);
 }
 
+/* Durum rozeti — tüm alanlarda ortak; yalnız renkle değil metinle de anlatılır. */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-xs);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-ink-muted);
+}
+
+.status-badge[data-status-kind="success"] {
+  border-color: var(--color-success);
+  color: var(--color-success);
+}
+
+.status-badge[data-status-kind="warning"] {
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+}
+
+.status-badge[data-status-kind="error"] {
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.status-badge[data-status-kind="info"] {
+  border-color: var(--color-info);
+  color: var(--color-info);
+}
+
+/* Boş durum — tüm alanlarda (public/account/admin) ortak. */
+.empty-state {
+  padding: var(--space-16) var(--space-6);
+  text-align: center;
+  color: var(--color-ink-muted);
+}
+
+.empty-state__title {
+  color: var(--color-ink);
+  margin-bottom: var(--space-2);
+}
+
+.empty-state .btn {
+  margin-top: var(--space-4);
+}
+
+/* Boşluk yardımcıları */
+.mt-4 {
+  margin-top: var(--space-4);
+}
+
+.mb-4 {
+  margin-bottom: var(--space-4);
+}
+
 /* Görünürlük yardımcıları */
 .visually-hidden {
   position: absolute;
