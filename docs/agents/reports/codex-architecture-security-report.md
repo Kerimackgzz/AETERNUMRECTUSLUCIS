@@ -94,3 +94,20 @@ Foundation, final EF ve Git kontrolleri başarılı olduktan sonra Coordinator r
 - Güvensiz değerler response/audit/log katmanına taşınmadan 32 karakterlik server-generated GUID ile değiştirilir.
 - Safe passthrough ve unsafe replacement davranışı integration testiyle doğrulandı.
 - Güncel test toplamı: Unit 22/22, Integration 43/43, toplam 65/65.
+
+## Integration Security Regression — 2026-08-04
+
+- Ajan 3 worktree'sine güncel `integration` (`c4a669d`) çatışmasız olarak alındı; son Ajan 3 sync merge commit'i `6a485b5` oldu.
+- Yeni Account/Admin görünümleri, public page-transition aktivasyonu ve Ajan 4 SQLite development/commerce mutation düzeltmeleri birleşik kod tabanında denetlendi.
+- `SecurityOptions.AdminRoute` ve `SuperAdminRoute` değerlerinin cookie yönlendirmeleri ile sabit controller route'larını ayırması engellendi. Sözleşmedeki `admin` / `superadmin` değerlerinden sapma artık startup options validation sırasında fail-fast sonuçlanır.
+- Birleşen 11 Admin commerce sayfası anonim challenge, Admin erişimi, SuperAdmin'in Admin alanına erişimi, Customer reddi, `Cache-Control: no-store`, CSP/frame/content-type/correlation header'ları ve JSON mutation antiforgery davranışıyla kilitlendi.
+- `dotnet restore` ve `dotnet build --no-restore`: başarılı, 0 warning / 0 error.
+- Unit: 25/25; Integration: 49/49; toplam: 74/74 başarılı.
+- EF migration zinciri: `InitialIdentity`, `AddCommerceCatalogAndCustomer`, `AddCommerceCheckoutAndFulfillment`, `AddCommerceEngagement`. Pending model değişikliği yok; idempotent SQL üretimi başarılı.
+- `dotnet list AETKAHVE.sln package --vulnerable --include-transitive`: doğrudan veya transitif bilinen savunmasız paket bulunmadı.
+- Ajan 3'e ait değişen dosyalarda scoped `dotnet format --verify-no-changes` ve `git diff --check` başarılı.
+- Tam solution format kapısı hâlâ Ajan 4 sahipliğindeki commerce dosyalarının mevcut whitespace borcu nedeniyle başarısızdır; sahiplik sınırı gereği Ajan 3 bu dosyaları değiştirmedi.
+- `codex-architecture-security-20260804-commerce-security-hardening.md` isteğindeki gerçek production payment/webhook doğrulaması, contact rate limit ve trusted-proxy yapılandırması henüz uygulanmış değildir.
+- `codex-architecture-security-20260804-afk-client-expiry.md` isteğindeki yerel expiry sırasında antiforgery korumalı logout ve cross-tab senkronizasyonu henüz uygulanmış değildir; backend AFK enforcement ve cookie silme testleri çalışmaktadır.
+- Bu turdaki uygulama commit'i: `31381ff91501cd55555e118d7a69968b327822e5`.
+- Rapor commit'inden sonraki nihai branch HEAD hash'i teslim mesajında bildirilir; Ajan 3 doğrudan `integration` veya `main` üzerine merge yapmaz.
