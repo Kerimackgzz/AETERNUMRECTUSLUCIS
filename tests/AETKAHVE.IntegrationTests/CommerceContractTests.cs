@@ -38,6 +38,30 @@ public sealed class CommerceContractTests(AeternumWebApplicationFactory factory)
     }
 
     [Fact]
+    public async Task Public_home_renders_the_hero_and_navbar_motion_contract()
+    {
+        using var client = factory.CreateClientWithoutRedirects();
+
+        var homeResponse = await client.GetAsync("/");
+        var html = await homeResponse.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, homeResponse.StatusCode);
+        Assert.Contains("data-navbar", html, StringComparison.Ordinal);
+        Assert.Contains("/css/components/navbar.css", html, StringComparison.Ordinal);
+        Assert.Contains("/js/components/navbar-motion.js", html, StringComparison.Ordinal);
+        Assert.Contains("data-frame-manifest-url=\"/frames/home/manifest.json\"", html, StringComparison.Ordinal);
+        Assert.Contains("data-reduced-motion=\"false\"", html, StringComparison.Ordinal);
+
+        var navbarCss = await client.GetAsync("/css/components/navbar.css");
+        var navbarScript = await client.GetAsync("/js/components/navbar-motion.js");
+
+        Assert.Equal(HttpStatusCode.OK, navbarCss.StatusCode);
+        Assert.Equal(HttpStatusCode.OK, navbarScript.StatusCode);
+        Assert.Contains("[data-navbar].is-scrolled", await navbarCss.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        Assert.Contains("classList.toggle(\"is-scrolled\"", await navbarScript.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void All_public_customer_and_admin_route_families_are_mapped()
     {
         var routes = factory.Services.GetServices<EndpointDataSource>().SelectMany(x => x.Endpoints)
