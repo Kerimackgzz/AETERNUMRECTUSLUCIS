@@ -1,0 +1,55 @@
+@using System.Globalization
+@using AETKAHVE.Domain.Commerce
+@model AdminReviewListViewModel
+@{
+    ViewData["Title"] = "Yorum Yönetimi";
+    var currency = new CultureInfo("tr-TR");
+    var statuses = Enum.GetValues<ReviewStatus>();
+}
+<h1 class="admin-dashboard__title">Yorum Yönetimi</h1>
+<div data-admin-reviews-page>
+    @if (Model.Reviews.Items.Count == 0)
+    {
+        <div class="surface empty-state">
+            <p class="empty-state__title">Yorum yok</p>
+        </div>
+    }
+    else
+    {
+        <table>
+            <thead><tr><th>Ürün</th><th>Puan</th><th>Tarih</th><th>Durum</th><th>Karar</th></tr></thead>
+            <tbody>
+                @foreach (var review in Model.Reviews.Items)
+                {
+                    <tr>
+                        <td>@review.ProductName</td>
+                        <td>@review.Rating / 5</td>
+                        <td>@review.CreatedAtUtc.ToLocalTime().ToString("d MMM yyyy", currency)</td>
+                        <td>@review.Status</td>
+                        <td>
+                            <form data-review-status-form data-review-id="@review.Id" class="cluster">
+                                <select name="status">
+                                    @foreach (var status in statuses)
+                                    {
+                                        <option value="@status" selected="@(status == review.Status ? "selected" : null)">@status</option>
+                                    }
+                                </select>
+                                <input type="text" name="response" placeholder="Yanıt (opsiyonel)" class="text-sm" />
+                                <button type="submit" class="btn btn--outline btn--sm">Uygula</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <partial name="_Pagination" model="(Model.Reviews.Page, Model.Reviews.TotalPages)" />
+    }
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/components/pagination.css" asp-append-version="true" />
+}
+
+@section PageScripts {
+    <script type="module" src="~/js/admin/reviews.js" asp-append-version="true"></script>
+}

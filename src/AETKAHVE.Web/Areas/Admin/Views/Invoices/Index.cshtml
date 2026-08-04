@@ -1,0 +1,36 @@
+@using System.Globalization
+@model AdminInvoiceListViewModel
+@{
+    ViewData["Title"] = "Fatura Yönetimi";
+    var currency = new CultureInfo("tr-TR");
+}
+<h1 class="admin-dashboard__title">Fatura Yönetimi</h1>
+@if (Model.Invoices.Items.Count == 0)
+{
+    <div class="surface empty-state">
+        <p class="empty-state__title">Fatura yok</p>
+    </div>
+}
+else
+{
+    <table>
+        <thead><tr><th>Fatura No</th><th>Sipariş No</th><th>Tarih</th><th>Tutar</th><th></th></tr></thead>
+        <tbody>
+            @foreach (var invoice in Model.Invoices.Items)
+            {
+                <tr>
+                    <td>@invoice.InvoiceNumber</td>
+                    <td>@invoice.OrderNumber</td>
+                    <td>@invoice.InvoiceDateUtc.ToLocalTime().ToString("d MMM yyyy", currency)</td>
+                    <td>@invoice.GrandTotal.ToString("N2", currency) ₺</td>
+                    <td><a asp-area="Admin" asp-controller="Invoices" asp-action="Download" asp-route-id="@invoice.Id" class="btn btn--ghost btn--sm">İndir</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <partial name="_Pagination" model="(Model.Invoices.Page, Model.Invoices.TotalPages)" />
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/components/pagination.css" asp-append-version="true" />
+}

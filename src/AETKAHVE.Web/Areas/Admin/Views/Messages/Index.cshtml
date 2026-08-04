@@ -1,0 +1,51 @@
+@using System.Globalization
+@using AETKAHVE.Domain.Commerce
+@model AdminMessageListViewModel
+@{
+    ViewData["Title"] = "İletişim Mesajları";
+    var currency = new CultureInfo("tr-TR");
+    var statuses = Enum.GetValues<ContactMessageStatus>();
+}
+<h1 class="admin-dashboard__title">İletişim Mesajları</h1>
+<div data-admin-messages-page>
+    @if (Model.Messages.Items.Count == 0)
+    {
+        <div class="surface empty-state">
+            <p class="empty-state__title">Mesaj yok</p>
+        </div>
+    }
+    else
+    {
+        <table>
+            <thead><tr><th>Ad</th><th>E-posta</th><th>Konu</th><th>Tarih</th><th>Durum</th></tr></thead>
+            <tbody>
+                @foreach (var message in Model.Messages.Items)
+                {
+                    <tr>
+                        <td>@message.FullName</td>
+                        <td>@message.Email</td>
+                        <td>@message.Subject</td>
+                        <td>@message.CreatedAtUtc.ToLocalTime().ToString("d MMM yyyy", currency)</td>
+                        <td>
+                            <select data-message-status data-message-id="@message.Id">
+                                @foreach (var status in statuses)
+                                {
+                                    <option value="@status" selected="@(status == message.Status ? "selected" : null)">@status</option>
+                                }
+                            </select>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <partial name="_Pagination" model="(Model.Messages.Page, Model.Messages.TotalPages)" />
+    }
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/components/pagination.css" asp-append-version="true" />
+}
+
+@section PageScripts {
+    <script type="module" src="~/js/admin/messages.js" asp-append-version="true"></script>
+}

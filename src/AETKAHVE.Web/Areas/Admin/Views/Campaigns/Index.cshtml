@@ -1,0 +1,62 @@
+@using System.Globalization
+@using AETKAHVE.Domain.Commerce
+@model AdminCampaignListViewModel
+@{
+    ViewData["Title"] = "Kampanya Yönetimi";
+    var currency = new CultureInfo("tr-TR");
+}
+<h1 class="admin-dashboard__title">Kampanya Yönetimi</h1>
+<div data-admin-campaigns-page>
+    <div class="surface surface--padded mb-4">
+        <h2 class="text-lg mb-4">Yeni kampanya</h2>
+        <form data-campaign-form class="grid-auto">
+            <input type="text" name="name" placeholder="Kampanya adı" required maxlength="150" />
+            <select name="discountType">
+                <option value="@DiscountType.Percentage">Yüzde</option>
+                <option value="@DiscountType.FixedAmount">Sabit Tutar</option>
+                <option value="@DiscountType.FreeShipping">Ücretsiz Kargo</option>
+            </select>
+            <input type="number" name="discountValue" placeholder="İndirim değeri" step="0.01" min="0" required />
+            <input type="number" name="minimumCartAmount" placeholder="Min. sepet tutarı (opsiyonel)" step="0.01" min="0" />
+            <input type="number" name="maximumDiscountAmount" placeholder="Maks. indirim (opsiyonel)" step="0.01" min="0" />
+            <label>Başlangıç <input type="datetime-local" name="startDate" required /></label>
+            <label>Bitiş <input type="datetime-local" name="endDate" required /></label>
+            <label class="cluster"><input type="checkbox" name="canCombine" /> Diğer indirimlerle birleştirilebilir</label>
+            <button type="submit" class="btn btn--primary">Kaydet</button>
+        </form>
+    </div>
+
+    @if (Model.Campaigns.Items.Count == 0)
+    {
+        <div class="surface empty-state">
+            <p class="empty-state__title">Kampanya yok</p>
+        </div>
+    }
+    else
+    {
+        <table>
+            <thead><tr><th>Ad</th><th>Tip</th><th>Değer</th><th>Aktif</th><th>Bitiş</th></tr></thead>
+            <tbody>
+                @foreach (var campaign in Model.Campaigns.Items)
+                {
+                    <tr>
+                        <td>@campaign.Name</td>
+                        <td>@campaign.DiscountType</td>
+                        <td>@campaign.DiscountValue.ToString("N2", currency)</td>
+                        <td><span class="status-badge" data-status-kind="@(campaign.IsActive ? "success" : "error")">@(campaign.IsActive ? "Aktif" : "Pasif")</span></td>
+                        <td>@campaign.EndDateUtc.ToLocalTime().ToString("d MMM yyyy", currency)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <partial name="_Pagination" model="(Model.Campaigns.Page, Model.Campaigns.TotalPages)" />
+    }
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/components/pagination.css" asp-append-version="true" />
+}
+
+@section PageScripts {
+    <script type="module" src="~/js/admin/campaigns.js" asp-append-version="true"></script>
+}
