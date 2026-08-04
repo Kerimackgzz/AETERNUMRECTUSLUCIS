@@ -73,19 +73,23 @@ Bu ortamda frontend/UI-UX/accessibility/performance skill'i veya browser/screens
 
 Yok. Shared ViewModel property'leri, route'lar ve frozen contract dosyaları değiştirilmedi. `DashboardSummaryViewModel.Statuses` şu an boş geliyor (controller'lar benim sahiplik alanım dışında) — mevcut boş-durum bileşeniyle karşılandı, ek contract gerekmedi.
 
+**Admin ürün oluşturma + kampanya hedefleme** — beşinci dilim (`e922196`, Coordinator merge sonrası)
+- Katalog lookup öğeleri artık ID'lerini tıkla-kopyala butonu olarak gösteriyor (`catalog.js`, `navigator.clipboard`) — Admin Products sayfasının kendi lookup verisi olmadığından (`ProductsController.Index` yalnız `PagedResult<ProductSummary>` döndürüyor), bu ID'yi formlara yapıştırma en pratik çözümdü.
+- Admin Products sayfasına tam "yeni ürün ekle" formu eklendi (`AdminProductInput`'un tüm alanları; Koleksiyon zorunlu, diğer lookup'lar opsiyonel, hepsi yapıştırılan ID ile).
+- Admin Campaigns formuna ürün/kategori hedefleme eklendi (virgül/satırla ayrılmış ID textarea'ları, client-side parse edilip `ProductIds`/`CategoryIds`'e bağlanıyor); boş bırakılırsa kampanya genel kapsamlı kalıyor (önceki davranış korunuyor).
+
 ## Bilinen sorunlar
 
 - **Gerçek tarayıcı/ekran görüntüsü doğrulaması yapılmadı** — bu ortamda SQL Server olmadığı için `dotnet run` gerçek veriyle başlatılamıyor; doğrulama SQLite tabanlı `WebApplicationFactory` testleri ve HTML içerik kontrolüyle yapıldı. Görsel/responsive/klavye-focus/renk kontrastı incelemesi kullanıcı veya browser MCP ile teyit edilmeli.
-- **İki contract-bloklu gap**: `/contact` sayfası (GET action yok, navbar linki 404 verir), Return/Review "yeni talep oluştur" formları (`OrderItemId` yok) — ikisi de contract request'te belgelendi, Ajan 4/Coordinator kararı bekliyor.
-- Admin Products sayfasında yalnız stok +/- var, yeni ürün oluşturma formu yok — `ProductsController.Index` (Admin) view'a kategori/marka gibi lookup verisini geçmiyor, tam bir "yeni ürün" formu için ayrı bir veri kaynağı gerekir (küçük bir ek gap, contract request'e dahil edilmedi).
-- Admin Shipments/Campaigns/Coupons'ta "yeni oluştur" formları var ama ürün/kategori hedefleme (campaign'in `ProductIds`/`CategoryIds` alanları) UI'da yok — kampanya varsayılan olarak genel kapsamlı oluşturuluyor.
+- **İki contract-bloklu gap** (hâlâ açık): `/contact` sayfası (GET action yok, navbar linki 404 verir), Return/Review "yeni talep oluştur" formları (`OrderItemId` yok) — ikisi de contract request'te belgelendi, Ajan 4/Coordinator kararı bekliyor.
+- Admin ürün/kampanya formlarında lookup ID'leri gerçek bir `<select>` yerine kopyala-yapıştır ile giriliyor — kullanılabilir ama ideal değil; gerçek dropdown için Admin Products/Campaigns action'larının da `CatalogLookupSet` döndürmesi gerekir (küçük, contract request'e dahil edilmemiş bir iyileştirme fırsatı).
 - Cross-tab AFK senkronizasyonu (contract: "frontend runtime sahibindedir") uygulanmadı; her sekme kendi 30 saniyelik status poll'una güveniyor — kabul edilebilir ama geliştirilebilir bir basitleştirme.
 - Adres düzenleme (yalnız ekleme/silme var) ve checkout'ta adres CRUD'unun tam entegrasyonu (şu an checkout sayfası adres yoksa Addresses'e yönlendiriyor, aynı akışta ekleyip geri dönme yok) basitleştirildi.
 
 ## Son commit hash
 
-`2988382` (kalan Account + tüm Admin view'ları); önceki: `2f53f36` (public commerce view'ları), `45b43b5` (ProductCard), `28dc5a9` (foundation dilimi). Coordinator merge'ler: `bcfbf8d` (foundation), Ajan 1/2 merge zinciri, Ajan 4 merge, bu son iki dilimin merge'i (Ajan 1 → integration).
+`e922196` (admin ürün oluşturma + kampanya hedefleme); önceki: `2988382` (kalan Account + tüm Admin view'ları), `2f53f36` (public commerce view'ları), `45b43b5` (ProductCard), `28dc5a9` (foundation dilimi). Coordinator merge'ler: `bcfbf8d` (foundation), Ajan 1/2 merge zinciri, Ajan 4 merge, bu üç dilimin merge'i (Ajan 1 → integration).
 
 ## Merge hazır durumu
 
-Ajan 4'ün açtığı **her route** için bir view var. Dört dilim de (design system foundation + Account/Admin/SuperAdmin auth sayfaları; ProductCard; public commerce view'ları; kalan Account + Admin commerce view'ları) build/test ve SQLite tabanlı render smoke testinden geçti, `integration`'a merge edildi. Kalan iş: yukarıdaki iki contract gap'inin Ajan 4 tarafından kapatılması ve gerçek SQL Server ortamında/tarayıcıda uçtan uca doğrulama.
+Ajan 4'ün açtığı **her route** için bir view var; Admin ürün oluşturma ve kampanya hedefleme dahil. Beş dilim de (design system foundation + Account/Admin/SuperAdmin auth sayfaları; ProductCard; public commerce view'ları; kalan Account + Admin commerce view'ları; admin ürün/kampanya iyileştirmeleri) build/test ve SQLite tabanlı render smoke testinden geçti, `integration`'a merge edildi. Kalan iş: iki contract gap'inin (`/contact`, `OrderItemId`) Ajan 4 tarafından kapatılması ve gerçek SQL Server ortamında/tarayıcıda uçtan uca doğrulama.
