@@ -87,3 +87,10 @@ Foundation, final EF ve Git kontrolleri başarılı olduktan sonra Coordinator r
 - Commerce production provider/webhook/contact riskleri doğrudan sahiplik dışı kod değiştirilmeden `docs/contracts/requests/codex-architecture-security-20260804-commerce-security-hardening.md` ile Ajan 4/Coordinator’a iletildi.
 - AFK istemcisinin süre sonunda `logoutUrl` çağırmaması ve cross-tab senkronizasyon eksikliği, backend logout cookie testiyle birlikte `docs/contracts/requests/codex-architecture-security-20260804-afk-client-expiry.md` üzerinden frontend sahiplerine iletildi.
 - Tam solution format kontrolü commerce whitespace borcu nedeniyle hâlâ başarısız; Ajan 3’e ait değişen C# dosyalarının scoped format kontrolü ayrıca uygulanır.
+
+## Correlation ID Hardening — 2026-08-04
+
+- İstemci tarafından sağlanan `X-Correlation-ID` artık yalnız ASCII harf/rakam ile `-`, `_`, `.` karakterlerini ve en fazla 128 karakteri kabul eder.
+- Güvensiz değerler response/audit/log katmanına taşınmadan 32 karakterlik server-generated GUID ile değiştirilir.
+- Safe passthrough ve unsafe replacement davranışı integration testiyle doğrulandı.
+- Güncel test toplamı: Unit 22/22, Integration 43/43, toplam 65/65.
