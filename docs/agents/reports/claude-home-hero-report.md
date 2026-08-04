@@ -5,7 +5,9 @@
 - Branch: `agent/claude-home-hero` — worktree: `../aeternum-claude-hero`. `git config --global --add safe.directory` kullanıcı tarafından çalıştırıldıktan sonra "dubious ownership" engeli kalktı.
 - Branch, ana checkout o sırada `agent/claude-design-pages` üzerinde ve **aktif** olduğu için (Ajan 1 paralel çalışıyordu — commit `50918f9` benim worktree kurulumum sırasında geldi), doğrudan `integration`'dan değil, Ajan 1'in o anki ucundan (`agent/claude-design-pages`) forklandı; böylece ana checkout'a hiç dokunulmadı/kesintiye uğratılmadı. Kendi dosyalarım ayrı worktree'ye taşındıktan sonra ana checkout tamamen temiz bırakıldı (`git status` boş).
 - Son commit: `956d3c1` — "feat: add home hero frame-sequence engine and product-card reveal motion" (446 dosya). Worktree'de temiz bir `dotnet restore`+`build`+`test` ile tekrar doğrulandı (0 hata/uyarı, 8/8 + 16/16).
-- **Güncelleme (aynı gün, ikinci tur):** `agent/claude-home-hero` bu sırada zaten `integration`'a merge edilmişti (`1d42fe4`); branch'im `git merge integration` ile güncel `integration` ucuna (`7c0568d`) senkronize edildi (fast-forward, çakışmasız). Bu, Ajan 1'in `_ProductCard.cshtml`'ini, Coordinator'ın `data-product-card-list`→partial bağlantısını, ve kullanıcının eklediği `navbar.css`/`navbar-motion.js` taslağı ile `HomePageViewModel.IsReducedMotionFallbackAvailable` varsayılan-değer düzeltmesini branch'ime taşıdı.
+- **Güncelleme (aynı gün, ikinci tur):** `agent/claude-home-hero` bu sırada zaten `integration`'a merge edilmişti (`1d42fe4`); branch'im `git merge integration` ile güncel `integration` ucuna (`7c0568d`) senkronize edildi (fast-forward, çakışmasız). Bu, Ajan 1'in `_ProductCard.cshtml`'ini, Coordinator'ın `data-product-card-list`→partial bağlantısını, ve kullanıcının eklediği `navbar.css`/`navbar-motion.js` taslağı ile `HomePageViewModel.IsReducedMotionFallbackAvailable` varsayılan-değer düzeltmesini branch'ime taşıdı. Navbar harf-mask + page-transition eklendi, commit `94b5f10`.
+- **Güncelleme (üçüncü tur):** `integration` bu sırada Ajan 4'ün commerce backend'ini (58 test) ve Ajan 1'in karşılık gelen commerce Razor view'larını (Products/Cart/Checkout/Favorites/Addresses/Orders) almıştı — branch'im tekrar `git merge integration` ile senkronize edildi (çakışmasız, "ort" stratejisiyle merge commit). Yeni eklenen `tests/AETKAHVE.IntegrationTests/CommerceContractTests.cs` içindeki `Public_home_renders_the_hero_and_navbar_motion_contract` testi (hero + navbar çıktımı birebir kilitleyen bir regresyon testi) dahil **tüm testler (21 unit + 39 integration) geçti** — navbar harf-mask eklemem mevcut sözleşmeyi bozmadı.
+- **Önemli ortam değişikliği**: commerce backend merge sonrası `HomeController` gerçek DB sorgusu yaptığından, bu ortamda SQL Server olmadığı için **artık `dotnet run` ile canlı HTTP smoke test yapılamıyor** (DB bağlantı hatasıyla başlıyor) — bu Coordinator'ın notuyla da doğrulandı. `dotnet test` (SQLite fixture) etkilenmiyor ve doğrulama için güvenilir kalan tek yöntem.
 
 ## Yapılan iş (bu oturum)
 
@@ -72,7 +74,7 @@ Kayıtlı bir frontend/motion/performance skill'i veya browser/screenshot MCP ar
 
 ## Contract request
 
-`docs/contracts/requests/claude-hero-20260804-page-transition-script-tag.md` — `_PublicLayout.cshtml`'e `page-transition.css/js` için link/script tag'i eklenmesi rica edildi (layout dosyasına ben dokunamıyorum). Frozen ViewModel/contract dosyalarına dokunulmadı.
+`docs/contracts/requests/claude-hero-20260804-page-transition-script-tag.md` — `_PublicLayout.cshtml`'e `page-transition.css/js` için link/script tag'i eklenmesi rica edildi (layout dosyasına ben dokunamıyorum). **Henüz işlenmedi** — güncel `integration`'da layout'a yalnızca `toast.css` eklenmiş, page-transition için hiçbir `<link>`/`<script>` yok; isteğim muhtemelen sıradaki Coordinator turunda değerlendirilecek. Frozen ViewModel/contract dosyalarına dokunulmadı.
 
 ## Bilinen sınırlamalar
 
