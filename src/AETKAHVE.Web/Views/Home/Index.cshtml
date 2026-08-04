@@ -9,13 +9,33 @@
          data-poster-url="@Model.HeroPosterUrl"
          data-reduced-motion="@Model.IsReducedMotionFallbackAvailable.ToString().ToLowerInvariant()"
          aria-label="@Model.HeroAccessibilityDescription">
-    <h1>@Model.HeroTitle</h1>
-    <p>@Model.HeroSubtitle</p>
+    <div class="hero-frame-sequence__pin" data-hero-pin>
+        <canvas class="hero-frame-sequence__canvas" data-hero-canvas></canvas>
+        <div class="hero-frame-sequence__content">
+            <p class="hero-frame-sequence__eyebrow">AETKAHVE</p>
+            <h1 class="hero-frame-sequence__title">@Model.HeroTitle</h1>
+            <p>@Model.HeroSubtitle</p>
+        </div>
+        <div class="hero-frame-sequence__scroll-hint">Kaydır</div>
+    </div>
 </section>
 
 <section id="featured-products" data-featured-products aria-labelledby="featured-products-title">
     <h2 id="featured-products-title">Seçili Kahveler</h2>
     <div data-product-card-list data-product-count="@Model.FeaturedProducts.Count">
-        @* ProductCard markup Ajan 1 sahipliğindedir; bu container sözleşme hook’udur. *@
+        @foreach (var product in Model.FeaturedProducts)
+        {
+            <partial name="_ProductCard" model="product" />
+        }
     </div>
 </section>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/home-hero.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/product-card-motion.css" asp-append-version="true" />
+}
+
+@section PageScripts {
+    <script type="module" src="~/js/pages/home-frame-sequence.js" asp-append-version="true"></script>
+    <script type="module" src="~/js/components/product-card-motion.js" asp-append-version="true"></script>
+}

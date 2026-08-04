@@ -9,15 +9,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content="@antiforgery.RequestToken" />
     <title>@ViewData["Title"] — AETERNUM RECTUS LUCIS</title>
+    <link rel="stylesheet" href="~/css/tokens.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/typography.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/base.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/button.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/product-card.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/navbar.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
-    <a href="#main-content">İçeriğe geç</a>
+    <a href="#main-content" class="skip-link">İçeriğe geç</a>
     <partial name="_Navbar" />
     <partial name="_PageTransitionOverlay" />
     <main id="main-content">
         @RenderBody()
     </main>
+    <script type="module" src="~/js/components/navbar-motion.js" asp-append-version="true"></script>
     @await RenderSectionAsync("PageScripts", required: false)
 </body>
 </html>

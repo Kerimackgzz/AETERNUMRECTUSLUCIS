@@ -2,6 +2,8 @@
     Layout = "_AccountLayout";
     ViewData["Title"] = "Erişim Engellendi";
 }
-<h1>Erişim engellendi</h1>
-<p>Bu kaynağa erişim yetkiniz bulunmuyor.</p>
-
+<div class="account-card account-card--center surface surface--padded">
+    <h1 class="account-card__title">Erişim engellendi</h1>
+    <p class="text-muted">Bu kaynağa erişim yetkiniz bulunmuyor.</p>
+    <a asp-action="Login" class="btn btn--outline">Girişe dön</a>
+</div>

@@ -14,7 +14,7 @@ public sealed class HomePageViewModel
 
     public string HeroAccessibilityDescription { get; init; } = "Kahve çekirdeklerinin akışını gösteren sinematik sahne.";
 
-    public bool IsReducedMotionFallbackAvailable { get; init; } = true;
+    public bool IsReducedMotionFallbackAvailable { get; init; }
 }
 
 public sealed class ProductCardViewModel

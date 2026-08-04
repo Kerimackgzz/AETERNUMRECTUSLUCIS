@@ -1,0 +1,80 @@
+/*
+  AETERNUM RECTUS LUCIS — Layout
+  Konteyner, sayfa iskeleti ve bölüm boşlukları.
+  Navbar/hero/page-transition kendi dosyalarında yönetilir; burada yalnız
+  genel akış ve konteyner kuralları vardır.
+*/
+
+.container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--container-padding);
+}
+
+.container--narrow {
+  max-width: 720px;
+}
+
+#main-content {
+  display: block;
+  min-height: 60vh;
+}
+
+.section {
+  padding-block: var(--space-16);
+}
+
+.section--tight {
+  padding-block: var(--space-8);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.stack--loose {
+  gap: var(--space-8);
+}
+
+.cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.grid-auto {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+  gap: var(--space-6);
+}
+
+@media (min-width: 480px) {
+  .grid-auto {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-auto {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .container {
+    padding-inline: var(--space-8);
+  }
+}
+
+/* Odak/panel yüzeyleri (auth kartları, admin panelleri) için ortak yüzey. */
+.surface {
+  background-color: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.surface--padded {
+  padding: var(--space-8);
+}
