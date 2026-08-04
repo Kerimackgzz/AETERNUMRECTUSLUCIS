@@ -15,7 +15,7 @@ public sealed class AddressesController(IAddressService addressService) : Commer
     public async Task<IActionResult> Index(CancellationToken cancellationToken) => View(new AddressListViewModel(await addressService.GetAsync(RequiredUserId, cancellationToken)));
 
     [HttpPost]
-    public async Task<IActionResult> Save(AddressInputModel input, CancellationToken cancellationToken)
+    public async Task<IActionResult> Save([FromBody] AddressInputModel input, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return BadRequest(new CommerceMutationResponse(false, "Adres doğrulanamadı."));
         var result = await addressService.SaveAsync(RequiredUserId, input.Id, new AddressInput(input.Title, input.FirstName, input.LastName,

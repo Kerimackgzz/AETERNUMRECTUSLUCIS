@@ -4,10 +4,14 @@
 
 - Branch: `agent/codex-commerce`
 - Worktree: `C:\Users\Kerim Açıkgöz\Desktop\aeternum-codex-commerce`
-- Taban: `integration` / `eb80222` (Ajan 3 foundation `8b1a922` dahil)
+- Güncel taban: `integration` / `f008db0` (commerce çekirdeği, Ajan 1 commerce Razor view'ları ve Ajan 3 invalid-cookie sertleştirmesi dahil)
 - Uygulama commit'i: `2673542` (`feat: implement commerce core`)
-- Merge durumu: merge edilmedi; Coordinator `agent/codex-commerce` branch'ini `integration` üzerine almalıdır.
-- Kök worktree'deki Ajan 2 `wwwroot/` ve rapor dosyalarına dokunulmadı.
+- Development SQLite runtime commit'i: `f4af055` (`feat: enable sqlite commerce development runtime`)
+- Güncel integration merge commit'i: `f6e4ed3` (`Merge branch 'integration' into agent/codex-commerce`)
+- Entegrasyon contract regresyon testi: `9c940fa` (`test: lock hero and navbar integration contract`)
+- Frontend JSON uyumluluk düzeltmesi: `099f0b4` (`fix: align commerce mutations with frontend JSON`)
+- Merge durumu: Commerce çekirdeği `6b2b47d`, Ajan 1 commerce view'ları `3d0179a` ile integration geçmişine alındı. Development SQLite runtime'ı, navbar contract testi ve son JSON mutation düzeltmesi henüz integration'da değildir; Coordinator güncel `agent/codex-commerce` HEAD'ini almalıdır.
+- Kök worktree ve Ajan 1/2'nin Razor/CSS/JS kaynakları Ajan 4 uygulama commit'inde değiştirilmedi.
 
 ## Tamamlanan kapsam
 
@@ -16,7 +20,7 @@
 - Product, ProductVariant, Order, Payment, Refund, Shipment, ReturnRequest ve NotificationDelivery için uygulama tarafından döndürülen `Guid` concurrency token kullanıldı.
 - Kullanıcı ilişkileri yalnız `Guid UserId` üzerinden kuruldu; Identity tabloları ve authentication şeması değiştirilmedi.
 - `AppDbContext` commerce DbSet/configuration'larıyla genişletildi.
-- Development seed sabit ID ve zamanlarla, entity bazında idempotent katalog, varyant, kampanya ve kupon üretir; Testing/Production'da çalışmaz.
+- Development seed sabit ID ve zamanlarla, entity bazında idempotent katalog, varyant, kampanya ve kupon üretir; Testing/Production'da çalışmaz. SQLite Development şemasını ilk çalıştırmada güvenli biçimde oluşturur ve seed görselini mevcut hero poster asset'ine bağlar; eski eksik görsel yolunu idempotent olarak onarır.
 
 ## Migrationlar
 
@@ -35,6 +39,7 @@ EF doğrulamaları:
 
 - `ICatalogQueryService`: server-side filtre, sort, projection ve paging; yalnız sayfadaki favorite ID'lerini ek sorgular.
 - `ICartService`: Data Protection korumalı HttpOnly guest cookie, unique cart/item constraint'leri ve idempotent authenticated merge.
+- Ürün kartı varyant belirtmeden ekleme yaptığında servis stoklu aktif varyantı ağırlık/ID sırasıyla deterministik seçer; explicit varyant doğrulaması korunur.
 - `IDiscountEngine`: toplam faydaya göre en iyi kampanya, kombinasyon kurallı kupon, limit kontrolleri, negatif olmayan toplam, server-side tax/shipping hesabı.
 - `ICheckoutService`: PendingPayment snapshot, checkout/provider transaction idempotency, callback transaction'ı, concurrency kontrollü stok, invoice ve notification outbox.
 - Callback anında stok yoksa otomatik refund denenir ve sipariş iptal edilir; refund başarısızlığı kalıcı kayıtla görünür bırakılır.
@@ -47,6 +52,7 @@ EF doğrulamaları:
 
 ## Providerlar
 
+- Veritabanı provider'ı `Database:Provider` ile `SqlServer` veya `Sqlite` seçilebilir. Base/production varsayılanı SQL Server, `appsettings.Development.json` ise yerel ve git-ignored SQLite kullanır; design-time migration factory SQL Server olarak kalır.
 - `IPaymentGateway`: deterministik `MockPaymentGateway` initialize/verify/refund.
 - `IShippingProvider`: deterministik mock create/track/cancel.
 - `IInvoicePdfGenerator`: PDFsharp `6.2.4`; çok sayfalı PDF desteği.
@@ -61,20 +67,26 @@ EF doğrulamaları:
 - Admin: `/admin/products`, `/admin/catalog`, `/admin/orders`, `/admin/shipments`, `/admin/invoices`, `/admin/returns`, `/admin/campaigns`, `/admin/coupons`, `/admin/reviews`, `/admin/messages`, `/admin/reports`.
 - Ayrıntılı method ve ViewModel sözleşmesi: `docs/contracts/requests/codex-commerce-20260804-commerce-routes-viewmodels.md`.
 - `HomeController` async featured query'ye bağlandı; frozen Home/ProductCard property şekilleri aynen korundu ve endpoint URL'leri server-side üretildi.
-- Razor, CSS ve JavaScript dosyaları değiştirilmedi. Browser smoke, Ajan 1 view'ları integration'a alındıktan sonra çalıştırılmalıdır.
+- Cart, checkout ve address input'ları Ajan 1'in `application/json` fetch sözleşmesine `[FromBody]` ile bağlandı; antiforgery header doğrulaması aynen korundu.
+- Razor, CSS ve JavaScript dosyaları Ajan 4 uygulama commit'lerinde değiştirilmedi. Ajan 1 commerce view'ları integration üzerinden branch'e alındı; anasayfanın hero/navbar markup ve asset bağlantıları integration contract testiyle doğrulandı.
 
 ## Test sonucu
 
 - Restore: başarılı.
 - Build: 0 uyarı, 0 hata.
-- Unit: 21/21 geçti.
-- Integration/contract: 37/37 geçti.
-- Toplam: 58/58 geçti.
+- Unit: 23/23 geçti.
+- Integration/contract: 42/42 geçti.
+- Toplam: 65/65 geçti.
+- NuGet direct/transitive vulnerability taraması: tüm projeler temiz.
+- Anasayfa navbar CSS/JS bağlantıları, `is-scrolled` davranış kancaları ve hero reduced-motion değerinin yanlışlıkla zorlanmaması için regresyon testi eklendi.
+- Development browser smoke: `/`, `/products`, `/products/eternal-light`, `/categories/nitelikli-kahve`, `/campaigns` ve `/cart` 200; korumalı customer/admin route'ları 302 challenge; seeded `Eternal Light` kartı ile görseli yüklendi.
+- Gerçek JSON mutation smoke: CSRF header ile varyantsız add `200`, quantity update `200`, uyumsuz campaign+coupon kuralı `409`, remove `200`; kaldırma sonrası item count `0`.
 
-Kapsanan senaryolar: domain price/SKU/slug/stock kuralları, state transition, çok sayfalı PDF, katalog filtre/paging/projection, favorite/cart ownership, guest merge, kampanya-kupon matematiği ve limitleri, checkout idempotency, success/fail, tekrar callback, tekrar provider transaction, ödeme sonrası stok tükenmesi/refund, concurrency token ile negatif stok önleme, cancellation restore-once, invoice/order/return IDOR, delivered-purchase review, return restock, rapor matematiği/CSV, outbox mock delivery, route aileleri, antiforgery ve admin policy.
+Kapsanan senaryolar: domain price/SKU/slug/stock kuralları, state transition, çok sayfalı PDF, katalog filtre/paging/projection, favorite/cart ownership, guest merge, JSON model binding, varsayılan varyant seçimi, kampanya-kupon matematiği ve limitleri, checkout idempotency, success/fail, tekrar callback, tekrar provider transaction, ödeme sonrası stok tükenmesi/refund, concurrency token ile negatif stok önleme, cancellation restore-once, invoice/order/return IDOR, delivered-purchase review, return restock, rapor matematiği/CSV, outbox mock delivery, route aileleri, antiforgery ve admin policy.
 
 ## Bilinen entegrasyon notları
 
-- Commerce Razor view'ları bu branch'te bilinçli olarak yoktur; controller/service smoke tamamlandı.
+- Ajan 1'in ürün liste/detay, cart, checkout, favorites, orders ve addresses Razor view'ları bu branch'tedir ve route smoke'u tamamlandı. Return/review/notification ve admin commerce view'ları için backend route/ViewModel'leri hazırdır; markup ayrı frontend kapsamı olarak kalır.
+- SQL Server LocalDB/runtime eksikliği Development SQLite override ile giderildi; `dotnet run` ve gerçek tarayıcı smoke artık çalışır. Development SQLite `EnsureCreated` kullandığı için ileride model değiştiğinde yerel `.db` dosyası yeniden oluşturulmalıdır; production migration akışı SQL Server olarak değişmeden kalır.
 - Production tax oranı varsayılmadı; ürün verisinden gelir. Production shipping threshold/fee, provider ve SMTP/SMS değerleri deployment configuration ile açıkça verilmelidir.
 - `Program.cs`, auth/security configuration ve dondurulmuş contract dosyaları değiştirilmedi.

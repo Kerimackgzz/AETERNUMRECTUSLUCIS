@@ -28,13 +28,32 @@ public sealed class CartService(
         var product = await dbContext.Products.Include(x => x.Variants)
             .SingleOrDefaultAsync(x => x.Id == productId && x.IsActive, cancellationToken)
             ?? throw new CommerceRuleException("Product is unavailable.");
-        var variant = variantId is null ? null : product.Variants.SingleOrDefault(x => x.Id == variantId && x.IsActive)
-            ?? throw new CommerceRuleException("Product variant is unavailable.");
+        ProductVariant? variant;
+        if (variantId is null)
+        {
+            variant = product.Variants
+                .Where(x => x.IsActive && x.StockQuantity > 0)
+                .OrderBy(x => x.Weight)
+                .ThenBy(x => x.Id)
+                .FirstOrDefault();
+
+            if (variant is null && product.Variants.Any(x => x.IsActive))
+            {
+                throw new CommerceRuleException("Insufficient stock.");
+            }
+        }
+        else
+        {
+            variant = product.Variants.SingleOrDefault(x => x.Id == variantId && x.IsActive)
+                ?? throw new CommerceRuleException("Product variant is unavailable.");
+        }
+
+        var selectedVariantId = variant?.Id;
         var stock = variant?.StockQuantity ?? product.StockQuantity;
         if (quantity > stock) throw new CommerceRuleException("Insufficient stock.");
 
         var cart = await GetOrCreateAsync(owner, cancellationToken);
-        var item = cart.Items.SingleOrDefault(x => x.ProductId == productId && x.ProductVariantId == variantId);
+        var item = cart.Items.SingleOrDefault(x => x.ProductId == productId && x.ProductVariantId == selectedVariantId);
         if (item is null)
         {
             item = new CartItem
@@ -42,7 +61,7 @@ public sealed class CartService(
                 CartId = cart.Id,
                 Cart = cart,
                 ProductId = productId,
-                ProductVariantId = variantId,
+                ProductVariantId = selectedVariantId,
                 Product = product,
                 ProductVariant = variant,
                 Quantity = quantity,

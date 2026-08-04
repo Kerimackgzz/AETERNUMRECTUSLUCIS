@@ -20,6 +20,7 @@ public static class InfrastructureModuleExtensions
 
         services.AddOptions<DatabaseOptions>()
             .Bind(configuration.GetSection(DatabaseOptions.SectionName))
+            .Validate(x => IsSupportedProvider(x.Provider), "Database:Provider must be SqlServer or Sqlite.")
             .Validate(x => !string.IsNullOrWhiteSpace(x.ConnectionString), "Database:ConnectionString is required.")
             .ValidateOnStart();
 
@@ -27,11 +28,31 @@ public static class InfrastructureModuleExtensions
             .GetSection(DatabaseOptions.SectionName)
             .Get<DatabaseOptions>() ?? new DatabaseOptions();
 
-        services.AddDbContext<AppDbContext>(options => options.UseSqlServer(databaseOptions.ConnectionString));
+        services.AddDbContext<AppDbContext>(options =>
+        {
+            if (databaseOptions.Provider.Equals("Sqlite", StringComparison.OrdinalIgnoreCase))
+            {
+                options.UseSqlite(databaseOptions.ConnectionString);
+                return;
+            }
+
+            if (databaseOptions.Provider.Equals("SqlServer", StringComparison.OrdinalIgnoreCase))
+            {
+                options.UseSqlServer(databaseOptions.ConnectionString);
+                return;
+            }
+
+            throw new InvalidOperationException("Database:Provider must be SqlServer or Sqlite.");
+        });
         services.AddSingleton<InMemoryIdentityMessageSender>();
         services.AddSingleton<IIdentityMessageSender>(provider =>
             provider.GetRequiredService<InMemoryIdentityMessageSender>());
         services.TryAddSingleton(TimeProvider.System);
         return services;
     }
+
+    private static bool IsSupportedProvider(string? provider) =>
+        provider is not null &&
+        (provider.Equals("SqlServer", StringComparison.OrdinalIgnoreCase) ||
+         provider.Equals("Sqlite", StringComparison.OrdinalIgnoreCase));
 }

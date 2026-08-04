@@ -22,7 +22,7 @@ public sealed class CheckoutController(ICartService cartService, IAddressService
     }
 
     [HttpPost]
-    public async Task<IActionResult> Initialize(CheckoutInput input, CancellationToken cancellationToken)
+    public async Task<IActionResult> Initialize([FromBody] CheckoutInput input, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return BadRequest(new CommerceMutationResponse(false, "Ödeme bilgileri doğrulanamadı."));
         try
