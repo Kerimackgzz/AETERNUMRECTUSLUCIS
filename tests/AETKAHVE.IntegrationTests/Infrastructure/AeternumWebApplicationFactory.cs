@@ -1,5 +1,6 @@
 using AETKAHVE.Application.Security;
 using AETKAHVE.Infrastructure.Identity;
+using AETKAHVE.Infrastructure.Options;
 using AETKAHVE.Infrastructure.Persistence;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
@@ -43,6 +44,7 @@ public sealed class AeternumWebApplicationFactory : WebApplicationFactory<Progra
             {
                 ["Database:ConnectionString"] = "Server=(localdb)\\mssqllocaldb;Database=AETKAHVE.Tests;Trusted_Connection=True;TrustServerCertificate=True",
                 ["IdentitySeed:Enabled"] = "false",
+                ["Payment:Provider"] = PaymentProviderNames.Mock,
             });
         });
         builder.ConfigureServices(services =>

@@ -3,6 +3,7 @@ using AETKAHVE.Infrastructure.Commerce;
 using AETKAHVE.Infrastructure.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace AETKAHVE.Infrastructure.DependencyInjection;
 
@@ -16,6 +17,7 @@ public static class CommerceModuleExtensions
         ArgumentNullException.ThrowIfNull(configuration);
 
         services.AddOptions<CommerceOptions>().Bind(configuration.GetSection(CommerceOptions.SectionName)).ValidateDataAnnotations().ValidateOnStart();
+        services.AddSingleton<IValidateOptions<PaymentOptions>, PaymentOptionsValidator>();
         services.AddOptions<PaymentOptions>().Bind(configuration.GetSection(PaymentOptions.SectionName)).ValidateDataAnnotations().ValidateOnStart();
         services.AddOptions<ShippingOptions>().Bind(configuration.GetSection(ShippingOptions.SectionName)).ValidateDataAnnotations().ValidateOnStart();
         services.AddOptions<InvoiceOptions>().Bind(configuration.GetSection(InvoiceOptions.SectionName)).ValidateDataAnnotations().ValidateOnStart();

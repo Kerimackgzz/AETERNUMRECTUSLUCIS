@@ -30,7 +30,13 @@ public sealed class CommerceOptions
 public sealed class PaymentOptions
 {
     public const string SectionName = "Payment";
-    [Required] public string Provider { get; set; } = "Mock";
+    [Required] public string Provider { get; set; } = PaymentProviderNames.Disabled;
+}
+
+public static class PaymentProviderNames
+{
+    public const string Disabled = "Disabled";
+    public const string Mock = "Mock";
 }
 
 public sealed class ShippingOptions

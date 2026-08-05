@@ -1,15 +1,37 @@
 using AETKAHVE.Application.Commerce;
 using AETKAHVE.Infrastructure.Commerce;
 using AETKAHVE.Infrastructure.DependencyInjection;
+using AETKAHVE.Infrastructure.Options;
 using AETKAHVE.Infrastructure.Persistence;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
 using PdfSharp.Pdf.IO;
 
 namespace AETKAHVE.UnitTests;
 
 public sealed class CommerceProviderTests
 {
+    [Theory]
+    [InlineData("Production", PaymentProviderNames.Mock, false)]
+    [InlineData("Staging", PaymentProviderNames.Mock, false)]
+    [InlineData("Development", PaymentProviderNames.Mock, true)]
+    [InlineData("Testing", PaymentProviderNames.Mock, true)]
+    [InlineData("Production", PaymentProviderNames.Disabled, true)]
+    [InlineData("Production", "Unregistered", false)]
+    public void Payment_provider_validation_fails_closed_for_unsafe_environment_combinations(
+        string environmentName,
+        string providerName,
+        bool expectedSuccess)
+    {
+        var validator = new PaymentOptionsValidator(new TestHostEnvironment(environmentName));
+
+        var result = validator.Validate(null, new PaymentOptions { Provider = providerName });
+
+        Assert.Equal(expectedSuccess, result.Succeeded);
+    }
+
     [Theory]
     [InlineData("SqlServer", "Server=(localdb)\\mssqllocaldb;Database=ProviderTest;Trusted_Connection=True", "Microsoft.EntityFrameworkCore.SqlServer")]
     [InlineData("Sqlite", "Data Source=:memory:", "Microsoft.EntityFrameworkCore.Sqlite")]
@@ -69,5 +91,13 @@ public sealed class CommerceProviderTests
         using var stream = new MemoryStream(bytes);
         using var pdf = PdfReader.Open(stream, PdfDocumentOpenMode.Import);
         Assert.True(pdf.PageCount >= 3);
+    }
+
+    private sealed class TestHostEnvironment(string environmentName) : IHostEnvironment
+    {
+        public string EnvironmentName { get; set; } = environmentName;
+        public string ApplicationName { get; set; } = "AETKAHVE.UnitTests";
+        public string ContentRootPath { get; set; } = AppContext.BaseDirectory;
+        public IFileProvider ContentRootFileProvider { get; set; } = new NullFileProvider();
     }
 }
