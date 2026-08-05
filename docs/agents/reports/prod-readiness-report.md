@@ -73,3 +73,19 @@ Implementation commit `8432baa` ve rapor commit'i `91b614a`, Coordinator tarafı
 - SMTP, Identity SQL outbox, lease/retry ve notification validator işleri korunmuştur.
 - Payment varsayılanı `Disabled` olarak fail-closed kalır; Mock yalnız Development/Testing'de kabul edilir. Gerçek shipping adapter'ı yokken Production startup guard'ı sürer.
 - Final birleşik kapı: build 0/0, frontend 5/5, unit 54/54, integration 77/77, migration/model/script, vulnerability, JavaScript syntax ve tam format kontrolleri başarılı.
+
+## Deployment runbook kapatma — 2026-08-05
+
+`docs/project/PROJECT_STATUS.md`'deki "Production SMTP değerleri ve kalıcı/shared Data Protection key-ring yolu deployment ortamında açıkça sağlanmalıdır" açık kapısı, kod tarafı zaten tamamken (bkz. yukarı), yalnızca deployment operasyonu için yazılı bir runbook eksikti. Bu round'da:
+
+- `docs/deployment/PRODUCTION_SETUP.md` eklendi: `Smtp:*`/`DataProtection:*` her anahtarının hangi ortam değişkeninden geldiği tablo halinde, `dotnet user-secrets` (yerel deneme) ve platform secret store'u (gerçek deployment) önerisi, ve key-ring'in neden replica'lar arasında paylaşılan kalıcı bir volume olması gerektiğinin (aksi halde cookie/antiforgery token'ları instance'lar arası geçersiz kalır) ayrıntılı açıklaması ile yazıldı. `docs/project/PRODUCTION_DEPLOYMENT.md` (gate/operasyon durumu) ve `src/AETKAHVE.Web/appsettings.Example.json` (placeholder değerler) ile çapraz linklendi; içerik tekrarlanmadı.
+- `docs/project/PROJECT_STATUS.md` ilgili madde, yeni runbook'a ve fail-closed testlerine referans verecek şekilde güncellendi. Madde kasıtlı olarak "açık" kaldı çünkü bu kalıcı bir operasyonel gereksinimdir (her gerçek deploy'da tekrar sağlanmalıdır), kapatılacak bir kod eksikliği değildir.
+- `tests/AETKAHVE.UnitTests/CommerceProviderTests.cs` içine `Production_host_fails_start_when_smtp_configuration_is_missing` eklendi. Mevcut `Production_host_fails_start_when_mock_payment_is_configured` deseni izlenerek gerçek `Host.CreateApplicationBuilder` + `host.StartAsync()` ile, `IOptions<SmtpOptions>.Value`'nun asla manuel çözümlenmediği bir senaryoda dahi `ValidateOnStart` hosted service'inin Production'da eksik `Smtp:Host` ile host'u başlatmadan durdurduğu doğrulandı. Bu, önceki `ProductionReadinessTests.Production_rejects_incomplete_smtp_configuration` testinin (doğrudan `IOptions.Value` okuyarak validator'ı tetikleyen) kapsamadığı boşluğu kapatır; Data Protection tarafı zaten `ProductionSecurityInfrastructureTests.Missing_production_data_protection_configuration_fails_fast` ile (DI kurulumunda eager throw, host.StartAsync'ten de önce) kanıtlıydı, ek test gerekmedi.
+- `AppDbContext`/migration'a dokunulmadı.
+
+### Doğrulama
+
+- `dotnet build AETKAHVE.sln`: başarılı, 0 uyarı / 0 hata.
+- `dotnet test AETKAHVE.sln --no-build`: 55/55 unit, 77/77 integration, toplam 132/132 geçti.
+- `dotnet format AETKAHVE.sln --verify-no-changes` (değişen dosyalarla sınırlı): başarılı.
+- Repository'ye gerçek SMTP credential'ı, sertifika private key'i veya parola eklenmedi; yalnız placeholder/örnek değerler ve dokümantasyon eklendi.

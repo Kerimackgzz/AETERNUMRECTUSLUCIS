@@ -40,6 +40,34 @@ public sealed class CommerceProviderTests
     }
 
     [Fact]
+    public async Task Production_host_fails_start_when_smtp_configuration_is_missing()
+    {
+        var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
+        {
+            EnvironmentName = Environments.Production,
+        });
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Notifications:UseMockProviders"] = "false",
+        });
+        builder.Services.AddSingleton<IValidateOptions<NotificationOptions>, NotificationOptionsValidator>();
+        builder.Services.AddOptions<NotificationOptions>()
+            .Bind(builder.Configuration.GetSection(NotificationOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        builder.Services.AddSingleton<IValidateOptions<SmtpOptions>, SmtpOptionsValidator>();
+        builder.Services.AddOptions<SmtpOptions>()
+            .Bind(builder.Configuration.GetSection(SmtpOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        using var host = builder.Build();
+
+        var exception = await Assert.ThrowsAsync<OptionsValidationException>(() => host.StartAsync());
+
+        Assert.Contains("Smtp:Host is required", exception.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task Signed_webhook_accepts_one_fresh_event_and_rejects_its_replay()
     {
         var now = new DateTimeOffset(2026, 8, 5, 10, 0, 0, TimeSpan.Zero);
