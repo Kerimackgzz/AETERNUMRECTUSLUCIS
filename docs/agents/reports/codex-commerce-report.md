@@ -4,13 +4,17 @@
 
 - Branch: `agent/codex-commerce`
 - Worktree: `C:\Users\Kerim Açıkgöz\Desktop\aeternum-codex-commerce`
-- Güncel taban: `integration` / `f008db0` (commerce çekirdeği, Ajan 1 commerce Razor view'ları ve Ajan 3 invalid-cookie sertleştirmesi dahil)
+- Güncel taban: `integration` / `446e9c4` (public/account/admin commerce sayfaları ve son integration handoff'ları dahil)
 - Uygulama commit'i: `2673542` (`feat: implement commerce core`)
 - Development SQLite runtime commit'i: `f4af055` (`feat: enable sqlite commerce development runtime`)
 - Integration teslim merge commit'i: `62e4de5` (`Merge branch 'agent/codex-commerce' into integration`)
 - Entegrasyon contract regresyon testi: `9c940fa` (`test: lock hero and navbar integration contract`)
 - Frontend JSON uyumluluk düzeltmesi: `099f0b4` (`fix: align commerce mutations with frontend JSON`)
-- Merge durumu: Güncel Ajan 4 HEAD'i Development SQLite, navbar contract testi ve JSON mutation düzeltmeleriyle birlikte `62e4de5` üzerinden integration'a alındı. Coordinator post-purchase/public navigation boşluklarını `90a7efd` ile kapattı.
+- Payment provider fail-closed commit'i: `e32e23a` (`fix: fail closed for unsafe payment providers`)
+- Webhook authentication commit'i: `74ade39` (`feat: authenticate payment webhook deliveries`)
+- Commerce format borcu kapanışı: `66a147d` (`style: format commerce services and tests`)
+- Disabled-provider persistence testi: `8ff0db8` (`test: prove disabled payment fails before persistence`)
+- Merge durumu: Bu sertleştirme commit'leri yalnız `agent/codex-commerce` branch'indedir; integration'a merge/push yapılmadı.
 - Kök worktree ve Ajan 1/2'nin Razor/CSS/JS kaynakları Ajan 4 uygulama commit'inde değiştirilmedi.
 
 ## Tamamlanan kapsam
@@ -47,13 +51,16 @@ EF doğrulamaları:
 - `IReturnService`: delivered purchase + configuration tabanlı pencere; miktar sınırı; stok yalnız ProductReceived + admin restock kararında döner.
 - `IReviewService`: delivered order item ownership ve sipariş kalemi başına ömür boyu tek yorum.
 - `IReportingService`: brüt satış, indirim, vergi, kargo, tamamlanmış refund ve net gelir ayrı; UTF-8 BOM ve spreadsheet-formula korumalı CSV.
-- Tüm unsafe MVC action'ları global antiforgery filtresinde; doğrulanmış provider webhook'u istisna. Customer IDOR filtreleri ve mevcut `AdminArea` policy'si korunuyor.
+- Tüm unsafe MVC action'ları global antiforgery filtresinde; payment webhook istisnası state mutation öncesinde aktif provider eşleşmesi ve `IPaymentWebhookVerifier` authentication kapısından geçer. Customer IDOR filtreleri ve mevcut `AdminArea` policy'si korunuyor.
 - Dosya storage uzantı, MIME, magic-byte, boyut ve path kontrolleri uygular; başarısız yüklemede partial dosyayı siler.
 
 ## Providerlar
 
 - Veritabanı provider'ı `Database:Provider` ile `SqlServer` veya `Sqlite` seçilebilir. Base/production varsayılanı SQL Server, `appsettings.Development.json` ise yerel ve git-ignored SQLite kullanır; design-time migration factory SQL Server olarak kalır.
-- `IPaymentGateway`: deterministik `MockPaymentGateway` initialize/verify/refund.
+- Base/production `Payment:Provider` varsayılanı `Disabled`; Development ve Testing `Mock` değerini açıkça override eder. Options startup validator, `Mock` seçimini Development/Testing dışında ve kayıtlı olmayan provider adlarını tüm ortamlarda fail-fast reddeder.
+- `IPaymentGateway`: deterministik `MockPaymentGateway` initialize/verify/refund yalnız Development/Testing için kullanılır. `Disabled` seçiminde gateway resolve işlemi order/payment veritabanına yazılmadan kapanır.
+- `IPaymentWebhookVerifier`: route provider'ının aktif config ile eşleşmesini zorunlu kılar; unknown/disabled provider `401` döner. Mock verifier environment'ı ikinci kez kontrol eder.
+- `HmacSha256PaymentWebhookVerifier`: en az 32-byte secret, raw form body, provider/event-id/Unix timestamp canonical payload, constant-time HMAC-SHA256 karşılaştırması, yapılandırılabilir 30 saniye–15 dakika zaman penceresi ve atomik replay rezervasyonu sağlar.
 - `IShippingProvider`: deterministik mock create/track/cancel.
 - `IInvoicePdfGenerator`: PDFsharp `6.2.4`; çok sayfalı PDF desteği.
 - `IEmailSender`: mock veya SMTP; `ISmsSender`: mock veya açıkça unconfigured failure provider.
@@ -74,9 +81,10 @@ EF doğrulamaları:
 
 - Restore: başarılı.
 - Build: 0 uyarı, 0 hata.
-- Unit: 23/23 geçti.
-- Integration/contract: 44/44 geçti.
-- Toplam: 67/67 geçti.
+- Unit: 34/34 geçti.
+- Commerce integration/contract filtresi: 26/26 geçti.
+- Tam integration: 43/44 geçti; tek hata integration tabanındaki Ajan 3 AFK cookie deletion düzeltmesinin henüz integration'a alınmamasından kaynaklanan `Idle_timeout_deletes_the_management_authentication_cookie` baseline hatasıdır. Commerce/auth dosyasıyla giderilmedi; coordinator hotfix'i sonrası yeniden koşturulacak.
+- `dotnet format --verify-no-changes`: hem commerce-scoped hem tam solution için geçti. `AdminCommerceService`, `CheckoutService`, `CommerceSeedService`, `EngagementServices`, `OrderService`, `CartController`, `CommerceBusinessRulesTests`, `CommerceFlowTests` ve `CommerceContractTests` whitespace borcu kapatıldı.
 - NuGet direct/transitive vulnerability taraması: tüm projeler temiz.
 - Anasayfa navbar CSS/JS bağlantıları, `is-scrolled` davranış kancaları ve hero reduced-motion değerinin yanlışlıkla zorlanmaması için regresyon testi eklendi.
 - Development browser smoke: `/`, `/products`, `/products/eternal-light`, `/categories`, `/categories/nitelikli-kahve`, `/about`, `/contact`, `/campaigns` ve `/cart` 200; korumalı customer/admin route'ları 302 challenge; seeded `Eternal Light` kartı ile görseli yüklendi.
@@ -89,4 +97,7 @@ Kapsanan senaryolar: domain price/SKU/slug/stock kuralları, state transition, �
 - Public, Account ve Admin commerce view'ları integration'dadır. Contact sayfası ile teslim edilmiş sipariş satırından return/review oluşturma formları `90a7efd` ile tamamlandı; `OrderLineDetails` gerçek `OrderItemId` taşır.
 - SQL Server LocalDB/runtime eksikliği Development SQLite override ile giderildi; `dotnet run` ve gerçek tarayıcı smoke artık çalışır. Development SQLite `EnsureCreated` kullandığı için ileride model değiştiğinde yerel `.db` dosyası yeniden oluşturulmalıdır; production migration akışı SQL Server olarak değişmeden kalır.
 - Production tax oranı varsayılmadı; ürün verisinden gelir. Production shipping threshold/fee, provider ve SMTP/SMS değerleri deployment configuration ile açıkça verilmelidir.
+- Gerçek production payment adapter'ı ve provider secret'ı teslim edilmediği için sistem production'da `Disabled` ile güvenli kapalıdır. Yeni adapter hem `IPaymentGateway` hem `IPaymentWebhookVerifier` kaydı sağlamalı ve options allow-list'i bilinçli olarak genişletmelidir.
+- `InMemoryPaymentWebhookReplayStore` tek process/dev-test referans implementasyonudur. Çok instance'lı production için provider event ID'sini atomik ve süreli rezerve eden distributed/durable store gerekir; mevcut `(Provider, TransactionId)` unique veritabanı indeksi state mutation idempotency'sini ayrıca korur.
+- Webhook doğrulaması `X-Forwarded-For` veya istemci IP'sini authentication faktörü yapmaz. Ajan 3'teki forwarded-header middleware yalnız açık trusted proxy/network allow-list ile etkinleştirilecektir.
 - `Program.cs`, auth/security configuration ve dondurulmuş contract dosyaları değiştirilmedi.
