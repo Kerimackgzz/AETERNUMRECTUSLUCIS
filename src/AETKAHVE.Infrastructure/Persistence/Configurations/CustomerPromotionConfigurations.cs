@@ -39,6 +39,7 @@ internal sealed class CartItemConfiguration : CommerceEntityConfiguration<CartIt
     {
         builder.HasIndex(x => new { x.CartId, x.ProductId }).IsUnique().HasFilter("[ProductVariantId] IS NULL");
         builder.HasIndex(x => new { x.CartId, x.ProductId, x.ProductVariantId }).IsUnique().HasFilter("[ProductVariantId] IS NOT NULL");
+        builder.HasQueryFilter(x => x.Product.DeletedAtUtc == null);
         builder.HasOne(x => x.Cart).WithMany(x => x.Items).HasForeignKey(x => x.CartId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.ProductVariant).WithMany().HasForeignKey(x => x.ProductVariantId).OnDelete(DeleteBehavior.Restrict);
@@ -50,6 +51,7 @@ internal sealed class FavoriteConfiguration : CommerceEntityConfiguration<Favori
     protected override void ConfigureEntity(EntityTypeBuilder<Favorite> builder)
     {
         builder.HasIndex(x => new { x.UserId, x.ProductId }).IsUnique();
+        builder.HasQueryFilter(x => x.Product.DeletedAtUtc == null);
         builder.HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Cascade);
     }
 }
@@ -74,6 +76,7 @@ internal sealed class CampaignProductConfiguration : IEntityTypeConfiguration<Ca
     public void Configure(EntityTypeBuilder<CampaignProduct> builder)
     {
         builder.HasKey(x => new { x.CampaignId, x.ProductId });
+        builder.HasQueryFilter(x => x.Product.DeletedAtUtc == null);
         builder.HasOne(x => x.Campaign).WithMany(x => x.Products).HasForeignKey(x => x.CampaignId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Cascade);
     }
@@ -84,6 +87,7 @@ internal sealed class CampaignCategoryConfiguration : IEntityTypeConfiguration<C
     public void Configure(EntityTypeBuilder<CampaignCategory> builder)
     {
         builder.HasKey(x => new { x.CampaignId, x.CategoryId });
+        builder.HasQueryFilter(x => x.Category.DeletedAtUtc == null);
         builder.HasOne(x => x.Campaign).WithMany(x => x.Categories).HasForeignKey(x => x.CampaignId).OnDelete(DeleteBehavior.Cascade);
         builder.HasOne(x => x.Category).WithMany().HasForeignKey(x => x.CategoryId).OnDelete(DeleteBehavior.Cascade);
     }
