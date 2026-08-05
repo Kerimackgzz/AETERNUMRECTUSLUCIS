@@ -10,7 +10,7 @@
          data-reduced-motion="@Model.IsReducedMotionFallbackAvailable.ToString().ToLowerInvariant()"
          aria-label="@Model.HeroAccessibilityDescription">
     <div class="hero-frame-sequence__pin" data-hero-pin>
-        <canvas class="hero-frame-sequence__canvas" data-hero-canvas></canvas>
+        <canvas class="hero-frame-sequence__canvas" data-hero-canvas aria-hidden="true"></canvas>
         <div class="hero-frame-sequence__content">
             <p class="hero-frame-sequence__eyebrow">AETKAHVE</p>
             <h1 class="hero-frame-sequence__title">@Model.HeroTitle</h1>

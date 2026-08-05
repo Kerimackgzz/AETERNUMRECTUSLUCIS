@@ -17,6 +17,7 @@
     }
     else
     {
+        <div class="table-scroll" tabindex="0" role="region" aria-label="Sipariş yönetimi tablosu">
         <table>
             <thead><tr><th>Sipariş No</th><th>Tarih</th><th>Durum</th><th>Tutar</th><th>Durum Değiştir</th></tr></thead>
             <tbody>
@@ -43,6 +44,7 @@
                 }
             </tbody>
         </table>
+        </div>
         <partial name="_Pagination" model="(Model.Page, Model.TotalPages)" />
     }
 </div>
