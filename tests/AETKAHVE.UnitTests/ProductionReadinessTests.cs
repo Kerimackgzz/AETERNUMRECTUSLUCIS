@@ -51,19 +51,18 @@ public sealed class ProductionReadinessTests
     }
 
     [Fact]
-    public void Production_fails_closed_until_real_payment_and_shipping_adapters_are_registered()
+    public void Production_keeps_payments_disabled_and_rejects_unregistered_shipping_adapter()
     {
         var services = CreateCommerceServices(
             Environments.Production,
             CreateConfiguration(useMockProviders: false));
         using var provider = services.BuildServiceProvider();
 
-        var paymentException = Assert.Throws<OptionsValidationException>(
-            () => provider.GetRequiredService<IOptions<PaymentOptions>>().Value);
+        var payment = provider.GetRequiredService<IOptions<PaymentOptions>>().Value;
         var shippingException = Assert.Throws<OptionsValidationException>(
             () => provider.GetRequiredService<IOptions<ShippingOptions>>().Value);
 
-        Assert.Contains("no production payment adapter", paymentException.Message, StringComparison.Ordinal);
+        Assert.Equal(PaymentProviderNames.Disabled, payment.Provider);
         Assert.Contains("no production shipping adapter", shippingException.Message, StringComparison.Ordinal);
     }
 

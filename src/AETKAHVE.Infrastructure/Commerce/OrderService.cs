@@ -91,9 +91,14 @@ public sealed class OrderService(
             var now = timeProvider.GetUtcNow();
             dbContext.ShipmentStatusHistory.Add(new ShipmentStatusHistory
             {
-                ShipmentId = order.Shipment.Id, Shipment = order.Shipment, PreviousStatus = order.Shipment.Status,
-                NewStatus = ShipmentStatus.Cancelled, Description = "Order cancelled by customer.", ChangedByUserId = userId,
-                CreatedAtUtc = now, UpdatedAtUtc = now,
+                ShipmentId = order.Shipment.Id,
+                Shipment = order.Shipment,
+                PreviousStatus = order.Shipment.Status,
+                NewStatus = ShipmentStatus.Cancelled,
+                Description = "Order cancelled by customer.",
+                ChangedByUserId = userId,
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now,
             });
             order.Shipment.Status = ShipmentStatus.Cancelled;
             order.Shipment.UpdatedAtUtc = now;

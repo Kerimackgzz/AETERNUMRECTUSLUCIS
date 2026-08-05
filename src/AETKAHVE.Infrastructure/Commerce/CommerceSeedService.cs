@@ -39,11 +39,26 @@ public sealed class CommerceSeedHostedService(
         {
             product = new Product
             {
-                Id = productId, Name = "Eternal Light", Slug = "eternal-light", Sku = "ARL-EL-250",
-                ShortDescription = "Meyvemsi ve dengeli nitelikli kahve.", Description = "AETERNUM RECTUS LUCIS seçkisinden dengeli bir Etiyopya kahvesi.",
-                BasePrice = 480m, DiscountedPrice = 430m, TaxRate = 0m, StockQuantity = 0, CriticalStockLevel = 10,
-                Category = category, Brand = brand, CoffeeType = coffeeType, BeanType = beanType, RoastLevel = roast, Origin = origin,
-                IsFeatured = true, CreatedAtUtc = seededAt, UpdatedAtUtc = seededAt,
+                Id = productId,
+                Name = "Eternal Light",
+                Slug = "eternal-light",
+                Sku = "ARL-EL-250",
+                ShortDescription = "Meyvemsi ve dengeli nitelikli kahve.",
+                Description = "AETERNUM RECTUS LUCIS seçkisinden dengeli bir Etiyopya kahvesi.",
+                BasePrice = 480m,
+                DiscountedPrice = 430m,
+                TaxRate = 0m,
+                StockQuantity = 0,
+                CriticalStockLevel = 10,
+                Category = category,
+                Brand = brand,
+                CoffeeType = coffeeType,
+                BeanType = beanType,
+                RoastLevel = roast,
+                Origin = origin,
+                IsFeatured = true,
+                CreatedAtUtc = seededAt,
+                UpdatedAtUtc = seededAt,
             };
             product.Variants.Add(new ProductVariant { Id = Guid.Parse("d050cf93-efb1-4612-a074-a1956f88f67b"), Weight = 250, Unit = WeightUnit.Gram, Sku = "ARL-EL-250", Price = 480m, DiscountedPrice = 430m, StockQuantity = 100, CreatedAtUtc = seededAt, UpdatedAtUtc = seededAt });
             db.Products.Add(product);
@@ -75,10 +90,18 @@ public sealed class CommerceSeedHostedService(
         {
             campaign = new Campaign
             {
-                Id = campaignId, Name = "Açılış Ritüeli", Slug = "acilis-ritueli",
-                DiscountType = DiscountType.Percentage, DiscountValue = 10, MaximumDiscountAmount = 150,
-                StartDateUtc = seededAt.AddYears(-1), EndDateUtc = seededAt.AddYears(10), IsActive = true,
-                CanCombineWithOtherDiscounts = false, CreatedAtUtc = seededAt, UpdatedAtUtc = seededAt,
+                Id = campaignId,
+                Name = "Açılış Ritüeli",
+                Slug = "acilis-ritueli",
+                DiscountType = DiscountType.Percentage,
+                DiscountValue = 10,
+                MaximumDiscountAmount = 150,
+                StartDateUtc = seededAt.AddYears(-1),
+                EndDateUtc = seededAt.AddYears(10),
+                IsActive = true,
+                CanCombineWithOtherDiscounts = false,
+                CreatedAtUtc = seededAt,
+                UpdatedAtUtc = seededAt,
             };
             db.Campaigns.Add(campaign);
         }
@@ -94,9 +117,20 @@ public sealed class CommerceSeedHostedService(
         {
             db.Coupons.Add(new Coupon
             {
-                Id = couponId, Name = "Hoş Geldiniz", Code = "AETERNUM10", DiscountType = DiscountType.Percentage,
-                DiscountValue = 10, MaximumDiscountAmount = 100, StartDateUtc = seededAt.AddYears(-1), EndDateUtc = seededAt.AddYears(10), TotalUsageLimit = 1000,
-                PerUserUsageLimit = 1, IsActive = true, CanCombineWithOtherDiscounts = false, CreatedAtUtc = seededAt, UpdatedAtUtc = seededAt,
+                Id = couponId,
+                Name = "Hoş Geldiniz",
+                Code = "AETERNUM10",
+                DiscountType = DiscountType.Percentage,
+                DiscountValue = 10,
+                MaximumDiscountAmount = 100,
+                StartDateUtc = seededAt.AddYears(-1),
+                EndDateUtc = seededAt.AddYears(10),
+                TotalUsageLimit = 1000,
+                PerUserUsageLimit = 1,
+                IsActive = true,
+                CanCombineWithOtherDiscounts = false,
+                CreatedAtUtc = seededAt,
+                UpdatedAtUtc = seededAt,
             });
         }
         await db.SaveChangesAsync(cancellationToken);
