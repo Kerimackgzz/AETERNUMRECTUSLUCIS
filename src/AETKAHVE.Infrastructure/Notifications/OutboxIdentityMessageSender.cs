@@ -1,0 +1,55 @@
+using System.Text.Json;
+using AETKAHVE.Application.Notifications;
+using AETKAHVE.Domain.Commerce;
+using AETKAHVE.Infrastructure.Commerce;
+using AETKAHVE.Infrastructure.Options;
+using AETKAHVE.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+
+namespace AETKAHVE.Infrastructure.Notifications;
+
+public sealed class OutboxIdentityMessageSender(
+    AppDbContext dbContext,
+    TimeProvider timeProvider,
+    IOptions<NotificationOptions> notificationOptions) : IIdentityMessageSender
+{
+    public async Task SendAsync(IdentityMessage message, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(message);
+        if (!notificationOptions.Value.EmailDeliveryEnabled)
+        {
+            throw new InvalidOperationException("Identity email delivery is disabled.");
+        }
+        if (string.IsNullOrWhiteSpace(message.Destination))
+        {
+            throw new ArgumentException("Identity message destination is required.", nameof(message));
+        }
+
+        var destination = message.Destination.Trim();
+        var normalizedDestination = destination.ToUpperInvariant();
+        var userId = await dbContext.Users
+            .AsNoTracking()
+            .Where(user => user.NormalizedEmail == normalizedDestination)
+            .Select(user => (Guid?)user.Id)
+            .SingleOrDefaultAsync(cancellationToken);
+        if (userId is null)
+        {
+            throw new InvalidOperationException("The Identity message destination does not belong to a persisted user.");
+        }
+
+        var now = timeProvider.GetUtcNow();
+        dbContext.NotificationDeliveries.Add(new NotificationDelivery
+        {
+            UserId = userId.Value,
+            Channel = NotificationChannel.Email,
+            Destination = destination,
+            TemplateKey = "Identity",
+            PayloadJson = JsonSerializer.Serialize(new DeliveryPayload(message.Subject, message.HtmlBody)),
+            NextAttemptAtUtc = now,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
+        });
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+}

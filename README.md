@@ -65,8 +65,10 @@ Integration testleri gerçek Identity/cookie/token davranışını SQLite, geçi
 
 ## Mock Servis ve Production Notları
 
-- Kimlik e-postaları foundation aşamasında `InMemoryIdentityMessageSender` ile tutulur; production öncesi SMTP/outbox adaptörüyle değiştirilmelidir.
+- Development ve Testing ortamlarında kimlik/commerce e-postaları deterministik in-memory mock sender'larda tutulur; bu ortamlarda yapılandırma yanlışlıkla SMTP seçse bile dış gönderim yapılmaz.
+- Production'da kimlik e-postaları kalıcı commerce outbox'ına yazılır ve SMTP worker tarafından kontrollü retry ile teslim edilir. Eksik/örnek SMTP ayarları startup validation'ı geçemez.
 - Yönetim oturumları ve audit kayıtları SQL Server’da kalıcıdır.
 - `/health/live` uygulama, `/health/ready` veritabanı erişimini kontrol eder; cevaplar secret içermez.
-- Production’da HTTPS/HSTS, güvenli cookie, environment secret yönetimi, kalıcı Data Protection key store, yedekleme ve log retention yapılandırılmalıdır.
-- Commerce, gelişmiş Razor tasarımı ve AFK istemci runtime’ı sonraki sahiplik aşamalarına bırakılmıştır.
+- Data Protection key-ring `DataProtection:KeyRingPath` altında kalıcı tutulur; production'da tüm replica'ların eriştiği şifreli ve yedeklenen bir volume kullanılmalıdır.
+- Gerçek payment ve shipping adapter'ları henüz kayıtlı değildir; Production bu iki kritik bağımlılık eklenene kadar fail-closed olarak başlamaz.
+- Ayrıntılı production ayarları ve operasyon notları: [`docs/project/PRODUCTION_DEPLOYMENT.md`](docs/project/PRODUCTION_DEPLOYMENT.md).

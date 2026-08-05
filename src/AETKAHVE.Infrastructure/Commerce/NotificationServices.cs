@@ -11,8 +11,13 @@ using Microsoft.Extensions.Options;
 
 namespace AETKAHVE.Infrastructure.Commerce;
 
-public sealed class NotificationQueue(AppDbContext dbContext, TimeProvider timeProvider) : INotificationQueue
+public sealed class NotificationQueue(
+    AppDbContext dbContext,
+    TimeProvider timeProvider,
+    IOptions<NotificationOptions> options) : INotificationQueue
 {
+    private readonly NotificationOptions _options = options.Value;
+
     public async Task EnqueueOrderAsync(Order order, string templateKey, CancellationToken cancellationToken)
     {
         var user = await dbContext.Users.AsNoTracking().Where(x => x.Id == order.UserId)
@@ -31,12 +36,12 @@ public sealed class NotificationQueue(AppDbContext dbContext, TimeProvider timeP
         };
         dbContext.Notifications.Add(notification);
 
-        if (!string.IsNullOrWhiteSpace(user.Email))
+        if (_options.EmailDeliveryEnabled && !string.IsNullOrWhiteSpace(user.Email))
         {
             dbContext.NotificationDeliveries.Add(CreateDelivery(notification, NotificationChannel.Email, user.Email,
                 new DeliveryPayload("AETERNUM RECTUS LUCIS — Sipariş güncellemesi", notification.Message), templateKey, now));
         }
-        if (!string.IsNullOrWhiteSpace(user.PhoneNumber))
+        if (_options.SmsDeliveryEnabled && !string.IsNullOrWhiteSpace(user.PhoneNumber))
         {
             dbContext.NotificationDeliveries.Add(CreateDelivery(notification, NotificationChannel.Sms, user.PhoneNumber,
                 new DeliveryPayload(string.Empty, notification.Message), templateKey, now));
@@ -65,7 +70,8 @@ public sealed class NotificationDeliveryProcessor(
     IEmailSender emailSender,
     ISmsSender smsSender,
     IOptions<NotificationOptions> options,
-    TimeProvider timeProvider)
+    TimeProvider timeProvider,
+    ILogger<NotificationDeliveryProcessor> logger)
 {
     private readonly NotificationOptions _options = options.Value;
 
@@ -74,27 +80,29 @@ public sealed class NotificationDeliveryProcessor(
         var now = timeProvider.GetUtcNow();
         var expiredLease = now.AddSeconds(-_options.ProcessingLeaseSeconds);
         var source = dbContext.NotificationDeliveries
+            .Where(x =>
+                (_options.EmailDeliveryEnabled && x.Channel == NotificationChannel.Email) ||
+                (_options.SmsDeliveryEnabled && x.Channel == NotificationChannel.Sms))
             .Where(x => (x.Status == DeliveryStatus.Pending || x.Status == DeliveryStatus.Failed || x.Status == DeliveryStatus.Processing) && x.AttemptCount < _options.MaximumAttempts);
         List<NotificationDelivery> deliveries;
         if (dbContext.Database.ProviderName?.Contains("Sqlite", StringComparison.OrdinalIgnoreCase) == true)
         {
             deliveries = (await source.ToListAsync(cancellationToken))
                 .Where(x => x.Status == DeliveryStatus.Processing ? x.UpdatedAtUtc <= expiredLease : x.NextAttemptAtUtc == null || x.NextAttemptAtUtc <= now)
-                .OrderBy(x => x.CreatedAtUtc).Take(20).ToList();
+                .OrderBy(x => x.CreatedAtUtc).Take(_options.BatchSize).ToList();
         }
         else
         {
             deliveries = await source.Where(x => x.Status == DeliveryStatus.Processing ? x.UpdatedAtUtc <= expiredLease : x.NextAttemptAtUtc == null || x.NextAttemptAtUtc <= now)
-                .OrderBy(x => x.CreatedAtUtc).Take(20).ToListAsync(cancellationToken);
+                .OrderBy(x => x.CreatedAtUtc).Take(_options.BatchSize).ToListAsync(cancellationToken);
         }
 
         foreach (var delivery in deliveries)
         {
-            delivery.Status = DeliveryStatus.Processing;
-            delivery.AttemptCount++;
-            delivery.ConcurrencyToken = Guid.NewGuid();
-            delivery.UpdatedAtUtc = now;
-            await dbContext.SaveChangesAsync(cancellationToken);
+            if (!await TryClaimAsync(delivery, now, cancellationToken))
+            {
+                continue;
+            }
 
             DeliveryResult result;
             try
@@ -112,13 +120,57 @@ public sealed class NotificationDeliveryProcessor(
                 result = new DeliveryResult(false, null, exception.GetType().Name);
             }
 
+            var completedAt = timeProvider.GetUtcNow();
             delivery.Status = result.Succeeded ? DeliveryStatus.Delivered : DeliveryStatus.Failed;
-            delivery.DeliveredAtUtc = result.Succeeded ? timeProvider.GetUtcNow() : null;
+            delivery.DeliveredAtUtc = result.Succeeded ? completedAt : null;
             delivery.LastError = result.FailureReason is null ? null : result.FailureReason[..Math.Min(500, result.FailureReason.Length)];
-            delivery.NextAttemptAtUtc = result.Succeeded ? null : timeProvider.GetUtcNow().AddMinutes(Math.Pow(2, delivery.AttemptCount));
-            delivery.ConcurrencyToken = Guid.NewGuid();
-            delivery.UpdatedAtUtc = timeProvider.GetUtcNow();
+            var attemptsExhausted = delivery.AttemptCount >= _options.MaximumAttempts;
+            var retryDelayMinutes = Math.Min(Math.Pow(2, delivery.AttemptCount), _options.MaximumRetryDelayMinutes);
+            delivery.NextAttemptAtUtc = result.Succeeded || attemptsExhausted ? null : completedAt.AddMinutes(retryDelayMinutes);
+            delivery.UpdatedAtUtc = completedAt;
+            try
+            {
+                // Once a provider call has completed, persist its outcome even when host shutdown was requested.
+                await dbContext.SaveChangesAsync(CancellationToken.None);
+                if (!result.Succeeded && attemptsExhausted)
+                {
+                    logger.LogWarning(
+                        "Notification delivery {DeliveryId} exhausted {AttemptCount} attempts for channel {Channel}.",
+                        delivery.Id,
+                        delivery.AttemptCount,
+                        delivery.Channel);
+                }
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                dbContext.Entry(delivery).State = EntityState.Detached;
+                logger.LogWarning(
+                    "Notification delivery {DeliveryId} lost its processing lease before completion could be recorded.",
+                    delivery.Id);
+            }
+        }
+    }
+
+    private async Task<bool> TryClaimAsync(
+        NotificationDelivery delivery,
+        DateTimeOffset claimedAt,
+        CancellationToken cancellationToken)
+    {
+        delivery.Status = DeliveryStatus.Processing;
+        delivery.AttemptCount++;
+        delivery.UpdatedAtUtc = claimedAt;
+        try
+        {
             await dbContext.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            dbContext.Entry(delivery).State = EntityState.Detached;
+            logger.LogDebug(
+                "Notification delivery {DeliveryId} was claimed by another worker.",
+                delivery.Id);
+            return false;
         }
     }
 }
@@ -134,7 +186,7 @@ public sealed class NotificationDeliveryWorker(
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        if (environment.IsEnvironment("Testing")) return;
+        if (environment.IsEnvironment("Testing") || !_options.WorkerEnabled) return;
         using var timer = new PeriodicTimer(TimeSpan.FromSeconds(_options.PollIntervalSeconds), timeProvider);
         while (!stoppingToken.IsCancellationRequested)
         {
