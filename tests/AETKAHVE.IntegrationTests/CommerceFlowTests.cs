@@ -1,16 +1,59 @@
 using AETKAHVE.Application.Commerce;
+using AETKAHVE.Domain.Common;
 using AETKAHVE.Domain.Commerce;
+using AETKAHVE.Infrastructure.Commerce;
 using AETKAHVE.Infrastructure.Identity;
+using AETKAHVE.Infrastructure.Options;
 using AETKAHVE.Infrastructure.Persistence;
 using AETKAHVE.IntegrationTests.Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace AETKAHVE.IntegrationTests;
 
 public sealed class CommerceFlowTests(AeternumWebApplicationFactory factory) : IClassFixture<AeternumWebApplicationFactory>
 {
+    [Fact]
+    public async Task Disabled_payment_provider_fails_before_an_order_or_payment_is_persisted()
+    {
+        await using var scope = factory.Services.CreateAsyncScope();
+        var services = scope.ServiceProvider;
+        var user = await GetCustomerAsync(services);
+        var product = await CreateProductAsync(services, 2);
+        var carts = services.GetRequiredService<ICartService>();
+        await carts.ClearAsync(new CartOwner(user.Id, null), default);
+        var address = await services.GetRequiredService<IAddressService>().SaveAsync(
+            user.Id,
+            null,
+            new AddressInput("Ev", "Test", "Customer", "+905551112233", "Türkiye", "Ankara", "Çankaya", null, "06000", "Test adresi", true, true),
+            default);
+        var cart = await carts.AddAsync(new CartOwner(user.Id, null), product.ProductId, product.VariantId, 1, default);
+        var idempotencyKey = Guid.NewGuid().ToString("N");
+        var checkout = new CheckoutService(
+            services.GetRequiredService<AppDbContext>(),
+            services.GetRequiredService<IDiscountEngine>(),
+            services.GetRequiredService<IInventoryService>(),
+            services.GetServices<IPaymentGateway>(),
+            services.GetRequiredService<IInvoicePdfGenerator>(),
+            services.GetRequiredService<IInvoiceStorage>(),
+            services.GetRequiredService<INotificationQueue>(),
+            Options.Create(new PaymentOptions { Provider = PaymentProviderNames.Disabled }),
+            services.GetRequiredService<IOptions<InvoiceOptions>>(),
+            services.GetRequiredService<TimeProvider>());
+
+        await Assert.ThrowsAsync<CommerceRuleException>(() => checkout.InitializeAsync(
+            new CheckoutRequest(user.Id, cart.CartId, address.Id, address.Id, idempotencyKey, null),
+            "https://localhost/payments/Disabled/callback",
+            default));
+
+        var db = services.GetRequiredService<AppDbContext>();
+        db.ChangeTracker.Clear();
+        Assert.False(await db.Orders.AnyAsync(order => order.UserId == user.Id && order.IdempotencyKey == idempotencyKey));
+        Assert.False(await db.Payments.AnyAsync(payment => payment.Order.UserId == user.Id && payment.IdempotencyKey == idempotencyKey));
+    }
+
     [Fact]
     public async Task Cart_merge_caps_quantity_and_preserves_single_user_cart()
     {
@@ -221,8 +264,17 @@ public sealed class CommerceFlowTests(AeternumWebApplicationFactory factory) : I
         var category = new Category { Name = $"Category {token}", Slug = $"category-{token}", CreatedAtUtc = now, UpdatedAtUtc = now };
         var product = new Product
         {
-            Name = $"Product {token}", Slug = $"product-{token}", Sku = $"SKU-{token}", ShortDescription = "Test", Description = "Test product",
-            BasePrice = 100, TaxRate = 0, Category = category, IsActive = true, CreatedAtUtc = now, UpdatedAtUtc = now,
+            Name = $"Product {token}",
+            Slug = $"product-{token}",
+            Sku = $"SKU-{token}",
+            ShortDescription = "Test",
+            Description = "Test product",
+            BasePrice = 100,
+            TaxRate = 0,
+            Category = category,
+            IsActive = true,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
         };
         var variant = new ProductVariant { Product = product, Weight = 250, Unit = WeightUnit.Gram, Sku = $"VAR-{token}", Price = 100, StockQuantity = stock, IsActive = true, CreatedAtUtc = now, UpdatedAtUtc = now };
         product.Variants.Add(variant);
