@@ -21,7 +21,7 @@ Foundation, tasarım/Razor, hero-motion ve commerce çekirdeği `integration` ü
 - HMAC-SHA256, timestamp toleransı, constant-time imza kontrolü ve replay rezervasyonlu payment webhook kapısı.
 - AFK expiry sırasında tek antiforgery logout POST'u, üç saniyelik fallback ve portal-scope cross-tab senkronizasyonu.
 - Restore ve Release build: 0 uyarı, 0 hata. Testler: frontend 5/5, unit 54/54, integration 77/77.
-- Dört migration doğru sırada; pending model change yok; SQL Server idempotent script 54.628 bayt.
+- Dört migration doğru sırada ve pending model change yok. Gerçek `.\SQLEXPRESS` smoke veritabanına uygulandı; 54.628 baytlık idempotent script art arda iki kez hatasız çalıştı ve `DBCC CHECKDB` temiz geçti. Smoke veritabanı doğrulama sonunda kaldırıldı.
 - NuGet direct/transitive vulnerability taraması temiz; 26 first-party JavaScript dosyası syntax kontrolünden geçti.
 - Localhost HTTP taraması ve gerçek Chrome masaüstü/mobil smoke tamamlandı; console/network hatası yok.
 
@@ -42,5 +42,4 @@ Foundation, tasarım/Razor, hero-motion ve commerce çekirdeği `integration` ü
 
 - Gerçek `IPaymentGateway`, durable/distributed webhook replay store ve `IShippingProvider` adapter'ları henüz yoktur. Production ödeme `Disabled` kalır; shipping startup guard'ı gerçek adapter, secret yönetimi ve provider contract testleri tamamlanmadan kaldırılmamalıdır.
 - Production SMTP değerleri, absolute shared Data Protection key-ring yolu ve private key erişimli sertifika deployment ortamında açıkça sağlanmalıdır. Development/Testing dış gönderim yapmayan deterministik mock'larda kalır.
-- Bu ortamda SQL Server instance'ı çalıştırılmadı. Migration/model/idempotent-script kapıları SQL Server sağlayıcısıyla, runtime ve integration testleri SQLite ile doğrulandı.
 - `Product` global query filter'ı ile required `StockMovement.Product` navigation'ı için kalan EF uyarısı veri veya FK silmez; ancak soft-delete ürünlere ait tarihsel hareketleri navigation join'li raporlarda gizleyebilir. Audit sorgularında `IgnoreQueryFilters()` veya ayrı optional/history ilişki migration'ı takip işidir.

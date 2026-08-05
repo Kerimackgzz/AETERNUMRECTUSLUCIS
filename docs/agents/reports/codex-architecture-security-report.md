@@ -128,3 +128,11 @@ Foundation ve sonraki production security hardening Coordinator tarafından `int
 - NuGet direct/transitive vulnerability audit temiz; 26 JavaScript syntax kontrolü, repository-geneli `dotnet format --verify-no-changes` ve `git diff --check` başarılı.
 - Açık production işleri: gerçek payment/shipping adapter'ları, çok-instance deployment için distributed/durable replay store, deployment SMTP secret'ları ve private-key erişimli Data Protection sertifikası.
 - Bu raporun documentation commit'i self-reference nedeniyle kendi hash'ini içermez; temiz final `integration` hash'i teslim mesajında bildirilir. `main` değiştirilmemiştir.
+
+## Gerçek SQL Server migration doğrulaması — 2026-08-05
+
+- Dört migration gerçek `.\SQLEXPRESS` instance'ındaki benzersiz smoke veritabanına hatasız uygulandı.
+- 54.628 baytlık idempotent SQL aynı veritabanında art arda iki kez hatasız çalıştı; history 4 kayıtta kaldı ve `DBCC CHECKDB` temizdi.
+- Smoke veritabanı ve temp script silindi; migration/AppDbContext/appsettings kaynakları değiştirilmedi.
+- Uyumsuzluk bulunmadığı için Ajan 4 contract request'i gerekmedi.
+- Ayrıntılı kanıt: `docs/agents/reports/codex-architecture-security-sqlserver-smoke-report.md`.
