@@ -211,3 +211,34 @@
   font-family: inherit;
   resize: vertical;
 }
+
+@media (max-width: 599px) {
+  .cart-line {
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+
+  .cart-line__image {
+    width: 72px;
+    height: 72px;
+  }
+
+  .cart-line__controls {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .cart-summary {
+    position: static;
+  }
+
+  .cart-summary__coupon {
+    flex-wrap: wrap;
+  }
+
+  .cart-summary__coupon input {
+    min-width: 0;
+  }
+}

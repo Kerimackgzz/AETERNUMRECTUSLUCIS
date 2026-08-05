@@ -225,3 +225,13 @@
   color: var(--color-gold-400);
   font-size: var(--text-sm);
 }
+
+@media (max-width: 479px) {
+  .product-detail__actions {
+    flex-wrap: wrap;
+  }
+
+  .product-detail__actions .btn {
+    flex: 1 1 12rem;
+  }
+}

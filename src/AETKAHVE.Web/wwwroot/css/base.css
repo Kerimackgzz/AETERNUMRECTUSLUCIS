@@ -152,6 +152,25 @@ table {
   font-size: var(--text-sm);
 }
 
+/* Veri tabloları dar ekranlarda sayfanın tamamını genişletmek yerine kendi
+   bölgelerinde yatay kayar. tabindex verilen sarmalayıcı klavyeyle de erişilir. */
+.table-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll table {
+  min-width: 640px;
+}
+
+.table-scroll:focus-visible {
+  outline-offset: 4px;
+}
+
 th,
 td {
   text-align: left;
@@ -218,6 +237,13 @@ th {
 
 .input-wide {
   min-width: 280px;
+}
+
+@media (max-width: 479px) {
+  .input-wide {
+    width: 100%;
+    min-width: 0;
+  }
 }
 
 /* Boşluk yardımcıları */
