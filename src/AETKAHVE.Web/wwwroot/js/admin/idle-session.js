@@ -3,7 +3,7 @@
 
   var body = document.body;
   var sessionKind = body.getAttribute("data-idle-session");
-  if (!sessionKind) {
+  if (sessionKind !== "admin" && sessionKind !== "superadmin") {
     return;
   }
 
@@ -21,131 +21,21 @@
     return meta ? meta.getAttribute("content") : "";
   })();
 
+  var syncVersion = 1;
+  var syncName = "aetkahve-management-session-v1:" + sessionKind;
+  var storageKey = "aetkahve.management-session.v1:" + sessionKind;
+  var sourceId = String(Date.now()) + ":" + String(Math.random());
+  var syncChannel = null;
   var expiresAtMs = null;
   var tickHandle = null;
   var statusPollHandle = null;
   var warningVisible = false;
+  var endingSession = false;
+  var redirectStarted = false;
+  var logoutRequestStarted = false;
 
   function loginUrl() {
     return "/" + sessionKind + "/login";
-  }
-
-  function applyStatus(data) {
-    if (!data || data.isAuthenticated === false) {
-      redirectToLogin();
-      return;
-    }
-    var now = Date.parse(data.serverTimeUtc);
-    var expires = Date.parse(data.expiresAtUtc);
-    var clientNow = Date.now();
-    var drift = isNaN(now) ? 0 : clientNow - now;
-    expiresAtMs = isNaN(expires) ? null : expires + drift;
-  }
-
-  function redirectToLogin() {
-    stopTimers();
-    window.location.href = loginUrl();
-  }
-
-  function fetchStatus(countsAsPoll) {
-    if (!statusUrl) {
-      return;
-    }
-    fetch(statusUrl, { credentials: "same-origin", headers: { Accept: "application/json" } })
-      .then(function (response) {
-        if (response.status === 401) {
-          redirectToLogin();
-          return null;
-        }
-        if (!response.ok) {
-          return null;
-        }
-        return response.json();
-      })
-      .then(function (data) {
-        if (data) {
-          applyStatus(data);
-        }
-      })
-      .catch(function () {
-        /* Ağ hatasında sessizce yeniden dener; sunucu oturumu nihai gerçektir. */
-      });
-  }
-
-  function keepAlive() {
-    if (!keepAliveUrl) {
-      return;
-    }
-    fetch(keepAliveUrl, {
-      method: "POST",
-      credentials: "same-origin",
-      headers: {
-        Accept: "application/json",
-        RequestVerificationToken: csrfToken
-      }
-    })
-      .then(function (response) {
-        if (response.status === 401) {
-          redirectToLogin();
-          return null;
-        }
-        if (response.status === 403 || response.status === 429) {
-          return null;
-        }
-        return response.ok ? response.json() : null;
-      })
-      .then(function (data) {
-        if (data) {
-          applyStatus(data);
-          hideWarning();
-        }
-      })
-      .catch(function () {
-        /* sessiz yeniden deneme */
-      });
-  }
-
-  function showWarning(remaining) {
-    if (!dialog) {
-      return;
-    }
-    warningVisible = true;
-    dialog.hidden = false;
-    updateRemaining(remaining);
-  }
-
-  function hideWarning() {
-    if (!dialog) {
-      return;
-    }
-    warningVisible = false;
-    dialog.hidden = true;
-  }
-
-  function updateRemaining(remainingSeconds) {
-    if (remainingEl) {
-      remainingEl.textContent = String(Math.max(0, Math.ceil(remainingSeconds)));
-    }
-  }
-
-  function tick() {
-    if (expiresAtMs === null) {
-      return;
-    }
-    var remainingMs = expiresAtMs - Date.now();
-    var remainingSeconds = remainingMs / 1000;
-
-    if (remainingSeconds <= 0) {
-      stopTimers();
-      redirectToLogin();
-      return;
-    }
-
-    if (remainingSeconds <= warningSeconds) {
-      showWarning(remainingSeconds);
-    } else if (warningVisible) {
-      hideWarning();
-    }
   }
 
   function stopTimers() {
@@ -159,12 +49,307 @@
     }
   }
 
+  function hideWarning() {
+    if (!dialog) {
+      return;
+    }
+    warningVisible = false;
+    dialog.hidden = true;
+  }
+
+  function redirectToLogin() {
+    if (redirectStarted) {
+      return;
+    }
+    redirectStarted = true;
+    stopTimers();
+    if (typeof window.location.replace === "function") {
+      window.location.replace(loginUrl());
+      return;
+    }
+    window.location.href = loginUrl();
+  }
+
+  function isFreshSyncMessage(message) {
+    return message &&
+      message.version === syncVersion &&
+      message.sessionKind === sessionKind &&
+      message.sourceId !== sourceId &&
+      typeof message.sentAt === "number" &&
+      isFinite(message.sentAt) &&
+      Math.abs(Date.now() - message.sentAt) <= 120000;
+  }
+
+  function publishSessionEvent(type, status) {
+    var message = {
+      version: syncVersion,
+      eventId: sourceId + ":" + String(Date.now()) + ":" + String(Math.random()),
+      sourceId: sourceId,
+      sessionKind: sessionKind,
+      type: type,
+      sentAt: Date.now()
+    };
+    if (status) {
+      message.status = status;
+    }
+
+    if (syncChannel) {
+      try {
+        syncChannel.postMessage(message);
+        return;
+      } catch (_error) {
+        /* Fall through to the storage transport. */
+      }
+    }
+
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(message));
+    } catch (_error) {
+      /* Cross-tab sync is progressive enhancement; server enforcement remains authoritative. */
+    }
+  }
+
+  function applyStatus(data) {
+    if (endingSession) {
+      return false;
+    }
+    if (!data || data.isAuthenticated === false) {
+      endSessionWithoutLogout("logout", true);
+      return false;
+    }
+
+    var now = Date.parse(data.serverTimeUtc);
+    var expires = Date.parse(data.expiresAtUtc);
+    if (isNaN(expires)) {
+      return false;
+    }
+
+    var clientNow = Date.now();
+    var drift = isNaN(now) ? 0 : clientNow - now;
+    expiresAtMs = expires + drift;
+    return true;
+  }
+
+  function receiveSessionEvent(message) {
+    if (!isFreshSyncMessage(message) || endingSession) {
+      return;
+    }
+
+    if (message.type === "logout" || message.type === "expired") {
+      endingSession = true;
+      stopTimers();
+      hideWarning();
+      redirectToLogin();
+      return;
+    }
+
+    if (message.type === "keep-alive" && applyStatus(message.status)) {
+      hideWarning();
+    }
+  }
+
+  function initializeSessionSync() {
+    if (typeof window.BroadcastChannel === "function") {
+      try {
+        syncChannel = new window.BroadcastChannel(syncName);
+        if (typeof syncChannel.addEventListener === "function") {
+          syncChannel.addEventListener("message", function (event) {
+            receiveSessionEvent(event.data);
+          });
+        } else {
+          syncChannel.onmessage = function (event) {
+            receiveSessionEvent(event.data);
+          };
+        }
+      } catch (_error) {
+        syncChannel = null;
+      }
+    }
+
+    window.addEventListener("storage", function (event) {
+      if (event.key !== storageKey || !event.newValue) {
+        return;
+      }
+      try {
+        receiveSessionEvent(JSON.parse(event.newValue));
+      } catch (_error) {
+        /* Ignore malformed or untrusted same-origin storage values. */
+      }
+    });
+  }
+
+  function endSessionWithoutLogout(reason, publish) {
+    if (endingSession) {
+      return;
+    }
+    endingSession = true;
+    stopTimers();
+    hideWarning();
+    if (publish) {
+      publishSessionEvent(reason);
+    }
+    redirectToLogin();
+  }
+
+  function postLogoutAndRedirect() {
+    if (logoutRequestStarted) {
+      return;
+    }
+    logoutRequestStarted = true;
+
+    if (!logoutUrl) {
+      redirectToLogin();
+      return;
+    }
+
+    var completed = false;
+    var controller = typeof window.AbortController === "function"
+      ? new window.AbortController()
+      : null;
+    var timeoutHandle = window.setTimeout(function () {
+      if (controller) {
+        controller.abort();
+      }
+      finish();
+    }, 3000);
+
+    function finish() {
+      if (completed) {
+        return;
+      }
+      completed = true;
+      window.clearTimeout(timeoutHandle);
+      redirectToLogin();
+    }
+
+    var requestOptions = {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+        RequestVerificationToken: csrfToken
+      }
+    };
+    if (controller) {
+      requestOptions.signal = controller.signal;
+    }
+
+    try {
+      Promise.resolve(fetch(logoutUrl, requestOptions)).then(finish, finish);
+    } catch (_error) {
+      finish();
+    }
+  }
+
+  function expireSession() {
+    if (endingSession) {
+      return;
+    }
+    endingSession = true;
+    stopTimers();
+    hideWarning();
+    publishSessionEvent("expired");
+    postLogoutAndRedirect();
+  }
+
+  function fetchStatus() {
+    if (!statusUrl || endingSession) {
+      return;
+    }
+    fetch(statusUrl, { credentials: "same-origin", headers: { Accept: "application/json" } })
+      .then(function (response) {
+        if (response.status === 401) {
+          endSessionWithoutLogout("logout", true);
+          return null;
+        }
+        if (!response.ok) {
+          return null;
+        }
+        return response.json();
+      })
+      .then(function (data) {
+        if (data) {
+          applyStatus(data);
+        }
+      })
+      .catch(function () {
+        /* Network errors are retried by the next status poll. */
+      });
+  }
+
+  function keepAlive() {
+    if (!keepAliveUrl || endingSession) {
+      return;
+    }
+    fetch(keepAliveUrl, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+        RequestVerificationToken: csrfToken
+      }
+    })
+      .then(function (response) {
+        if (response.status === 401) {
+          endSessionWithoutLogout("logout", true);
+          return null;
+        }
+        if (response.status === 403 || response.status === 429) {
+          return null;
+        }
+        return response.ok ? response.json() : null;
+      })
+      .then(function (data) {
+        if (data && applyStatus(data)) {
+          hideWarning();
+          publishSessionEvent("keep-alive", data);
+        }
+      })
+      .catch(function () {
+        /* The server-side session remains authoritative after a failed keep-alive. */
+      });
+  }
+
+  function showWarning(remaining) {
+    if (!dialog) {
+      return;
+    }
+    warningVisible = true;
+    dialog.hidden = false;
+    updateRemaining(remaining);
+  }
+
+  function updateRemaining(remainingSeconds) {
+    if (remainingEl) {
+      remainingEl.textContent = String(Math.max(0, Math.ceil(remainingSeconds)));
+    }
+  }
+
+  function tick() {
+    if (expiresAtMs === null || endingSession) {
+      return;
+    }
+    var remainingMs = expiresAtMs - Date.now();
+    var remainingSeconds = remainingMs / 1000;
+
+    if (remainingSeconds <= 0) {
+      expireSession();
+      return;
+    }
+
+    if (remainingSeconds <= warningSeconds) {
+      showWarning(remainingSeconds);
+    } else if (warningVisible) {
+      hideWarning();
+    }
+  }
+
   var activityThrottleMs = 15000;
   var lastActivitySent = 0;
 
   function onUserActivity() {
-    if (warningVisible) {
-      /* Uyarı görünürken aktivite otomatik oturumu uzatmaz; kullanıcı bilinçli olarak devam etmelidir. */
+    if (warningVisible || endingSession) {
+      /* A visible warning must be extended only by the explicit continue action. */
       return;
     }
     var now = Date.now();
@@ -175,9 +360,27 @@
     keepAlive();
   }
 
-  ["mousemove", "keydown", "click", "scroll", "touchstart"].forEach(function (evt) {
-    window.addEventListener(evt, onUserActivity, { passive: true });
+  ["mousemove", "keydown", "click", "scroll", "touchstart"].forEach(function (eventName) {
+    window.addEventListener(eventName, onUserActivity, { passive: true });
   });
+
+  document.addEventListener("submit", function (event) {
+    var form = event.target;
+    if (endingSession || !logoutUrl || !form || form.tagName !== "FORM") {
+      return;
+    }
+    var method = String(form.getAttribute("method") || form.method || "get").toLowerCase();
+    var action = form.getAttribute("action") || form.action || "";
+    if (method !== "post" || action !== logoutUrl) {
+      return;
+    }
+
+    endingSession = true;
+    stopTimers();
+    hideWarning();
+    publishSessionEvent("logout");
+    /* The native antiforgery-protected form submission remains the logout authority. */
+  }, true);
 
   if (continueBtn) {
     continueBtn.addEventListener("click", function () {
@@ -185,9 +388,8 @@
     });
   }
 
-  fetchStatus(false);
+  initializeSessionSync();
+  fetchStatus();
   tickHandle = window.setInterval(tick, 1000);
-  statusPollHandle = window.setInterval(function () {
-    fetchStatus(true);
-  }, 30000);
+  statusPollHandle = window.setInterval(fetchStatus, 30000);
 })();
