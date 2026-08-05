@@ -38,6 +38,27 @@
     return "/" + sessionKind + "/login";
   }
 
+  function isLogoutForm(form) {
+    if (!logoutUrl || !form || form.tagName !== "FORM") {
+      return false;
+    }
+    var method = String(form.getAttribute("method") || form.method || "get").toLowerCase();
+    if (method !== "post") {
+      return false;
+    }
+
+    try {
+      var pageUrl = new window.URL(window.location.href);
+      var actionUrl = new window.URL(form.getAttribute("action") || form.action || "", pageUrl);
+      var expectedUrl = new window.URL(logoutUrl, pageUrl);
+      return actionUrl.origin === expectedUrl.origin &&
+        actionUrl.pathname === expectedUrl.pathname &&
+        actionUrl.search === expectedUrl.search;
+    } catch (_error) {
+      return false;
+    }
+  }
+
   function stopTimers() {
     if (tickHandle) {
       window.clearInterval(tickHandle);
@@ -113,8 +134,13 @@
     if (endingSession) {
       return false;
     }
-    if (!data || data.isAuthenticated === false) {
+    if (data && data.isAuthenticated === false) {
       endSessionWithoutLogout("logout", true);
+      return false;
+    }
+    if (!data || data.isAuthenticated !== true ||
+        typeof data.serverTimeUtc !== "string" ||
+        typeof data.expiresAtUtc !== "string") {
       return false;
     }
 
@@ -366,12 +392,11 @@
 
   document.addEventListener("submit", function (event) {
     var form = event.target;
-    if (endingSession || !logoutUrl || !form || form.tagName !== "FORM") {
+    if (!isLogoutForm(form)) {
       return;
     }
-    var method = String(form.getAttribute("method") || form.method || "get").toLowerCase();
-    var action = form.getAttribute("action") || form.action || "";
-    if (method !== "post" || action !== logoutUrl) {
+    if (endingSession) {
+      event.preventDefault();
       return;
     }
 

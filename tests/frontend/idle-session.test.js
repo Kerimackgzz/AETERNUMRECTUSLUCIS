@@ -235,9 +235,16 @@ function createRuntime({
       }
     },
     triggerDocument(type, target) {
+      let defaultPrevented = false;
       for (const listener of documentListeners.get(type) || []) {
-        listener({ target });
+        listener({
+          target,
+          preventDefault() {
+            defaultPrevented = true;
+          }
+        });
       }
+      return defaultPrevented;
     },
     triggerWindow(type) {
       for (const listener of windowListeners.get(type) || []) {
@@ -300,14 +307,16 @@ test("expiry and explicit logout synchronize only matching management portals", 
   const logoutSource = createRuntime({ hub: isolatedHub });
   const logoutPeer = createRuntime({ hub: isolatedHub });
   await Promise.all([logoutSource.flush(), logoutPeer.flush()]);
-  logoutSource.triggerDocument("submit", {
+  const logoutForm = {
     tagName: "FORM",
     method: "post",
-    action: "/admin/logout",
+    action: "https://example.test/admin/logout",
     getAttribute(name) {
-      return name === "method" ? "post" : "/admin/logout";
+      return name === "method" ? "post" : "https://example.test/admin/logout";
     }
-  });
+  };
+  assert.equal(logoutSource.triggerDocument("submit", logoutForm), false);
+  assert.equal(logoutSource.triggerDocument("submit", logoutForm), true);
 
   assert.deepEqual(logoutPeer.locationReplacements, ["/admin/login"]);
   assert.equal(isolatedHub.messages.at(-1).message.type, "logout");
