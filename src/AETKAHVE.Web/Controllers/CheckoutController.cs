@@ -41,16 +41,21 @@ public sealed class CheckoutController(ICartService cartService, IAddressService
 public sealed class PaymentsController(ICheckoutService checkoutService) : Controller
 {
     [HttpGet("{provider}/callback")]
-    public Task<IActionResult> Callback(string provider, [FromQuery] string reference, [FromQuery] string? transactionId, [FromQuery] string status, CancellationToken cancellationToken) =>
+    public Task<IActionResult> Callback(string provider, [FromQuery] string? reference, [FromQuery] string? transactionId, [FromQuery] string? status, CancellationToken cancellationToken) =>
         CompleteAsync(provider, reference, transactionId, status, cancellationToken);
 
     [HttpPost("{provider}/callback")]
     [IgnoreAntiforgeryToken]
-    public Task<IActionResult> Webhook(string provider, [FromForm] string reference, [FromForm] string? transactionId, [FromForm] string status, CancellationToken cancellationToken) =>
+    public Task<IActionResult> Webhook(string provider, [FromForm] string? reference, [FromForm] string? transactionId, [FromForm] string? status, CancellationToken cancellationToken) =>
         CompleteAsync(provider, reference, transactionId, status, cancellationToken);
 
-    private async Task<IActionResult> CompleteAsync(string provider, string reference, string? transactionId, string status, CancellationToken cancellationToken)
+    private async Task<IActionResult> CompleteAsync(string provider, string? reference, string? transactionId, string? status, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(provider) || provider.Length > 80 ||
+            string.IsNullOrWhiteSpace(reference) || reference.Length > 160 ||
+            transactionId?.Length > 160 ||
+            string.IsNullOrWhiteSpace(status) || status.Length > 80)
+            return BadRequest(new CommerceMutationResponse(false, "Payment callback is invalid."));
         try
         {
             var result = await checkoutService.CompleteAsync(provider, new PaymentCallbackRequest(reference, transactionId ?? $"mock_tx_{Guid.NewGuid():N}", status), cancellationToken);
