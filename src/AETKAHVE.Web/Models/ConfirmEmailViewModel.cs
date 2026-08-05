@@ -9,4 +9,6 @@ public sealed class ConfirmEmailViewModel
     public bool CanConfirm { get; init; }
 
     public string? MaskedEmail { get; init; }
+
+    public string? StatusMessage { get; init; }
 }

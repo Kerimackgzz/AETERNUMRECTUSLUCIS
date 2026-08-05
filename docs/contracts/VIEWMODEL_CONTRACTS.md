@@ -26,6 +26,8 @@
 - `AdminLoginViewModel`: `LoginViewModel` sözleşmesi
 - `SuperAdminLoginViewModel`: `LoginViewModel` sözleşmesi
 - `RegisterViewModel`: `FirstName`, `LastName`, `Email`, `Password`, `ConfirmPassword`, `AcceptPrivacyTerms`
+- `ConfirmEmailViewModel`: `RegistrationId`, `Token`, `CanConfirm`, `MaskedEmail`, `StatusMessage`
+- `ResendConfirmationViewModel`: `Email`
 - `ForgotPasswordViewModel`: `Email`
 - `ResetPasswordViewModel`: `Email`, `Token`, `Password`, `ConfirmPassword`
 

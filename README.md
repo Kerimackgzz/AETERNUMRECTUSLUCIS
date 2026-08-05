@@ -94,6 +94,8 @@ Key-ring dizini bütün replica'lar tarafından erişilebilir, yedeklenen ve yal
 - Admin: doğrudan `/admin`; giriş `/admin/login`
 - SuperAdmin: doğrudan `/superadmin`; giriş `/superadmin/login`
 
+Customer kayıt formu gerçek kullanıcıyı hemen oluşturmaz. Parola ve doğrulama anahtarı yalnız hash olarak `PendingCustomerRegistrations` tablosunda bekler; e-posta bağlantısındaki güvenli onay formu gönderildiğinde kullanıcı, doğrulanmış e-posta ve Customer rolü tek transaction içinde oluşturulur. Bağlantı 60 dakika geçerlidir; bekleyen kayıt 7 gün boyunca yeniden gönderilebilir.
+
 Public navbar, footer veya HTML içinde yönetim girişi bağlantısı bulunmaz. Customer, Admin ve SuperAdmin ayrı cookie scheme kullanır. SuperAdmin policy üzerinden Admin alanına girebilir; tersine erişim yasaktır.
 
 `Beni Hatırla` seçilmezse session cookie, seçilirse süreli persistent cookie kullanılır. Yönetim AFK süreleri persistent cookie’den bağımsızdır: Admin 15, SuperAdmin 10 dakika.

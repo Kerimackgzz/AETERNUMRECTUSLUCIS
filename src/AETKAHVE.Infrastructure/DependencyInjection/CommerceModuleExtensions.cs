@@ -3,6 +3,7 @@ using AETKAHVE.Application.Notifications;
 using AETKAHVE.Infrastructure.Commerce;
 using AETKAHVE.Infrastructure.Notifications;
 using AETKAHVE.Infrastructure.Options;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -19,6 +20,8 @@ public static class CommerceModuleExtensions
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
+
+        services.AddDataProtection();
 
         services.AddSingleton<IValidateOptions<ShippingOptions>, ShippingOptionsValidator>();
         services.AddSingleton<IValidateOptions<NotificationOptions>, NotificationOptionsValidator>();

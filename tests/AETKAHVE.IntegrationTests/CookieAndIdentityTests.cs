@@ -60,7 +60,7 @@ public sealed class CookieAndIdentityTests(AeternumWebApplicationFactory factory
             });
 
         Assert.Equal(HttpStatusCode.Redirect, completion.StatusCode);
-        Assert.Equal("/account/login", completion.Headers.Location?.AbsolutePath);
+        Assert.Equal("/account/login", completion.Headers.Location?.ToString());
 
         await using (var scope = factory.Services.CreateAsyncScope())
         {

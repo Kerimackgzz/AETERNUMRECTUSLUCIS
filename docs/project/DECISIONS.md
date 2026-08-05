@@ -31,3 +31,7 @@ Runtime SQL Server’dır; hızlı ve bağımsız integration testleri açık SQ
 ## ADR-008 — Migration Sahipliği
 
 `InitialIdentity` Ajan 3 tarafından üretilmiştir. Foundation integration’a merge edildikten sonra `AppDbContext`, migrations ve ModelSnapshot yalnız Ajan 4 tarafından değiştirilir; auth schema ihtiyacı contract request gerektirir.
+
+## ADR-009 — Atomik Customer Üyeliği
+
+E-posta sahipliği doğrulanmadan `AspNetUsers` kaydı oluşturulmaz. Kayıt verisi süreli `PendingCustomerRegistrations` tablosunda yalnız parola hash'i ve doğrulama token hash'iyle tutulur. Identity e-posta outbox gövdesi Data Protection ile şifreli saklanır. Confirm GET salt okunurdur; kullanıcı, Customer rolü, audit ve pending silme işlemi antiforgery korumalı confirm POST transaction'ında birlikte tamamlanır. Parola sıfırlama da yalnız geçerli tokenla form POST edildiğinde kullanıcı verisini değiştirir.

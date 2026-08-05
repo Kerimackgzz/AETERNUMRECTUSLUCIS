@@ -2,12 +2,13 @@
 
 Son güncelleme: 2026-08-05
 
-Foundation, tasarım/Razor, hero-motion ve commerce çekirdeği `integration` üzerinde birleşti. Son turda gerçek Stripe ödeme adaptörü, gerçek SQL Server doğrulaması, StockMovement audit-history düzeltmesi ve production SMTP/Data Protection deployment runbook'u da kapatıldı. Güncel doğrulama kapısı 5 frontend + 68 unit + 77 integration testidir.
+Foundation, tasarım/Razor, hero-motion ve commerce çekirdeği `integration` üzerinde birleşti. Son turda atomik Customer üyeliği, gerçek Stripe ödeme adaptörü, gerçek SQL Server doğrulaması, StockMovement audit-history düzeltmesi ve production SMTP/Data Protection deployment runbook'u da kapatıldı. Güncel doğrulama kapısı 9 frontend + 75 unit + 83 integration testidir.
 
 ## Tamamlandı
 
-- .NET 10 katmanlı solution, SQL Server EF Core/Identity modeli ve dört sıralı migration.
+- .NET 10 katmanlı solution, SQL Server EF Core/Identity modeli ve beş sıralı migration.
 - Customer/Admin/SuperAdmin ayrık cookie scheme, route ve policy’leri; kayıt, doğrulama, login/logout, forgot/reset password.
+- Customer kaydı e-posta onayına kadar ayrı pending tabloda tutulur; gerçek hesap yalnız antiforgery POST ile atomik oluşturulur. Reset GET salt okunur, parola yalnız geçerli POST'ta değişir.
 - Yönetim lockout, rate limit, audit, AFK session/keep-alive/revoke ve uygulama `TimeProvider`'ıyla uyumlu cookie süreleri.
 - Global exception handling, correlation ID, security headers, management `no-store` ve health skeleton.
 - Design token sistemi, Mellos fontu ve Public/Account/Admin/SuperAdmin Razor sayfaları.
@@ -23,8 +24,8 @@ Foundation, tasarım/Razor, hero-motion ve commerce çekirdeği `integration` ü
 - Gerçek Stripe Checkout Session tabanlı `IPaymentGateway`/`IPaymentWebhookVerifier`: gerçek API çağrıları, VerifyAsync'in Stripe'tan tekrar doğrulaması (müşteri query string'ine güvenilmiyor), Stripe'ın gerçek HMAC webhook imza şeması.
 - `StockMovement`→`Product` navigation'ındaki EF query-filter uyarısı giderildi; soft-delete edilmiş ürünlere ait geçmiş stok hareketleri audit/raporlama sorgularında artık kayboluyor değil.
 - Production SMTP ve Data Protection key-ring için adım adım deployment runbook'u (`docs/deployment/PRODUCTION_SETUP.md`).
-- Restore ve Release build: 0 uyarı, 0 hata. Testler: frontend 5/5, unit 68/68, integration 77/77.
-- Dört migration doğru sırada ve pending model change yok. Gerçek `.\SQLEXPRESS` smoke veritabanına uygulandı; 54.628 baytlık idempotent script art arda iki kez hatasız çalıştı ve `DBCC CHECKDB` temiz geçti. Smoke veritabanı doğrulama sonunda kaldırıldı.
+- Restore ve build: 0 uyarı, 0 hata. Testler: frontend 9/9, unit 75/75, integration 83/83.
+- Beş migration doğru sırada ve pending model change yok. Gerçek `.\SQLEXPRESS` smoke veritabanına uygulandı; 56.741 baytlık idempotent script art arda iki kez hatasız çalıştı ve `DBCC CHECKDB` temiz geçti. Smoke veritabanı doğrulama sonunda kaldırıldı.
 - NuGet direct/transitive vulnerability taraması temiz; 26 first-party JavaScript dosyası syntax kontrolünden geçti.
 - Localhost HTTP taraması ve gerçek Chrome masaüstü/mobil smoke tamamlandı; console/network hatası yok.
 

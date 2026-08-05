@@ -5,8 +5,10 @@
 | `/` | GET | Public | Ana sayfa ve hero hookları |
 | `/account` | GET | `CustomerOnly` | Customer dashboard skeleton |
 | `/account/login` | GET/POST | Public / Customer sign-in | Customer rolü dışında session açmaz |
-| `/account/register` | GET/POST | Public | Customer oluşturur, e-posta doğrulaması ister |
-| `/account/confirm-email` | GET | Public token | Identity e-posta tokenını doğrular |
+| `/account/register` | GET/POST | Public | Gerçek kullanıcı oluşturmadan pending kayıt ve doğrulama e-postası üretir |
+| `/account/confirm-email` | GET | Public token | Tokenı salt okunur doğrular ve üyelik tamamlama ekranını gösterir |
+| `/account/confirm-email` | POST | Public token + antiforgery | Customer hesabı, doğrulanmış e-posta ve rolü atomik oluşturur |
+| `/account/resend-confirmation` | GET/POST | Public | Pending kaydın tokenını döndürür; hesap varlığını ifşa etmez |
 | `/account/forgot-password` | GET/POST | Public | Hesap varlığını ifşa etmeyen cevap |
 | `/account/reset-password` | GET/POST | Public token | Identity reset tokenıyla parola değiştirir |
 | `/account/logout` | POST | `CustomerOnly` | Antiforgery zorunlu |

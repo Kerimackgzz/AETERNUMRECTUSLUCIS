@@ -15,8 +15,9 @@ namespace AETKAHVE.Web.Controllers;
 [Route("account")]
 public sealed class AccountController(
     UserManager<ApplicationUser> userManager,
-    RoleManager<ApplicationRole> roleManager,
     AuthenticationSessionService authenticationSessions,
+    ICustomerRegistrationService customerRegistrations,
+    ICustomerPasswordResetService passwordResets,
     IIdentityMessageSender messageSender,
     TimeProvider timeProvider) : Controller
 {
@@ -67,73 +68,77 @@ public sealed class AccountController(
             return View(model);
         }
 
-        if (!await roleManager.RoleExistsAsync(RoleNames.Customer))
-        {
-            var roleResult = await roleManager.CreateAsync(new ApplicationRole { Name = RoleNames.Customer });
-            if (!roleResult.Succeeded)
-            {
-                ModelState.AddModelError(string.Empty, "Kayıt şu anda tamamlanamıyor.");
-                return View(model);
-            }
-        }
-
-        var user = new ApplicationUser
-        {
-            Id = Guid.NewGuid(),
-            UserName = model.Email.Trim(),
-            Email = model.Email.Trim(),
-            FirstName = model.FirstName.Trim(),
-            LastName = model.LastName.Trim(),
-            CreatedAtUtc = timeProvider.GetUtcNow(),
-            IsActive = true,
-        };
-        var result = await userManager.CreateAsync(user, model.Password);
+        var result = await customerRegistrations.BeginAsync(
+            new BeginCustomerRegistration(
+                model.FirstName,
+                model.LastName,
+                model.Email,
+                model.Password,
+                timeProvider.GetUtcNow()),
+            cancellationToken);
         if (!result.Succeeded)
         {
             ModelState.AddModelError(string.Empty, "Kayıt bilgileri doğrulanamadı.");
             return View(model);
         }
 
-        var roleAssignment = await userManager.AddToRoleAsync(user, RoleNames.Customer);
-        if (!roleAssignment.Succeeded)
+        if (result.Dispatch is not null)
         {
-            await userManager.DeleteAsync(user);
-            ModelState.AddModelError(string.Empty, "Kayıt şu anda tamamlanamıyor.");
-            return View(model);
+            await SendConfirmationAsync(result.Dispatch, cancellationToken);
         }
 
-        var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
-        var callback = Url.Action(
-            nameof(ConfirmEmail),
-            "Account",
-            new { userId = user.Id, token },
-            Request.Scheme)!;
-        await messageSender.SendAsync(
-            new IdentityMessage(
-                user.Email!,
-                "E-posta adresinizi doğrulayın",
-                $"<p>E-posta adresinizi doğrulamak için <a href=\"{HtmlEncoder.Default.Encode(callback)}\">bağlantıyı açın</a>.</p>"),
-            cancellationToken);
-
-        TempData["StatusMessage"] = "Kayıt alındı. E-posta doğrulama bağlantınızı kontrol edin.";
+        TempData["StatusMessage"] = "Bilgileriniz alındı. Üyeliği tamamlamak için e-posta doğrulama bağlantınızı açın.";
         return RedirectToAction(nameof(Login));
     }
 
     [AllowAnonymous]
     [HttpGet("confirm-email")]
-    public async Task<IActionResult> ConfirmEmail(Guid userId, string token)
+    public async Task<IActionResult> ConfirmEmail(
+        Guid registrationId,
+        string token,
+        CancellationToken cancellationToken)
     {
-        var user = await userManager.FindByIdAsync(userId.ToString());
-        if (user is null)
+        var validation = await customerRegistrations.ValidateConfirmationAsync(registrationId, token, cancellationToken);
+        return View(new ConfirmEmailViewModel
         {
-            return BadRequest();
+            RegistrationId = registrationId,
+            Token = token ?? string.Empty,
+            CanConfirm = validation.CanConfirm,
+            MaskedEmail = validation.MaskedEmail,
+        });
+    }
+
+    [AllowAnonymous]
+    [HttpPost("confirm-email")]
+    public async Task<IActionResult> ConfirmEmailPost(
+        ConfirmEmailViewModel model,
+        CancellationToken cancellationToken)
+    {
+        var status = await customerRegistrations.CompleteAsync(
+            model.RegistrationId,
+            model.Token,
+            CreateSecurityEventContext(),
+            cancellationToken);
+        if (status is RegistrationCompletionStatus.Completed or RegistrationCompletionStatus.AlreadyCompleted)
+        {
+            TempData["StatusMessage"] = "E-posta adresiniz doğrulandı ve üyeliğiniz oluşturuldu.";
+            return RedirectToAction(nameof(Login));
         }
 
-        var result = await userManager.ConfirmEmailAsync(user, token);
-        TempData["StatusMessage"] = result.Succeeded
-            ? "E-posta adresiniz doğrulandı."
-            : "Doğrulama bağlantısı geçersiz veya süresi dolmuş.";
-        return RedirectToAction(nameof(Login));
+        var validation = await customerRegistrations.ValidateConfirmationAsync(
+            model.RegistrationId,
+            model.Token,
+            cancellationToken);
+        return View("ConfirmEmail", new ConfirmEmailViewModel
+        {
+            RegistrationId = model.RegistrationId,
+            Token = model.Token,
+            CanConfirm = validation.CanConfirm,
+            MaskedEmail = validation.MaskedEmail,
+            StatusMessage = status == RegistrationCompletionStatus.Unavailable
+                ? "Üyelik şu anda tamamlanamıyor. Lütfen daha sonra yeniden deneyin."
+                : "Doğrulama bağlantısı geçersiz, kullanılmış veya süresi dolmuş.",
+        });
     }
 
     [AllowAnonymous]
@@ -152,21 +157,10 @@ public sealed class AccountController(
             return View(model);
         }
 
-        var user = await userManager.FindByEmailAsync(model.Email.Trim());
-        if (user is not null && user.IsActive && !user.EmailConfirmed)
+        var dispatch = await customerRegistrations.ResendAsync(model.Email, cancellationToken);
+        if (dispatch is not null)
         {
-            var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
-            var callback = Url.Action(
-                nameof(ConfirmEmail),
-                "Account",
-                new { userId = user.Id, token },
-                Request.Scheme)!;
-            await messageSender.SendAsync(
-                new IdentityMessage(
-                    user.Email!,
-                    "E-posta adresinizi doğrulayın",
-                    $"<p>E-posta adresinizi doğrulamak için <a href=\"{HtmlEncoder.Default.Encode(callback)}\">bağlantıyı açın</a>.</p>"),
-                cancellationToken);
+            await SendConfirmationAsync(dispatch, cancellationToken);
         }
 
         TempData["StatusMessage"] = "Hesap uygunsa yeni doğrulama bağlantısı gönderildi.";
@@ -216,18 +210,22 @@ public sealed class AccountController(
     [AllowAnonymous]
     [EnableRateLimiting(SecurityRateLimitPolicies.PasswordRecovery)]
     [HttpPost("reset-password")]
-    public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+    public async Task<IActionResult> ResetPassword(
+        ResetPasswordViewModel model,
+        CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid)
         {
             return View(model);
         }
 
-        var user = await userManager.FindByEmailAsync(model.Email.Trim());
-        var result = user is null
-            ? IdentityResult.Failed()
-            : await userManager.ResetPasswordAsync(user, model.Token, model.Password);
-        if (!result.Succeeded)
+        var succeeded = await passwordResets.ResetAsync(
+            model.Email,
+            model.Token,
+            model.Password,
+            CreateSecurityEventContext(),
+            cancellationToken);
+        if (!succeeded)
         {
             ModelState.AddModelError(string.Empty, "Parola sıfırlama bağlantısı geçersiz veya süresi dolmuş.");
             return View(model);
@@ -258,6 +256,29 @@ public sealed class AccountController(
         Request.Headers.UserAgent.ToString(),
         Request.Path,
         HttpContext.TraceIdentifier);
+
+    private SecurityEventContext CreateSecurityEventContext() => new(
+        HttpContext.Connection.RemoteIpAddress?.ToString(),
+        Request.Headers.UserAgent.ToString(),
+        Request.Path,
+        HttpContext.TraceIdentifier);
+
+    private async Task SendConfirmationAsync(
+        RegistrationDispatch dispatch,
+        CancellationToken cancellationToken)
+    {
+        var callback = Url.Action(
+            nameof(ConfirmEmail),
+            "Account",
+            new { registrationId = dispatch.RegistrationId, token = dispatch.Token },
+            Request.Scheme)!;
+        await messageSender.SendAsync(
+            new IdentityMessage(
+                dispatch.Email,
+                "E-posta adresinizi doğrulayın",
+                $"<p>E-posta adresinizi doğrulayıp üyeliğinizi tamamlamak için <a href=\"{HtmlEncoder.Default.Encode(callback)}\">bağlantıyı açın</a>.</p>"),
+            cancellationToken);
+    }
 
     private IActionResult LocalRedirectOr(string? returnUrl, string fallback) =>
         !string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl)

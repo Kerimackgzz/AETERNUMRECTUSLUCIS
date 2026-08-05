@@ -70,5 +70,25 @@ public sealed class SecurityOptionsValidatorTests
             nameof(SecurityOptions.ContactRequestsPerMinute),
             StringComparison.Ordinal));
     }
+
+    [Theory]
+    [InlineData(4, 7)]
+    [InlineData(1441, 7)]
+    [InlineData(60, 0)]
+    [InlineData(60, 31)]
+    public void Pending_registration_lifetimes_outside_safe_bounds_are_rejected(
+        int tokenMinutes,
+        int retentionDays)
+    {
+        var options = new SecurityOptions
+        {
+            RegistrationConfirmationTokenMinutes = tokenMinutes,
+            PendingRegistrationRetentionDays = retentionDays,
+        };
+
+        var result = _validator.Validate(null, options);
+
+        Assert.True(result.Failed);
+    }
 }
 

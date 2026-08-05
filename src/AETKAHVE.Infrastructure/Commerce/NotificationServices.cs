@@ -1,8 +1,10 @@
 using System.Text.Json;
 using AETKAHVE.Application.Commerce;
 using AETKAHVE.Domain.Commerce;
+using AETKAHVE.Infrastructure.Notifications;
 using AETKAHVE.Infrastructure.Options;
 using AETKAHVE.Infrastructure.Persistence;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -71,7 +73,8 @@ public sealed class NotificationDeliveryProcessor(
     ISmsSender smsSender,
     IOptions<NotificationOptions> options,
     TimeProvider timeProvider,
-    ILogger<NotificationDeliveryProcessor> logger)
+    ILogger<NotificationDeliveryProcessor> logger,
+    IDataProtectionProvider dataProtectionProvider)
 {
     private readonly NotificationOptions _options = options.Value;
 
@@ -107,7 +110,12 @@ public sealed class NotificationDeliveryProcessor(
             DeliveryResult result;
             try
             {
-                var payload = JsonSerializer.Deserialize<DeliveryPayload>(delivery.PayloadJson) ?? new DeliveryPayload(string.Empty, string.Empty);
+                var serializedPayload = delivery.TemplateKey == OutboxIdentityMessageSender.ProtectedTemplateKey
+                    ? dataProtectionProvider
+                        .CreateProtector(OutboxIdentityMessageSender.DataProtectionPurpose)
+                        .Unprotect(delivery.PayloadJson)
+                    : delivery.PayloadJson;
+                var payload = JsonSerializer.Deserialize<DeliveryPayload>(serializedPayload) ?? new DeliveryPayload(string.Empty, string.Empty);
                 result = delivery.Channel switch
                 {
                     NotificationChannel.Email => await emailSender.SendAsync(new EmailMessage(delivery.Destination, payload.Subject, payload.Body), cancellationToken),

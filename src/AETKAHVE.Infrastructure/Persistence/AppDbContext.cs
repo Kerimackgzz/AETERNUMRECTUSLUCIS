@@ -14,6 +14,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
 
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
+    public DbSet<PendingCustomerRegistration> PendingCustomerRegistrations => Set<PendingCustomerRegistration>();
+
     public DbSet<Category> Categories => Set<Category>();
     public DbSet<Brand> Brands => Set<Brand>();
     public DbSet<CoffeeType> CoffeeTypes => Set<CoffeeType>();

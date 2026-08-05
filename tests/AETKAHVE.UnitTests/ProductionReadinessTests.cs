@@ -8,6 +8,7 @@ using AETKAHVE.Infrastructure.Identity;
 using AETKAHVE.Infrastructure.Notifications;
 using AETKAHVE.Infrastructure.Options;
 using AETKAHVE.Infrastructure.Persistence;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -163,22 +164,85 @@ public sealed class ProductionReadinessTests
         };
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync();
+        var protectionProvider = new EphemeralDataProtectionProvider();
         var sender = new OutboxIdentityMessageSender(
             dbContext,
             TimeProvider.System,
-            Options.Create(new NotificationOptions { EmailDeliveryEnabled = true }));
+            Options.Create(new NotificationOptions { EmailDeliveryEnabled = true }),
+            protectionProvider);
 
         await sender.SendAsync(
             new IdentityMessage(user.Email, "Confirm", "<p>Safe body</p>"),
             default);
 
         var delivery = await dbContext.NotificationDeliveries.SingleAsync();
-        var payload = JsonSerializer.Deserialize<DeliveryPayload>(delivery.PayloadJson);
+        Assert.DoesNotContain("Safe body", delivery.PayloadJson, StringComparison.Ordinal);
+        var unprotectedPayload = protectionProvider
+            .CreateProtector(OutboxIdentityMessageSender.DataProtectionPurpose)
+            .Unprotect(delivery.PayloadJson);
+        var payload = JsonSerializer.Deserialize<DeliveryPayload>(unprotectedPayload);
         Assert.Equal(DeliveryStatus.Pending, delivery.Status);
         Assert.Equal(NotificationChannel.Email, delivery.Channel);
         Assert.Equal(user.Id, delivery.UserId);
         Assert.Equal("Confirm", payload?.Subject);
         Assert.Equal("<p>Safe body</p>", payload?.Body);
+
+        var emailSender = new MockEmailSender();
+        var processor = new NotificationDeliveryProcessor(
+            dbContext,
+            emailSender,
+            new MockSmsSender(),
+            Options.Create(new NotificationOptions()),
+            TimeProvider.System,
+            NullLogger<NotificationDeliveryProcessor>.Instance,
+            protectionProvider);
+        await processor.ProcessBatchAsync(default);
+
+        var sent = Assert.Single(emailSender.Sent);
+        Assert.Equal("Confirm", sent.Subject);
+        Assert.Equal("<p>Safe body</p>", sent.HtmlBody);
+    }
+
+    [Fact]
+    public async Task Identity_sender_accepts_a_persisted_pending_registration_without_creating_a_user()
+    {
+        await using var connection = new SqliteConnection("Data Source=:memory:");
+        await connection.OpenAsync();
+        var dbOptions = new DbContextOptionsBuilder<AppDbContext>().UseSqlite(connection).Options;
+        await using var dbContext = new AppDbContext(dbOptions);
+        await dbContext.Database.EnsureCreatedAsync();
+        var reservedUserId = Guid.NewGuid();
+        dbContext.PendingCustomerRegistrations.Add(new PendingCustomerRegistration
+        {
+            Id = Guid.NewGuid(),
+            ReservedUserId = reservedUserId,
+            FirstName = "Pending",
+            LastName = "Customer",
+            Email = "pending@test.local",
+            NormalizedEmail = "PENDING@TEST.LOCAL",
+            PasswordHash = "identity-password-hash",
+            VerificationTokenHash = new byte[32],
+            PrivacyAcceptedAtUtc = DateTimeOffset.UtcNow,
+            CreatedAtUtc = DateTimeOffset.UtcNow,
+            LastEmailSentAtUtc = DateTimeOffset.UtcNow,
+            TokenExpiresAtUtc = DateTimeOffset.UtcNow.AddHours(1),
+        });
+        await dbContext.SaveChangesAsync();
+        var protectionProvider = new EphemeralDataProtectionProvider();
+        var sender = new OutboxIdentityMessageSender(
+            dbContext,
+            TimeProvider.System,
+            Options.Create(new NotificationOptions { EmailDeliveryEnabled = true }),
+            protectionProvider);
+
+        await sender.SendAsync(
+            new IdentityMessage("pending@test.local", "Confirm", "<p>Pending body</p>"),
+            default);
+
+        Assert.Empty(await dbContext.Users.ToListAsync());
+        var delivery = await dbContext.NotificationDeliveries.SingleAsync();
+        Assert.Equal(reservedUserId, delivery.UserId);
+        Assert.Equal("pending@test.local", delivery.Destination);
     }
 
     [Fact]
@@ -219,7 +283,8 @@ public sealed class ProductionReadinessTests
             new MockSmsSender(),
             Options.Create(new NotificationOptions { MaximumAttempts = 1 }),
             TimeProvider.System,
-            NullLogger<NotificationDeliveryProcessor>.Instance);
+            NullLogger<NotificationDeliveryProcessor>.Instance,
+            new EphemeralDataProtectionProvider());
 
         await processor.ProcessBatchAsync(default);
         await processor.ProcessBatchAsync(default);

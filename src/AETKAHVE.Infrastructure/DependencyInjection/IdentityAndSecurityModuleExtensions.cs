@@ -130,7 +130,10 @@ public static class IdentityAndSecurityModuleExtensions
         services.AddScoped<ManagementSessionService>();
         services.AddScoped<AuthenticationSessionService>();
         services.AddScoped<IdentitySeeder>();
+        services.AddScoped<ICustomerRegistrationService, CustomerRegistrationService>();
+        services.AddScoped<ICustomerPasswordResetService, CustomerPasswordResetService>();
         services.AddHostedService<IdentitySeedHostedService>();
+        services.AddHostedService<PendingRegistrationCleanupWorker>();
         return services;
     }
 

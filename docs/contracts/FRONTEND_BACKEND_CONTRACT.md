@@ -10,6 +10,14 @@ Public layout `_Navbar` ve `_PageTransitionOverlay` partiallarını render eder.
 
 Fetch/AJAX unsafe istekleri tokenı `RequestVerificationToken` header’ı veya standart form alanıyla göndermelidir.
 
+## E-posta ile Üyelik Tamamlama
+
+- `/account/confirm-email` GET salt okunurdur ve `[data-confirm-email-state="ready|invalid"]` durumunu render eder.
+- Hazır durumda `[data-confirm-email-form]`, hidden `RegistrationId`/`Token` ve antiforgery alanı bulunur.
+- Gerçek Customer hesabı yalnız aynı route'a yapılan antiforgery korumalı POST ile oluşturulur.
+- Geçersiz, süresi dolmuş veya kullanılmış bağlantı tamamlama formu göstermez; `/account/resend-confirmation` kurtarma bağlantısı sunar.
+- Doğrulama ve reset bağlantısı içeren Identity outbox payload'ları Data Protection ile şifreli saklanır; frontend veya public API ham tokenı loglamaz.
+
 ## Hero
 
 Hero root hook’u `[data-home-hero]` ve şu alanlardır:

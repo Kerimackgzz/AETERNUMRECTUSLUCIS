@@ -36,6 +36,10 @@ public sealed class SecurityOptions
 
     public int PasswordRecoveryRequestsPerMinute { get; set; } = 5;
 
+    public int RegistrationConfirmationTokenMinutes { get; set; } = 60;
+
+    public int PendingRegistrationRetentionDays { get; set; } = 7;
+
     public int ContactRequestsPerMinute { get; set; } = 5;
 
     public CookieSecurePolicy CookieSecurePolicy { get; set; } = CookieSecurePolicy.SameAsRequest;

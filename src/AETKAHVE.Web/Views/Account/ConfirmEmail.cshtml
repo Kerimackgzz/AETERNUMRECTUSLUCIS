@@ -7,6 +7,10 @@
      data-confirm-email-state="@(Model.CanConfirm ? "ready" : "invalid")">
     @if (Model.CanConfirm)
     {
+        @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+        {
+            <p class="field-validation-error" role="alert">@Model.StatusMessage</p>
+        }
         <span class="status-badge account-confirmation__status" data-status-kind="success">Bağlantı doğrulandı</span>
         <h1 class="account-card__title">Üyeliğinizi tamamlayın</h1>
         <p class="account-card__subtitle text-muted">
@@ -18,7 +22,7 @@
         }
         <form class="account-form account-confirmation__form"
               asp-controller="Account"
-              asp-action="ConfirmEmail"
+              asp-action="ConfirmEmailPost"
               asp-antiforgery="true"
               method="post"
               data-confirm-email-form>

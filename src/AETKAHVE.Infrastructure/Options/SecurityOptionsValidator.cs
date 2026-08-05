@@ -21,6 +21,8 @@ public sealed class SecurityOptionsValidator : IValidateOptions<SecurityOptions>
         ValidateRange(options.SuperAdminLoginRequestsPerMinute, 1, 1000, nameof(options.SuperAdminLoginRequestsPerMinute), failures);
         ValidateRange(options.CustomerRegistrationRequestsPerMinute, 1, 1000, nameof(options.CustomerRegistrationRequestsPerMinute), failures);
         ValidateRange(options.PasswordRecoveryRequestsPerMinute, 1, 1000, nameof(options.PasswordRecoveryRequestsPerMinute), failures);
+        ValidateRange(options.RegistrationConfirmationTokenMinutes, 5, 1440, nameof(options.RegistrationConfirmationTokenMinutes), failures);
+        ValidateRange(options.PendingRegistrationRetentionDays, 1, 30, nameof(options.PendingRegistrationRetentionDays), failures);
         ValidateRange(options.ContactRequestsPerMinute, 1, 1000, nameof(options.ContactRequestsPerMinute), failures);
 
         ValidateRoute(options.AdminRoute, nameof(options.AdminRoute), failures);
