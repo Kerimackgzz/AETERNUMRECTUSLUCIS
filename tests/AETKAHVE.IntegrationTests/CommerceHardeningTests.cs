@@ -323,7 +323,7 @@ public sealed class CommerceHardeningTests(AeternumWebApplicationFactory factory
         Type[] filteredDependents =
         [
             typeof(CampaignCategory), typeof(CampaignProduct), typeof(CartItem), typeof(Favorite),
-            typeof(ProductImage),
+            typeof(ProductImage), typeof(StockMovement),
         ];
 
         foreach (var dependent in filteredDependents)
@@ -366,7 +366,18 @@ public sealed class CommerceHardeningTests(AeternumWebApplicationFactory factory
         db.ChangeTracker.Clear();
 
         Assert.False(await db.Products.AnyAsync(x => x.Id == productIds.ProductId));
-        Assert.True(await db.StockMovements.AnyAsync(x => x.Id == movement.Id));
+        Assert.False(await db.StockMovements.AnyAsync(x => x.Id == movement.Id));
+
+        var historicalMovement = await db.StockMovements
+            .IgnoreQueryFilters()
+            .AsNoTracking()
+            .Include(x => x.Product)
+            .SingleAsync(x => x.Id == movement.Id);
+
+        Assert.Equal(productIds.ProductId, historicalMovement.ProductId);
+        Assert.Equal(productIds.ProductId, historicalMovement.Product.Id);
+        Assert.Equal(product.Name, historicalMovement.Product.Name);
+        Assert.NotNull(historicalMovement.Product.DeletedAtUtc);
     }
 
     private static async Task LoginAsync(HttpClient client, string email)

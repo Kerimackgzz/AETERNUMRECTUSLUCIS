@@ -3,7 +3,7 @@
 ## Handoff
 
 - Branch: `agent/codex-commerce`
-- Güncel entegrasyon tabanı: `integration` / `b86da0c`
+- Güncel entegrasyon tabanı: `integration` / `0960d14`
 - Commerce çekirdeği: `2673542`
 - Development SQLite runtime: `f4af055`
 - Merge-sonrası sahiplik ve recovery hardening: `7cabb93` (`18d5d99` ile integration'a alındı)
@@ -12,6 +12,7 @@
 - Commerce format borcu kapanışı: `66a147d`
 - Disabled-provider persistence testi: `8ff0db8`
 - Production mock startup testi: `bac74f8`
+- StockMovement audit/query-filter düzeltmesi: `535bfac`
 
 Bu branch doğrudan `main` veya `integration` üzerine yazılmadı. Final merge ve çözüm-geneli regresyon Coordinator sorumluluğundadır.
 
@@ -32,7 +33,7 @@ Bu branch doğrudan `main` veya `integration` üzerine yazılmadı. Final merge 
 3. `20260804170153_AddCommerceCheckoutAndFulfillment`
 4. `20260804170203_AddCommerceEngagement`
 
-SQL Server migration sırası, pending-model kontrolü ve idempotent script Coordinator final kapısında yeniden doğrulanacaktır. Integration testleri SQLite in-memory sağlayıcısını kullanır.
+SQL Server migration sırası ve pending-model kontrolü bu teslimde yeniden doğrulandı. `StockMovement` değişikliği yalnız runtime query-filter metadata'sıdır; kolon, index veya FK şeması değişmediği için yeni migration üretilmedi ve ModelSnapshot değişmedi. Integration testleri SQLite in-memory sağlayıcısını kullanır.
 
 ## Provider ve webhook güvenliği
 
@@ -61,24 +62,38 @@ SQL Server migration sırası, pending-model kontrolü ve idempotent script Coor
 - Admin: `/admin/products`, `/admin/catalog`, `/admin/orders`, `/admin/shipments`, `/admin/invoices`, `/admin/returns`, `/admin/campaigns`, `/admin/coupons`, `/admin/reviews`, `/admin/messages`, `/admin/reports`.
 - Ayrıntılı route/ViewModel sözleşmesi: `docs/contracts/requests/codex-commerce-20260804-commerce-routes-viewmodels.md`.
 
+## EF 10622 ve stok hareketi audit kararı
+
+- Uyarı ayrıntılı integration test çıktısında yeniden üretildi: filtered `Product`, required `StockMovement.Product` ilişkisinin principal tarafıydı. Normal `dotnet build` model initialize etmediğinden baseline compile çıktısı zaten 0 uyarıydı.
+- Production sorgu taramasında `StockMovement.Product` navigation'ını `Include`, join veya projection ile kullanan sorgu bulunmadı. `ReportingService` yalnız `Order` ve `Refund` okur.
+- Gerçek StockMovement okumaları `InventoryService` ve `ReturnService` içindeki scalar idempotency kontrolleridir. Her ikisi de soft-delete edilmiş ürünlerin geçmiş hareketlerini görebilmek için açıkça `IgnoreQueryFilters()` kullanır.
+- `StockMovementConfiguration`, principal ile eşleşen `Product.DeletedAtUtc == null` filter'ını taşır. Bu EF 10622'yi model seviyesinde kaldırırken required `ProductId`, non-null kolon ve `Restrict` FK bütünlüğünü korur.
+- Optional `Guid? ProductId` migration'ı seçilmedi; mevcut zorunlu audit referansını ve unique idempotency index invariantını gereksiz yere zayıflatacaktı.
+- Matching filter'ın normal filtreli sorgularda geçmiş satırı gizlemesi bilinçlidir. Tarihsel/audit sorguları `IgnoreQueryFilters()` ile opt-in olur; regresyon testi soft-delete ürün sonrası normal sorgunun satırı gizlediğini ve audit sorgusunun `Include(Product)` ile hareketi ve silinmiş ürün ayrıntılarını yüklediğini doğrular.
+
 ## Doğrulama
 
 - `dotnet restore`: başarılı.
-- Release build: başarılı, 0 uyarı / 0 hata.
+- `dotnet build AETKAHVE.sln --no-restore`: başarılı, 0 uyarı / 0 hata.
 - Unit: 54/54 başarılı.
-- Integration: 74/74 başarılı.
-- Toplam: 128/128 başarılı.
-- `dotnet format --verify-no-changes --no-restore`: başarılı.
+- Integration: 77/77 başarılı.
+- Frontend contract: 5/5 başarılı.
+- Toplam: 136/136 başarılı.
+- Commerce hardening sınıfı: 11/11 başarılı.
+- Değişen C# dosyalarında `dotnet format --verify-no-changes --no-restore`: başarılı.
 - `git diff --check`: başarılı.
-- EF ve vulnerability kontrolleri Coordinator final kapısında yeniden çalıştırılacaktır.
+- Ayrıntılı EF regresyon koşusunda `10622` bulunmadı.
+- `dotnet ef migrations has-pending-model-changes`: model değişikliği yok.
+- Idempotent SQL: 54.628 bayt; SHA-256 `DF956CA76B4DED1E5885DB67F90FAE385F1CAF9FDACD32CDAE147E6F1FC705DF`.
+- Migration listesi dört kaydı doğru sırada gösterdi. LocalDB runtime bulunmadığı için yalnız applied-state okunamadı; script ve model karşılaştırması bundan etkilenmedi.
 
 ## Bilinen sınırlamalar
 
 - Production payment/shipping adapter'ları ve gerçek provider secret'ları teslim edilmedi; güvenli fail-closed davranış bilinçlidir.
 - SQL Server instance'ı bu ortamda çalıştırılmadı; migration üretimi SQL Server, çalışan testler SQLite ile doğrulanır.
-- `Product` global query filter ile required `StockMovement.Product` navigation uyarısı kayıt silmez; soft-delete ürün hareketlerinin navigation join'li tarihsel raporları için `IgnoreQueryFilters()` veya optional/history ilişki tasarımı takip işidir.
+- Çok-instance Production webhook replay store ve gerçek payment/shipping adapter'ları hâlâ ayrı deployment kapılarıdır; StockMovement EF 10622 takip işi bu teslimle kapanmıştır.
 
-## Coordinator final integration — 2026-08-05
+## Önceki Coordinator final integration — 2026-08-05
 
 - Ajan 4 branch'i `84610f2` ile, ardından AFK frontend teslimi `243b9f6` ile `integration` üzerine alındı.
 - Release build 0 uyarı / 0 hata; frontend 5/5, unit 54/54 ve integration 77/77 geçti.

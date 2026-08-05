@@ -157,8 +157,10 @@ public sealed class ReturnService(
     {
         foreach (var item in request.Items)
         {
-            var exists = await dbContext.StockMovements.AnyAsync(x => x.ReferenceType == nameof(ReturnRequest) && x.ReferenceId == request.Id &&
-                x.ProductId == item.OrderItem.ProductId && x.ProductVariantId == item.OrderItem.ProductVariantId && x.MovementType == StockMovementType.Return, cancellationToken);
+            // Restock history must include movements whose catalog product was soft-deleted.
+            var exists = await dbContext.StockMovements.IgnoreQueryFilters().AnyAsync(x => x.ReferenceType == nameof(ReturnRequest) &&
+                x.ReferenceId == request.Id && x.ProductId == item.OrderItem.ProductId &&
+                x.ProductVariantId == item.OrderItem.ProductVariantId && x.MovementType == StockMovementType.Return, cancellationToken);
             if (exists) continue;
             var product = await dbContext.Products.IgnoreQueryFilters().SingleAsync(x => x.Id == item.OrderItem.ProductId, cancellationToken);
             int previous;

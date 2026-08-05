@@ -18,8 +18,10 @@ public sealed class InventoryService(AppDbContext dbContext, TimeProvider timePr
     {
         foreach (var item in order.Items)
         {
-            var exists = await dbContext.StockMovements.AnyAsync(x => x.ReferenceType == nameof(Order) && x.ReferenceId == order.Id &&
-                x.ProductId == item.ProductId && x.ProductVariantId == item.ProductVariantId && x.MovementType == movementType, cancellationToken);
+            // Idempotency history must include movements whose catalog product was soft-deleted.
+            var exists = await dbContext.StockMovements.IgnoreQueryFilters().AnyAsync(x => x.ReferenceType == nameof(Order) &&
+                x.ReferenceId == order.Id && x.ProductId == item.ProductId && x.ProductVariantId == item.ProductVariantId &&
+                x.MovementType == movementType, cancellationToken);
             if (exists) continue;
 
             var product = await dbContext.Products.IgnoreQueryFilters().SingleAsync(x => x.Id == item.ProductId, cancellationToken);
