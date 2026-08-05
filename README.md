@@ -42,6 +42,33 @@ IdentitySeed__SuperAdminPassword=<user-secret>
 
 Bu değerleri production config dosyasına yazmayın; environment variable veya user-secrets kullanın.
 
+## Production Proxy ve Anahtar Yönetimi
+
+Forwarded header işleme varsayılan olarak kapalıdır. Reverse proxy kullanılıyorsa yalnızca gerçek ingress adreslerini veya CIDR bloklarını allow-list'e ekleyin; uygulama `X-Forwarded-For` ve `X-Forwarded-Proto` değerlerini ancak bu kaynaklardan kabul eder. `ForwardLimit`, proxy zincirindeki güvenilir hop sayısıyla aynı olmalıdır.
+
+```text
+ForwardedHeaders__Enabled=true
+ForwardedHeaders__ForwardLimit=1
+ForwardedHeaders__KnownProxies__0=10.0.0.10
+```
+
+Production ortamında authentication, antiforgery ve korumalı guest-cart değerlerinin restart/replica sonrası çalışması için paylaşılan, kalıcı ve mutlak bir Data Protection key-ring yolu zorunludur. Persist edilen anahtarlar sertifikayla şifrelenir. Sertifika CurrentUser/LocalMachine personal store thumbprint'iyle veya secret provider'dan gelen PFX path/password ile sağlanabilir.
+
+```text
+DataProtection__ApplicationName=AETKAHVE
+DataProtection__KeyRingPath=/var/lib/aetkahve/data-protection-keys
+DataProtection__CertificateThumbprint=<deployment-certificate-thumbprint>
+```
+
+PFX alternatifi:
+
+```text
+DataProtection__CertificatePath=/run/secrets/aetkahve-data-protection.pfx
+DataProtection__CertificatePassword=<secret-provider-value>
+```
+
+Key-ring dizini bütün replica'lar tarafından erişilebilir, yedeklenen ve yalnızca uygulama kimliğine yazma izni verilen durable storage olmalıdır. Allow-list, mutlak key-ring yolu veya key encryption sertifikası hatalı/eksikse production startup açık bir configuration hatasıyla durur.
+
 ## Auth ve Yönetim Route’ları
 
 - Customer: `/account/login`
