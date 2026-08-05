@@ -21,6 +21,12 @@
   min-height: 60vh;
 }
 
+/* Sabit navbar iç sayfaların ilk başlığını örtmez; ana sayfada hero'nun
+   üzerinde kalması için bu ofset bilinçli olarak uygulanmaz. */
+.public-layout--inner #main-content {
+  padding-top: 68px;
+}
+
 .section {
   padding-block: var(--space-16);
 }

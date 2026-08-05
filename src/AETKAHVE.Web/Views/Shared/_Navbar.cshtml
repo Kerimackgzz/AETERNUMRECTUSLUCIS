@@ -1,10 +1,43 @@
-<nav aria-label="Ana navigasyon" data-navbar>
-    <a asp-controller="Home" asp-action="Index" data-navbar-brand>AETERNUM RECTUS LUCIS</a>
-    <a href="/products" data-navbar-link>Ürünler</a>
-    <a href="/categories" data-navbar-link>Koleksiyonlar</a>
-    <a href="/about" data-navbar-link>Hikâyemiz</a>
-    <a href="/campaigns" data-navbar-link>Kampanyalar</a>
-    <a href="/contact" data-navbar-link>İletişim</a>
-    <a asp-controller="Account" asp-action="Login" data-navbar-link>Hesap</a>
-</nav>
+@{
+    var path = Context.Request.Path;
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
 
+    string? CurrentWhen(PathString prefix, bool exact = false)
+    {
+        var current = exact ? path == prefix : path.StartsWithSegments(prefix);
+        return current ? "page" : null;
+    }
+}
+<nav aria-label="Ana navigasyon" data-navbar>
+    <a asp-controller="Home"
+       asp-action="Index"
+       data-navbar-brand
+       aria-current="@CurrentWhen(new PathString("/"), exact: true)">AETERNUM RECTUS LUCIS</a>
+
+    <button type="button"
+            class="navbar-toggle"
+            data-navbar-toggle
+            aria-controls="primary-navigation-menu"
+            aria-expanded="false"
+            aria-label="Menüyü aç">
+        <span class="navbar-toggle__line" aria-hidden="true"></span>
+        <span class="navbar-toggle__line" aria-hidden="true"></span>
+        <span class="navbar-toggle__line" aria-hidden="true"></span>
+    </button>
+
+    <div id="primary-navigation-menu" class="navbar-menu" data-navbar-menu>
+        <a href="/products" data-navbar-link aria-current="@CurrentWhen(new PathString("/products"))">Ürünler</a>
+        <a href="/categories" data-navbar-link aria-current="@CurrentWhen(new PathString("/categories"))">Koleksiyonlar</a>
+        <a href="/about" data-navbar-link aria-current="@CurrentWhen(new PathString("/about"), exact: true)">Hikâyemiz</a>
+        <a href="/campaigns" data-navbar-link aria-current="@CurrentWhen(new PathString("/campaigns"))">Kampanyalar</a>
+        <a href="/contact" data-navbar-link aria-current="@CurrentWhen(new PathString("/contact"), exact: true)">İletişim</a>
+        @if (isAuthenticated)
+        {
+            <a asp-controller="Account" asp-action="Index" data-navbar-link aria-current="@CurrentWhen(new PathString("/account"))">Hesabım</a>
+        }
+        else
+        {
+            <a asp-controller="Account" asp-action="Login" data-navbar-link aria-current="@CurrentWhen(new PathString("/account"))">Hesap</a>
+        }
+    </div>
+</nav>

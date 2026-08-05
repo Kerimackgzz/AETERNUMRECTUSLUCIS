@@ -19,6 +19,7 @@ export function showToast(message, kind = "info") {
   const container = region();
   const toast = document.createElement("div");
   toast.className = "toast toast--" + kind;
+  if (kind === "error") toast.setAttribute("role", "alert");
   toast.textContent = message;
   container.appendChild(toast);
   window.requestAnimationFrame(() => toast.classList.add("is-visible"));

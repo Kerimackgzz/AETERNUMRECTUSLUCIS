@@ -138,3 +138,31 @@
   color: var(--color-gold-400);
 }
 
+@media (max-width: 639px) {
+  .admin-topbar {
+    align-items: flex-start;
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .admin-topbar__brand {
+    font-size: var(--text-sm);
+  }
+
+  .admin-topbar__portal {
+    display: block;
+    margin-top: var(--space-1);
+    margin-left: 0;
+  }
+
+  .admin-layout__main {
+    width: 100%;
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .admin-dashboard__title {
+    margin-bottom: var(--space-6);
+    font-size: var(--text-2xl);
+    overflow-wrap: anywhere;
+  }
+}
+

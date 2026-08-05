@@ -9,6 +9,7 @@ function init() {
   const form = root.querySelector("[data-address-form]");
   form?.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (!form.reportValidity()) return;
     const submitBtn = form.querySelector("[type=submit]");
     submitBtn.disabled = true;
     const payload = Object.fromEntries(new FormData(form).entries());

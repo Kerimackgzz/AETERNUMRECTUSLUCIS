@@ -95,6 +95,13 @@ public static class IdentityAndSecurityModuleExtensions
                         : AuthenticationSchemes.Admin;
             });
 
+        // AuthenticationSessionService stamps tickets with the application's TimeProvider.
+        // Keep the cookie handlers on that same clock so expiration and principal validation
+        // cannot disagree (and so an expired management session can actively delete its cookie).
+        ConfigureCookieTimeProvider(services, AuthenticationSchemes.Customer);
+        ConfigureCookieTimeProvider(services, AuthenticationSchemes.Admin);
+        ConfigureCookieTimeProvider(services, AuthenticationSchemes.SuperAdmin);
+
         services.AddAuthorizationBuilder()
             .AddPolicy(AuthorizationPolicies.CustomerOnly, policy =>
             {
@@ -126,6 +133,10 @@ public static class IdentityAndSecurityModuleExtensions
         services.AddHostedService<IdentitySeedHostedService>();
         return services;
     }
+
+    private static void ConfigureCookieTimeProvider(IServiceCollection services, string scheme) =>
+        services.AddOptions<CookieAuthenticationOptions>(scheme)
+            .Configure<TimeProvider>((options, timeProvider) => options.TimeProvider = timeProvider);
 
     private static void ConfigureCookie(
         CookieAuthenticationOptions options,

@@ -19,7 +19,7 @@ public sealed class CartService(
     public async Task<CartSummary> GetAsync(CartOwner owner, CancellationToken cancellationToken)
     {
         var cart = await GetOrCreateAsync(owner, cancellationToken);
-        return await discountEngine.PriceAsync(cart, owner.UserId, cancellationToken);
+        return await PriceWithCouponRecoveryAsync(cart, owner.UserId, cancellationToken);
     }
 
     public async Task<CartSummary> AddAsync(CartOwner owner, Guid productId, Guid? variantId, int quantity, CancellationToken cancellationToken)
@@ -80,7 +80,7 @@ public sealed class CartService(
 
         cart.UpdatedAtUtc = Now;
         await dbContext.SaveChangesAsync(cancellationToken);
-        return await discountEngine.PriceAsync(cart, owner.UserId, cancellationToken);
+        return await PriceWithCouponRecoveryAsync(cart, owner.UserId, cancellationToken);
     }
 
     public async Task<CartSummary> UpdateQuantityAsync(CartOwner owner, Guid itemId, int quantity, CancellationToken cancellationToken)
@@ -95,7 +95,7 @@ public sealed class CartService(
         item.UpdatedAtUtc = Now;
         cart.UpdatedAtUtc = Now;
         await dbContext.SaveChangesAsync(cancellationToken);
-        return await discountEngine.PriceAsync(cart, owner.UserId, cancellationToken);
+        return await PriceWithCouponRecoveryAsync(cart, owner.UserId, cancellationToken);
     }
 
     public async Task<CartSummary> RemoveAsync(CartOwner owner, Guid itemId, CancellationToken cancellationToken)
@@ -106,7 +106,7 @@ public sealed class CartService(
         cart.Items.Remove(item);
         cart.UpdatedAtUtc = Now;
         await dbContext.SaveChangesAsync(cancellationToken);
-        return await discountEngine.PriceAsync(cart, owner.UserId, cancellationToken);
+        return await PriceWithCouponRecoveryAsync(cart, owner.UserId, cancellationToken);
     }
 
     public async Task<CartSummary> ClearAsync(CartOwner owner, CancellationToken cancellationToken)
@@ -151,16 +151,24 @@ public sealed class CartService(
     {
         var userCart = await GetOrCreateAsync(new CartOwner(userId, null), cancellationToken);
         var guestCart = await LoadCartAsync(new CartOwner(null, guestToken), cancellationToken);
-        if (guestCart is null || guestCart.Id == userCart.Id) return new CartMergeResult(await discountEngine.PriceAsync(userCart, userId, cancellationToken), []);
+        if (guestCart is null || guestCart.Id == userCart.Id)
+            return new CartMergeResult(await PriceWithCouponRecoveryAsync(userCart, userId, cancellationToken), []);
 
         var warnings = new List<string>();
         foreach (var guestItem in guestCart.Items)
         {
+            if (!guestItem.Product.IsActive || guestItem.ProductVariant is { IsActive: false })
+            {
+                warnings.Add($"{guestItem.Product.Name} is no longer available and was removed from the guest cart.");
+                continue;
+            }
+
             var existing = userCart.Items.SingleOrDefault(x => x.ProductId == guestItem.ProductId && x.ProductVariantId == guestItem.ProductVariantId);
             var stock = guestItem.ProductVariant?.StockQuantity ?? guestItem.Product.StockQuantity;
             var desired = guestItem.Quantity + (existing?.Quantity ?? 0);
             var merged = Math.Min(Math.Min(desired, stock), _options.MaximumCartItemQuantity);
             if (merged < desired) warnings.Add($"{guestItem.Product.Name} miktarı mevcut stoğa göre ayarlandı.");
+            if (merged <= 0) continue;
             if (existing is null)
             {
                 var item = new CartItem
@@ -186,10 +194,30 @@ public sealed class CartService(
         }
 
         userCart.CouponCode ??= guestCart.CouponCode;
+        var mergedCouponCode = userCart.CouponCode;
         userCart.UpdatedAtUtc = Now;
         dbContext.Carts.Remove(guestCart);
         await dbContext.SaveChangesAsync(cancellationToken);
-        return new CartMergeResult(await discountEngine.PriceAsync(userCart, userId, cancellationToken), warnings);
+        var summary = await PriceWithCouponRecoveryAsync(userCart, userId, cancellationToken);
+        if (!string.IsNullOrWhiteSpace(mergedCouponCode) && string.IsNullOrWhiteSpace(summary.CouponCode))
+            warnings.Add("The guest cart coupon was no longer valid and was removed.");
+        return new CartMergeResult(summary, warnings);
+    }
+
+    private async Task<CartSummary> PriceWithCouponRecoveryAsync(Cart cart, Guid? userId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await discountEngine.PriceAsync(cart, userId, cancellationToken);
+        }
+        catch (CommerceRuleException exception) when (!string.IsNullOrWhiteSpace(cart.CouponCode))
+        {
+            cart.CouponCode = null;
+            cart.UpdatedAtUtc = Now;
+            await dbContext.SaveChangesAsync(cancellationToken);
+            var summary = await discountEngine.PriceAsync(cart, userId, cancellationToken);
+            return summary with { Warnings = summary.Warnings.Append($"Coupon was removed: {exception.Message}").ToList() };
+        }
     }
 
     private async Task<Cart> GetOrCreateAsync(CartOwner owner, CancellationToken cancellationToken)

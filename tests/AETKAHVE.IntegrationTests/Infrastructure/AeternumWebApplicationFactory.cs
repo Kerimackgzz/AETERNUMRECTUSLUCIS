@@ -1,7 +1,6 @@
 using AETKAHVE.Application.Security;
 using AETKAHVE.Infrastructure.Identity;
 using AETKAHVE.Infrastructure.Persistence;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -27,6 +26,9 @@ public sealed class AeternumWebApplicationFactory : WebApplicationFactory<Progra
 
     private readonly SqliteConnection _connection = new("Data Source=:memory:");
 
+    // Persistent cookies are evaluated by HttpClient's CookieContainer against the real
+    // wall clock. Start the mutable application clock at the same instant, then advance it
+    // relatively in tests, so the fixture does not become date-dependent.
     public MutableTimeProvider Clock { get; } = new(TimeProvider.System.GetUtcNow());
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -54,12 +56,6 @@ public sealed class AeternumWebApplicationFactory : WebApplicationFactory<Progra
             services.RemoveAll<IDataProtectionProvider>();
             services.AddSingleton<IDataProtectionProvider>(new EphemeralDataProtectionProvider());
             services.AddSingleton<TimeProvider>(Clock);
-            services.PostConfigure<CookieAuthenticationOptions>(AuthenticationSchemes.Customer, options =>
-                options.TimeProvider = Clock);
-            services.PostConfigure<CookieAuthenticationOptions>(AuthenticationSchemes.Admin, options =>
-                options.TimeProvider = Clock);
-            services.PostConfigure<CookieAuthenticationOptions>(AuthenticationSchemes.SuperAdmin, options =>
-                options.TimeProvider = Clock);
             services.AddSingleton(_connection);
             services.AddDbContext<AppDbContext>(options => options.UseSqlite(_connection));
         });

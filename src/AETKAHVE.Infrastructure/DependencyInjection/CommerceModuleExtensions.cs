@@ -1,8 +1,13 @@
 using AETKAHVE.Application.Commerce;
+using AETKAHVE.Application.Notifications;
 using AETKAHVE.Infrastructure.Commerce;
+using AETKAHVE.Infrastructure.Notifications;
 using AETKAHVE.Infrastructure.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace AETKAHVE.Infrastructure.DependencyInjection;
 
@@ -15,13 +20,17 @@ public static class CommerceModuleExtensions
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configuration);
 
+        services.AddSingleton<IValidateOptions<PaymentOptions>, PaymentOptionsValidator>();
+        services.AddSingleton<IValidateOptions<ShippingOptions>, ShippingOptionsValidator>();
+        services.AddSingleton<IValidateOptions<NotificationOptions>, NotificationOptionsValidator>();
+        services.AddSingleton<IValidateOptions<SmtpOptions>, SmtpOptionsValidator>();
         services.AddOptions<CommerceOptions>().Bind(configuration.GetSection(CommerceOptions.SectionName)).ValidateDataAnnotations().ValidateOnStart();
         services.AddOptions<PaymentOptions>().Bind(configuration.GetSection(PaymentOptions.SectionName)).ValidateDataAnnotations().ValidateOnStart();
         services.AddOptions<ShippingOptions>().Bind(configuration.GetSection(ShippingOptions.SectionName)).ValidateDataAnnotations().ValidateOnStart();
         services.AddOptions<InvoiceOptions>().Bind(configuration.GetSection(InvoiceOptions.SectionName)).ValidateDataAnnotations().ValidateOnStart();
         services.AddOptions<NotificationOptions>().Bind(configuration.GetSection(NotificationOptions.SectionName)).ValidateDataAnnotations().ValidateOnStart();
         services.AddOptions<FileStorageOptions>().Bind(configuration.GetSection(FileStorageOptions.SectionName)).ValidateDataAnnotations().ValidateOnStart();
-        services.AddOptions<SmtpOptions>().Bind(configuration.GetSection(SmtpOptions.SectionName)).ValidateDataAnnotations();
+        services.AddOptions<SmtpOptions>().Bind(configuration.GetSection(SmtpOptions.SectionName)).ValidateDataAnnotations().ValidateOnStart();
 
         services.AddScoped<ICatalogQueryService, CatalogQueryService>();
         services.AddScoped<IDiscountEngine, DiscountEngine>();
@@ -47,13 +56,25 @@ public static class CommerceModuleExtensions
         services.AddSingleton<MockSmsSender>();
         services.AddSingleton<UnconfiguredSmsSender>();
         services.AddSingleton<IEmailSender>(provider =>
-            configuration.GetValue<bool>($"{NotificationOptions.SectionName}:UseMockProviders", true)
+            NotificationProviderSelection.UseMockProviders(
+                provider.GetRequiredService<IHostEnvironment>(),
+                provider.GetRequiredService<IOptions<NotificationOptions>>().Value)
                 ? provider.GetRequiredService<MockEmailSender>()
                 : ActivatorUtilities.CreateInstance<SmtpEmailSender>(provider));
         services.AddSingleton<ISmsSender>(provider =>
-            configuration.GetValue<bool>($"{NotificationOptions.SectionName}:UseMockProviders", true)
+            NotificationProviderSelection.UseMockProviders(
+                provider.GetRequiredService<IHostEnvironment>(),
+                provider.GetRequiredService<IOptions<NotificationOptions>>().Value)
                 ? provider.GetRequiredService<MockSmsSender>()
                 : provider.GetRequiredService<UnconfiguredSmsSender>());
+        services.AddScoped<OutboxIdentityMessageSender>();
+        services.RemoveAll<IIdentityMessageSender>();
+        services.AddScoped<IIdentityMessageSender>(provider =>
+            NotificationProviderSelection.UseMockProviders(
+                provider.GetRequiredService<IHostEnvironment>(),
+                provider.GetRequiredService<IOptions<NotificationOptions>>().Value)
+                ? provider.GetRequiredService<InMemoryIdentityMessageSender>()
+                : provider.GetRequiredService<OutboxIdentityMessageSender>());
         services.AddSingleton<IInvoicePdfGenerator, InvoicePdfGenerator>();
         services.AddSingleton<IInvoiceStorage, LocalInvoiceStorage>();
         services.AddSingleton<IFileStorageService, LocalFileStorageService>();

@@ -1,6 +1,7 @@
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @{
     var antiforgery = Antiforgery.GetAndStoreTokens(Context);
+    var isHomePage = Context.Request.Path == "/";
 }
 <!doctype html>
 <html lang="tr">
@@ -20,7 +21,7 @@
     <link rel="stylesheet" href="~/css/core/page-transition.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
-<body>
+<body class="public-layout @(isHomePage ? "public-layout--home" : "public-layout--inner")">
     <a href="#main-content" class="skip-link">İçeriğe geç</a>
     <partial name="_Navbar" />
     <partial name="_PageTransitionOverlay" />
