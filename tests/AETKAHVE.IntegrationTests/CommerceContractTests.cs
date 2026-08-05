@@ -33,12 +33,22 @@ public sealed class CommerceContractTests(AeternumWebApplicationFactory factory)
         });
         AssertShape<ProductCardViewModel>(new Dictionary<string, Type>
         {
-            ["Id"] = typeof(Guid), ["Name"] = typeof(string), ["Slug"] = typeof(string),
-            ["PrimaryImageUrl"] = typeof(string), ["PrimaryImageAlt"] = typeof(string),
-            ["CategoryName"] = typeof(string), ["OriginName"] = typeof(string), ["RoastLevelName"] = typeof(string),
-            ["DisplayPrice"] = typeof(decimal), ["OriginalPrice"] = typeof(decimal?),
-            ["IsDiscounted"] = typeof(bool), ["IsInStock"] = typeof(bool), ["IsFavorite"] = typeof(bool),
-            ["AddToCartUrl"] = typeof(string), ["ToggleFavoriteUrl"] = typeof(string), ["DetailUrl"] = typeof(string),
+            ["Id"] = typeof(Guid),
+            ["Name"] = typeof(string),
+            ["Slug"] = typeof(string),
+            ["PrimaryImageUrl"] = typeof(string),
+            ["PrimaryImageAlt"] = typeof(string),
+            ["CategoryName"] = typeof(string),
+            ["OriginName"] = typeof(string),
+            ["RoastLevelName"] = typeof(string),
+            ["DisplayPrice"] = typeof(decimal),
+            ["OriginalPrice"] = typeof(decimal?),
+            ["IsDiscounted"] = typeof(bool),
+            ["IsInStock"] = typeof(bool),
+            ["IsFavorite"] = typeof(bool),
+            ["AddToCartUrl"] = typeof(string),
+            ["ToggleFavoriteUrl"] = typeof(string),
+            ["DetailUrl"] = typeof(string),
         });
     }
 
@@ -107,9 +117,27 @@ public sealed class CommerceContractTests(AeternumWebApplicationFactory factory)
 
         var callback = await client.PostAsync("/payments/Mock/callback", new FormUrlEncodedContent(new Dictionary<string, string>
         {
-            ["reference"] = "unknown", ["transactionId"] = "unknown", ["status"] = "fail",
+            ["reference"] = "unknown",
+            ["transactionId"] = "unknown",
+            ["status"] = "fail",
         }));
         Assert.Equal(HttpStatusCode.Conflict, callback.StatusCode);
+
+        var disabledCallback = await client.PostAsync("/payments/Disabled/callback", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["reference"] = "unknown",
+            ["transactionId"] = "unknown",
+            ["status"] = "success",
+        }));
+        Assert.Equal(HttpStatusCode.Unauthorized, disabledCallback.StatusCode);
+
+        var unknownProviderCallback = await client.PostAsync("/payments/Unregistered/callback", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["reference"] = "unknown",
+            ["transactionId"] = "unknown",
+            ["status"] = "success",
+        }));
+        Assert.Equal(HttpStatusCode.Unauthorized, unknownProviderCallback.StatusCode);
     }
 
     [Fact]
@@ -154,18 +182,37 @@ public sealed class CommerceContractTests(AeternumWebApplicationFactory factory)
         var token = Guid.NewGuid().ToString("N");
         var category = new Category
         {
-            Name = $"Category {token}", Slug = $"category-{token}", CreatedAtUtc = now, UpdatedAtUtc = now,
+            Name = $"Category {token}",
+            Slug = $"category-{token}",
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
         };
         var product = new Product
         {
-            Name = $"Product {token}", Slug = $"product-{token}", Sku = $"SKU-{token}", ShortDescription = "Test",
-            Description = "JSON cart contract product", BasePrice = 100, TaxRate = 0, StockQuantity = 0,
-            Category = category, IsActive = true, CreatedAtUtc = now, UpdatedAtUtc = now,
+            Name = $"Product {token}",
+            Slug = $"product-{token}",
+            Sku = $"SKU-{token}",
+            ShortDescription = "Test",
+            Description = "JSON cart contract product",
+            BasePrice = 100,
+            TaxRate = 0,
+            StockQuantity = 0,
+            Category = category,
+            IsActive = true,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
         };
         var variant = new ProductVariant
         {
-            Product = product, Weight = 250, Unit = WeightUnit.Gram, Sku = $"VAR-{token}", Price = 100,
-            StockQuantity = 5, IsActive = true, CreatedAtUtc = now, UpdatedAtUtc = now,
+            Product = product,
+            Weight = 250,
+            Unit = WeightUnit.Gram,
+            Sku = $"VAR-{token}",
+            Price = 100,
+            StockQuantity = 5,
+            IsActive = true,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
         };
         product.Variants.Add(variant);
         await using (var seedScope = factory.Services.CreateAsyncScope())

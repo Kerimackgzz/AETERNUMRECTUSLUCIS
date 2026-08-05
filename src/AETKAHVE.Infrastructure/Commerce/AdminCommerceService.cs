@@ -75,9 +75,18 @@ public sealed class AdminCommerceService(
         var now = timeProvider.GetUtcNow();
         dbContext.StockMovements.Add(new StockMovement
         {
-            ProductId = productId, ProductVariantId = variantId, MovementType = delta > 0 ? StockMovementType.ManualIncrease : StockMovementType.ManualDecrease,
-            Quantity = delta, PreviousStock = previous, NewStock = next, ReferenceType = "AdminAdjustment", ReferenceId = Guid.NewGuid(),
-            Description = "Manual stock adjustment.", CreatedByUserId = adminUserId, CreatedAtUtc = now, UpdatedAtUtc = now,
+            ProductId = productId,
+            ProductVariantId = variantId,
+            MovementType = delta > 0 ? StockMovementType.ManualIncrease : StockMovementType.ManualDecrease,
+            Quantity = delta,
+            PreviousStock = previous,
+            NewStock = next,
+            ReferenceType = "AdminAdjustment",
+            ReferenceId = Guid.NewGuid(),
+            Description = "Manual stock adjustment.",
+            CreatedByUserId = adminUserId,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
         });
         await dbContext.SaveChangesAsync(cancellationToken);
         await AuditAsync(adminUserId, "StockAdjusted", productId, cancellationToken);
@@ -211,9 +220,14 @@ public sealed class AdminCommerceService(
             {
                 dbContext.ShipmentStatusHistory.Add(new ShipmentStatusHistory
                 {
-                    ShipmentId = order.Shipment.Id, Shipment = order.Shipment, PreviousStatus = order.Shipment.Status,
-                    NewStatus = shipmentStatus.Value, Description = description, ChangedByUserId = adminUserId,
-                    CreatedAtUtc = now, UpdatedAtUtc = now,
+                    ShipmentId = order.Shipment.Id,
+                    Shipment = order.Shipment,
+                    PreviousStatus = order.Shipment.Status,
+                    NewStatus = shipmentStatus.Value,
+                    Description = description,
+                    ChangedByUserId = adminUserId,
+                    CreatedAtUtc = now,
+                    UpdatedAtUtc = now,
                 });
                 order.Shipment.Status = shipmentStatus.Value;
                 order.Shipment.UpdatedAtUtc = now;
@@ -245,8 +259,13 @@ public sealed class AdminCommerceService(
         shipment.Status = ShipmentStatus.Created; shipment.EstimatedDeliveryDateUtc = input.EstimatedDeliveryDateUtc?.ToUniversalTime(); shipment.ShippingNote = Truncate(input.Note, 1000); shipment.UpdatedAtUtc = now;
         dbContext.ShipmentStatusHistory.Add(new ShipmentStatusHistory
         {
-            Shipment = shipment, PreviousStatus = previousStatus, NewStatus = ShipmentStatus.Created,
-            Description = "Shipment created.", ChangedByUserId = adminUserId, CreatedAtUtc = now, UpdatedAtUtc = now,
+            Shipment = shipment,
+            PreviousStatus = previousStatus,
+            NewStatus = ShipmentStatus.Created,
+            Description = "Shipment created.",
+            ChangedByUserId = adminUserId,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
         });
         order.ShippingStatus = ShipmentStatus.Created;
         await dbContext.SaveChangesAsync(cancellationToken);
@@ -270,8 +289,14 @@ public sealed class AdminCommerceService(
         {
             dbContext.ShipmentStatusHistory.Add(new ShipmentStatusHistory
             {
-                ShipmentId = shipment.Id, Shipment = shipment, PreviousStatus = previous, NewStatus = result.Status,
-                Description = Truncate(result.Description, 500), ChangedByUserId = adminUserId, CreatedAtUtc = now, UpdatedAtUtc = now,
+                ShipmentId = shipment.Id,
+                Shipment = shipment,
+                PreviousStatus = previous,
+                NewStatus = result.Status,
+                Description = Truncate(result.Description, 500),
+                ChangedByUserId = adminUserId,
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now,
             });
             if (OrderStatusRules.CanTransition(shipment.Order.Status, ToOrderStatus(result.Status)))
                 dbContext.OrderStatusHistory.Add(shipment.Order.TransitionTo(ToOrderStatus(result.Status), adminUserId, now, result.Description ?? "Shipment status updated."));
@@ -292,8 +317,14 @@ public sealed class AdminCommerceService(
         var now = timeProvider.GetUtcNow();
         dbContext.ShipmentStatusHistory.Add(new ShipmentStatusHistory
         {
-            ShipmentId = shipment.Id, Shipment = shipment, PreviousStatus = shipment.Status, NewStatus = ShipmentStatus.Cancelled,
-            Description = "Shipment cancelled.", ChangedByUserId = adminUserId, CreatedAtUtc = now, UpdatedAtUtc = now,
+            ShipmentId = shipment.Id,
+            Shipment = shipment,
+            PreviousStatus = shipment.Status,
+            NewStatus = ShipmentStatus.Cancelled,
+            Description = "Shipment cancelled.",
+            ChangedByUserId = adminUserId,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
         });
         shipment.Status = ShipmentStatus.Cancelled; shipment.UpdatedAtUtc = now; shipment.Order.ShippingStatus = ShipmentStatus.Cancelled;
         await dbContext.SaveChangesAsync(cancellationToken);

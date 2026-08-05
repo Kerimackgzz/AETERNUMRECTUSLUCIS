@@ -28,7 +28,8 @@
     <h1 class="account-card__title">Sipariş @order.Summary.OrderNumber</h1>
     <p class="mb-4"><span class="status-badge" data-status-kind="@status.Kind">@status.Label</span></p>
 
-    <table class="mb-4">
+    <div class="table-scroll mb-4" tabindex="0" role="region" aria-label="Sipariş kalemleri tablosu">
+    <table>
         <thead>
             <tr><th>Ürün</th><th>Adet</th><th>Birim Fiyat</th><th>Toplam</th></tr>
         </thead>
@@ -44,6 +45,7 @@
             }
         </tbody>
     </table>
+    </div>
 
     @if (order.Summary.Status is OrderStatus.Delivered or OrderStatus.ReturnRequested)
     {

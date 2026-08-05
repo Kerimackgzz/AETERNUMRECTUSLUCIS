@@ -1,7 +1,7 @@
 /*
   AETERNUM RECTUS LUCIS — Navbar
-  Hero üzerinde şeffaf başlar, aşağı kaydırınca (JS: navbar-motion.js,
-  [data-navbar].is-scrolled) koyu, hairline'lı zemine geçer.
+  Hero üzerinde gerçekten şeffaf başlar. Scroll durumunda zemin yukarıdan
+  açılarak gelir; mobilde erişilebilir bir disclosure menüye dönüşür.
 */
 
 [data-navbar] {
@@ -10,43 +10,82 @@
   left: 0;
   right: 0;
   z-index: var(--z-navbar);
-  display: flex;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--space-4);
-  padding: var(--space-5) var(--space-6);
+  gap: clamp(var(--space-4), 2.5vw, var(--space-8));
+  min-height: 64px;
+  padding: var(--space-5) clamp(var(--space-4), 4vw, var(--space-8));
+  padding-top: max(var(--space-5), env(safe-area-inset-top));
   background-color: transparent;
   border-bottom: 1px solid transparent;
   transition:
-    background-color var(--duration-base) var(--ease-standard),
-    border-color var(--duration-base) var(--ease-standard),
-    padding var(--duration-base) var(--ease-standard);
+    border-color var(--duration-slow) var(--ease-emphasized),
+    padding var(--duration-slow) var(--ease-emphasized),
+    box-shadow var(--duration-slow) var(--ease-emphasized);
+}
+
+[data-navbar]::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  content: "";
+  background-color: rgba(10, 11, 9, 0.94);
+  opacity: 0;
+  transform: scaleY(0.72);
+  transform-origin: top;
+  transition:
+    opacity var(--duration-slow) var(--ease-emphasized),
+    transform var(--duration-slow) var(--ease-emphasized);
+}
+
+@supports ((-webkit-backdrop-filter: blur(10px)) or (backdrop-filter: blur(10px))) {
+  [data-navbar].is-scrolled::before,
+  [data-navbar].is-menu-open::before {
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
 }
 
 [data-navbar].is-scrolled {
-  background-color: rgba(10, 11, 9, 0.92);
-  border-bottom-color: var(--color-border);
   padding-block: var(--space-3);
-  backdrop-filter: blur(6px);
+  border-bottom-color: var(--color-border);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+}
+
+[data-navbar].is-scrolled::before,
+[data-navbar].is-menu-open::before {
+  opacity: 1;
+  transform: scaleY(1);
 }
 
 [data-navbar-brand] {
   display: inline-flex;
+  min-width: 0;
   font-family: var(--font-display);
-  font-size: var(--text-lg);
+  font-size: clamp(var(--text-base), 1.5vw, var(--text-lg));
   letter-spacing: var(--tracking-wide);
   color: var(--color-ink);
   text-decoration: none;
   white-space: nowrap;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.42);
+  transform-origin: left center;
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-slow) var(--ease-emphasized);
+}
+
+[data-navbar].is-scrolled [data-navbar-brand] {
+  transform: scale(0.96);
 }
 
 [data-navbar-brand]:hover {
   color: var(--color-gold-400);
 }
 
-/* Harf-mask reveal: JS (navbar-motion.js) marka metnini calisma zamaninda
-   [data-navbar-brand] icine bu yapida sarar; JS calismazsa duz metin gorunur. */
+/* JS marka metnini çalışma zamanında bu yapıya sarar. JS çalışmazsa düz
+   metin görünür kalır; aria-label ile erişilebilir ad değişmez. */
 .navbar-brand__letter-mask {
   display: inline-block;
   overflow: hidden;
@@ -54,8 +93,8 @@
 
 .navbar-brand__letter {
   display: inline-block;
-  transform: translateY(115%);
-  animation: navbar-letter-reveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform: translateY(110%);
+  animation: navbar-letter-reveal 0.62s cubic-bezier(0.16, 1, 0.3, 1) both;
   animation-delay: var(--letter-delay, 0ms);
 }
 
@@ -65,51 +104,225 @@
   }
 }
 
+.navbar-menu {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: clamp(var(--space-3), 2vw, var(--space-6));
+  min-width: 0;
+}
+
+[data-navbar-link] {
+  position: relative;
+  padding-block: var(--space-2);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-ink);
+  text-decoration: none;
+  letter-spacing: var(--tracking-normal);
+  white-space: nowrap;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.5);
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+[data-navbar-link]::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  content: "";
+  background-color: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform var(--duration-base) var(--ease-emphasized);
+}
+
+[data-navbar-link]:hover,
+[data-navbar-link][aria-current="page"] {
+  color: var(--color-gold-400);
+}
+
+[data-navbar-link]:hover::after,
+[data-navbar-link]:focus-visible::after,
+[data-navbar-link][aria-current="page"]::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+[data-navbar-link]:last-child {
+  padding-inline: var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+}
+
+[data-navbar-link]:last-child::after {
+  display: none;
+}
+
+[data-navbar-link]:last-child:hover {
+  border-color: var(--color-gold-400);
+}
+
+.navbar-toggle {
+  display: none;
+  width: 44px;
+  height: 44px;
+  padding: 11px 9px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: rgba(10, 11, 9, 0.34);
+  color: var(--color-ink);
+  cursor: pointer;
+}
+
+.navbar-toggle__line {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background-color: currentColor;
+  transform-origin: center;
+  transition:
+    transform var(--duration-base) var(--ease-emphasized),
+    opacity var(--duration-fast) var(--ease-standard);
+}
+
+.navbar-toggle__line + .navbar-toggle__line {
+  margin-top: 6px;
+}
+
+[data-navbar].is-menu-open .navbar-toggle__line:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+[data-navbar].is-menu-open .navbar-toggle__line:nth-child(2) {
+  opacity: 0;
+}
+
+[data-navbar].is-menu-open .navbar-toggle__line:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+body.has-open-navigation {
+  overflow: hidden;
+}
+
+@media (max-width: 959px) {
+  [data-navbar] {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-3);
+    min-height: 68px;
+    padding: var(--space-3) var(--space-4);
+    padding-top: max(var(--space-3), env(safe-area-inset-top));
+  }
+
+  [data-navbar-brand] {
+    width: fit-content;
+    max-width: 100%;
+    overflow: hidden;
+    font-size: clamp(0.88rem, 4vw, var(--text-base));
+    text-overflow: ellipsis;
+  }
+
+  [data-navbar].is-enhanced .navbar-toggle {
+    display: block;
+  }
+
+  /* JS yüklenemezse bağlantılar kaybolmaz; iki sütunlu sade bir fallback
+     olarak doğal akışta görünür. Enhancement aktif olduğunda aşağıdaki
+     disclosure kuralları bu düzeni devralır. */
+  .navbar-menu {
+    grid-column: 1 / -1;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+
+  [data-navbar].is-enhanced .navbar-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    max-height: 0;
+    padding: 0 var(--space-4);
+    overflow: hidden;
+    overflow-y: auto;
+    background-color: rgba(10, 11, 9, 0.98);
+    border-bottom: 1px solid transparent;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-8px);
+    transition:
+      max-height var(--duration-slow) var(--ease-emphasized),
+      opacity var(--duration-base) var(--ease-standard),
+      transform var(--duration-slow) var(--ease-emphasized),
+      padding var(--duration-slow) var(--ease-emphasized),
+      visibility 0s linear var(--duration-slow);
+  }
+
+  [data-navbar].is-enhanced.is-menu-open .navbar-menu {
+    max-height: calc(100dvh - 68px);
+    padding-block: var(--space-3) var(--space-5);
+    border-bottom-color: var(--color-border);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+    transition-delay: 0s;
+  }
+
+  [data-navbar-link] {
+    width: 100%;
+    padding: var(--space-3) var(--space-2);
+    border-bottom: 1px solid var(--color-border);
+    font-size: var(--text-base);
+    text-shadow: none;
+  }
+
+  [data-navbar-link]::after {
+    display: none;
+  }
+
+  [data-navbar-link]:last-child {
+    margin-top: var(--space-3);
+    padding-inline: var(--space-3);
+    text-align: center;
+    border-bottom-color: var(--color-border-strong);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  [data-navbar],
+  [data-navbar]::before,
+  [data-navbar-brand],
+  [data-navbar-link],
+  [data-navbar-link]::after,
+  .navbar-menu,
+  .navbar-toggle__line {
+    transition: none;
+  }
+
   .navbar-brand__letter {
     animation: none;
     transform: none;
   }
 }
 
-[data-navbar] > [data-navbar-link] {
-  margin-left: var(--space-5);
-}
-
-@media (max-width: 767px) {
-  [data-navbar] {
-    padding: var(--space-4);
+@media (forced-colors: active) {
+  [data-navbar].is-scrolled,
+  [data-navbar].is-menu-open,
+  [data-navbar].is-enhanced.is-menu-open .navbar-menu {
+    background-color: Canvas;
+    border-color: CanvasText;
   }
 
-  [data-navbar] > [data-navbar-link] {
-    margin-left: var(--space-3);
-  }
-}
-
-[data-navbar-link] {
-  font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--color-ink);
-  text-decoration: none;
-  letter-spacing: var(--tracking-normal);
-}
-
-[data-navbar-link]:hover {
-  color: var(--color-gold-400);
-}
-
-[data-navbar-link]:last-of-type {
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
-}
-
-[data-navbar-link]:last-of-type:hover {
-  border-color: var(--color-gold-400);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  [data-navbar] {
-    transition: none;
+  [data-navbar-brand],
+  [data-navbar-link],
+  .navbar-toggle {
+    color: CanvasText;
   }
 }

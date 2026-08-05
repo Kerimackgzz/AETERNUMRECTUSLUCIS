@@ -3,15 +3,6 @@ using Microsoft.Extensions.Options;
 
 namespace AETKAHVE.Infrastructure.Options;
 
-public sealed class PaymentOptionsValidator(IHostEnvironment environment) : IValidateOptions<PaymentOptions>
-{
-    public ValidateOptionsResult Validate(string? name, PaymentOptions options) =>
-        environment.IsProduction()
-            ? ValidateOptionsResult.Fail(
-                $"Payment:Provider '{options.Provider}' cannot run in Production because no production payment adapter is registered.")
-            : ValidateOptionsResult.Success;
-}
-
 public sealed class ShippingOptionsValidator(IHostEnvironment environment) : IValidateOptions<ShippingOptions>
 {
     public ValidateOptionsResult Validate(string? name, ShippingOptions options) =>

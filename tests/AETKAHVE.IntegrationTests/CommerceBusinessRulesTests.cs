@@ -57,9 +57,16 @@ public sealed class CommerceBusinessRulesTests(AeternumWebApplicationFactory fac
         var code = $"C{Guid.NewGuid():N}".ToUpperInvariant();
         db.Coupons.Add(new Coupon
         {
-            Name = "Combinable", Code = code, DiscountType = DiscountType.FixedAmount, DiscountValue = 5,
-            StartDateUtc = now.AddDays(-1), EndDateUtc = now.AddDays(1), IsActive = true,
-            CanCombineWithOtherDiscounts = true, CreatedAtUtc = now, UpdatedAtUtc = now,
+            Name = "Combinable",
+            Code = code,
+            DiscountType = DiscountType.FixedAmount,
+            DiscountValue = 5,
+            StartDateUtc = now.AddDays(-1),
+            EndDateUtc = now.AddDays(1),
+            IsActive = true,
+            CanCombineWithOtherDiscounts = true,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
         });
         await db.SaveChangesAsync();
 
@@ -88,20 +95,40 @@ public sealed class CommerceBusinessRulesTests(AeternumWebApplicationFactory fac
         var limitedCode = $"L{Guid.NewGuid():N}".ToUpperInvariant();
         var incompatible = new Coupon
         {
-            Name = "Incompatible", Code = incompatibleCode, DiscountType = DiscountType.FixedAmount, DiscountValue = 5,
-            StartDateUtc = now.AddDays(-1), EndDateUtc = now.AddDays(1), IsActive = true, CanCombineWithOtherDiscounts = true,
-            CreatedAtUtc = now, UpdatedAtUtc = now,
+            Name = "Incompatible",
+            Code = incompatibleCode,
+            DiscountType = DiscountType.FixedAmount,
+            DiscountValue = 5,
+            StartDateUtc = now.AddDays(-1),
+            EndDateUtc = now.AddDays(1),
+            IsActive = true,
+            CanCombineWithOtherDiscounts = true,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
         };
         var limited = new Coupon
         {
-            Name = "Limited", Code = limitedCode, DiscountType = DiscountType.FixedAmount, DiscountValue = 5,
-            StartDateUtc = now.AddDays(-1), EndDateUtc = now.AddDays(1), IsActive = true, CanCombineWithOtherDiscounts = true,
-            TotalUsageLimit = 1, CreatedAtUtc = now, UpdatedAtUtc = now,
+            Name = "Limited",
+            Code = limitedCode,
+            DiscountType = DiscountType.FixedAmount,
+            DiscountValue = 5,
+            StartDateUtc = now.AddDays(-1),
+            EndDateUtc = now.AddDays(1),
+            IsActive = true,
+            CanCombineWithOtherDiscounts = true,
+            TotalUsageLimit = 1,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
         };
         var historicalOrder = new Order
         {
-            OrderNumber = $"COUPON-{Guid.NewGuid():N}", UserId = user.Id, BillingAddressSnapshot = "{}", ShippingAddressSnapshot = "{}",
-            IdempotencyKey = Guid.NewGuid().ToString("N"), CreatedAtUtc = now, UpdatedAtUtc = now,
+            OrderNumber = $"COUPON-{Guid.NewGuid():N}",
+            UserId = user.Id,
+            BillingAddressSnapshot = "{}",
+            ShippingAddressSnapshot = "{}",
+            IdempotencyKey = Guid.NewGuid().ToString("N"),
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
         };
         db.Campaigns.Add(campaign);
         db.Coupons.AddRange(incompatible, limited);
@@ -207,15 +234,33 @@ public sealed class CommerceBusinessRulesTests(AeternumWebApplicationFactory fac
         var paidAt = new DateTimeOffset(2030, 1, 15, 10, 0, 0, TimeSpan.Zero);
         var order = new Order
         {
-            OrderNumber = $"REPORT-{Guid.NewGuid():N}", UserId = user.Id, Status = OrderStatus.PaymentReceived, PaymentStatus = PaymentStatus.Succeeded,
-            BillingAddressSnapshot = "{}", ShippingAddressSnapshot = "{}", Subtotal = 100, DiscountTotal = 10, TaxTotal = 18,
-            ShippingTotal = 5, GrandTotal = 113, IdempotencyKey = Guid.NewGuid().ToString("N"), PaidAtUtc = paidAt,
-            CreatedAtUtc = paidAt, UpdatedAtUtc = paidAt,
+            OrderNumber = $"REPORT-{Guid.NewGuid():N}",
+            UserId = user.Id,
+            Status = OrderStatus.PaymentReceived,
+            PaymentStatus = PaymentStatus.Succeeded,
+            BillingAddressSnapshot = "{}",
+            ShippingAddressSnapshot = "{}",
+            Subtotal = 100,
+            DiscountTotal = 10,
+            TaxTotal = 18,
+            ShippingTotal = 5,
+            GrandTotal = 113,
+            IdempotencyKey = Guid.NewGuid().ToString("N"),
+            PaidAtUtc = paidAt,
+            CreatedAtUtc = paidAt,
+            UpdatedAtUtc = paidAt,
         };
         var payment = new Payment
         {
-            Order = order, Provider = "Mock", TransactionId = $"report-{Guid.NewGuid():N}", IdempotencyKey = Guid.NewGuid().ToString("N"),
-            Amount = 113, Status = PaymentStatus.Succeeded, CompletedAtUtc = paidAt, CreatedAtUtc = paidAt, UpdatedAtUtc = paidAt,
+            Order = order,
+            Provider = "Mock",
+            TransactionId = $"report-{Guid.NewGuid():N}",
+            IdempotencyKey = Guid.NewGuid().ToString("N"),
+            Amount = 113,
+            Status = PaymentStatus.Succeeded,
+            CompletedAtUtc = paidAt,
+            CreatedAtUtc = paidAt,
+            UpdatedAtUtc = paidAt,
         };
         db.Orders.Add(order);
         db.Payments.Add(payment);
@@ -242,9 +287,14 @@ public sealed class CommerceBusinessRulesTests(AeternumWebApplicationFactory fac
         var destination = $"outbox-{Guid.NewGuid():N}@test.local";
         var delivery = new NotificationDelivery
         {
-            UserId = user.Id, Channel = NotificationChannel.Email, Destination = destination, TemplateKey = "Test",
-            PayloadJson = JsonSerializer.Serialize(new DeliveryPayload("Subject", "Body")), NextAttemptAtUtc = now,
-            CreatedAtUtc = now, UpdatedAtUtc = now,
+            UserId = user.Id,
+            Channel = NotificationChannel.Email,
+            Destination = destination,
+            TemplateKey = "Test",
+            PayloadJson = JsonSerializer.Serialize(new DeliveryPayload("Subject", "Body")),
+            NextAttemptAtUtc = now,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
         };
         db.NotificationDeliveries.Add(delivery);
         await db.SaveChangesAsync();
@@ -260,9 +310,16 @@ public sealed class CommerceBusinessRulesTests(AeternumWebApplicationFactory fac
 
     private static Campaign Campaign(string name, DiscountType type, decimal value, DateTimeOffset start, bool combinable, DateTimeOffset? end = null) => new()
     {
-        Name = $"{name} {Guid.NewGuid():N}", Slug = $"campaign-{Guid.NewGuid():N}", DiscountType = type, DiscountValue = value,
-        StartDateUtc = start.AddDays(-1), EndDateUtc = end ?? start.AddDays(1), IsActive = true,
-        CanCombineWithOtherDiscounts = combinable, CreatedAtUtc = start, UpdatedAtUtc = start,
+        Name = $"{name} {Guid.NewGuid():N}",
+        Slug = $"campaign-{Guid.NewGuid():N}",
+        DiscountType = type,
+        DiscountValue = value,
+        StartDateUtc = start.AddDays(-1),
+        EndDateUtc = end ?? start.AddDays(1),
+        IsActive = true,
+        CanCombineWithOtherDiscounts = combinable,
+        CreatedAtUtc = start,
+        UpdatedAtUtc = start,
     };
 
     private static async Task<ApplicationUser> GetUserAsync(IServiceProvider services, string email) =>
@@ -277,13 +334,29 @@ public sealed class CommerceBusinessRulesTests(AeternumWebApplicationFactory fac
         var category = new Category { Name = $"Category {token}", Slug = $"category-{token}", CreatedAtUtc = now, UpdatedAtUtc = now };
         var product = new Product
         {
-            Name = name, Slug = $"product-{token}", Sku = $"SKU-{token.ToUpperInvariant()}", ShortDescription = "Test", Description = name,
-            BasePrice = price, TaxRate = taxRate, Category = category, IsActive = true, CreatedAtUtc = now, UpdatedAtUtc = now,
+            Name = name,
+            Slug = $"product-{token}",
+            Sku = $"SKU-{token.ToUpperInvariant()}",
+            ShortDescription = "Test",
+            Description = name,
+            BasePrice = price,
+            TaxRate = taxRate,
+            Category = category,
+            IsActive = true,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
         };
         var variant = new ProductVariant
         {
-            Product = product, Weight = 250, Unit = WeightUnit.Gram, Sku = $"VAR-{token.ToUpperInvariant()}", Price = price,
-            StockQuantity = stock, IsActive = true, CreatedAtUtc = now, UpdatedAtUtc = now,
+            Product = product,
+            Weight = 250,
+            Unit = WeightUnit.Gram,
+            Sku = $"VAR-{token.ToUpperInvariant()}",
+            Price = price,
+            StockQuantity = stock,
+            IsActive = true,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
         };
         product.Variants.Add(variant);
         db.Products.Add(product);
@@ -298,23 +371,46 @@ public sealed class CommerceBusinessRulesTests(AeternumWebApplicationFactory fac
         var now = DateTimeOffset.UtcNow;
         var order = new Order
         {
-            OrderNumber = $"DELIVERED-{Guid.NewGuid():N}", UserId = userId, Status = OrderStatus.Delivered,
-            PaymentStatus = PaymentStatus.Succeeded, ShippingStatus = ShipmentStatus.Delivered,
-            BillingAddressSnapshot = "{}", ShippingAddressSnapshot = "{}", Subtotal = 100 * quantity,
-            GrandTotal = 100 * quantity, IdempotencyKey = Guid.NewGuid().ToString("N"), PaidAtUtc = now.AddDays(-3),
-            DeliveredAtUtc = now.AddDays(-1), CreatedAtUtc = now.AddDays(-3), UpdatedAtUtc = now,
+            OrderNumber = $"DELIVERED-{Guid.NewGuid():N}",
+            UserId = userId,
+            Status = OrderStatus.Delivered,
+            PaymentStatus = PaymentStatus.Succeeded,
+            ShippingStatus = ShipmentStatus.Delivered,
+            BillingAddressSnapshot = "{}",
+            ShippingAddressSnapshot = "{}",
+            Subtotal = 100 * quantity,
+            GrandTotal = 100 * quantity,
+            IdempotencyKey = Guid.NewGuid().ToString("N"),
+            PaidAtUtc = now.AddDays(-3),
+            DeliveredAtUtc = now.AddDays(-1),
+            CreatedAtUtc = now.AddDays(-3),
+            UpdatedAtUtc = now,
         };
         var item = new OrderItem
         {
-            Order = order, ProductId = product.ProductId, ProductVariantId = product.VariantId, ProductName = "Delivered product",
-            Sku = $"ITEM-{Guid.NewGuid():N}".ToUpperInvariant(), UnitPrice = 100, Quantity = quantity, LineTotal = 100 * quantity,
-            CreatedAtUtc = now, UpdatedAtUtc = now,
+            Order = order,
+            ProductId = product.ProductId,
+            ProductVariantId = product.VariantId,
+            ProductName = "Delivered product",
+            Sku = $"ITEM-{Guid.NewGuid():N}".ToUpperInvariant(),
+            UnitPrice = 100,
+            Quantity = quantity,
+            LineTotal = 100 * quantity,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
         };
         order.Items.Add(item);
         var payment = new Payment
         {
-            Order = order, Provider = "Mock", TransactionId = $"delivered-{Guid.NewGuid():N}", IdempotencyKey = Guid.NewGuid().ToString("N"),
-            Amount = order.GrandTotal, Status = PaymentStatus.Succeeded, CompletedAtUtc = now, CreatedAtUtc = now, UpdatedAtUtc = now,
+            Order = order,
+            Provider = "Mock",
+            TransactionId = $"delivered-{Guid.NewGuid():N}",
+            IdempotencyKey = Guid.NewGuid().ToString("N"),
+            Amount = order.GrandTotal,
+            Status = PaymentStatus.Succeeded,
+            CompletedAtUtc = now,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
         };
         db.Orders.Add(order);
         db.Payments.Add(payment);

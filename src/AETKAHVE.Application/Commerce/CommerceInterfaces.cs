@@ -131,6 +131,12 @@ public interface IPaymentGateway
     Task<RefundResult> RefundAsync(RefundRequest request, CancellationToken cancellationToken);
 }
 
+public interface IPaymentWebhookVerifier
+{
+    string ProviderName { get; }
+    ValueTask<PaymentWebhookAuthenticationResult> AuthenticateAsync(PaymentWebhookEnvelope envelope, CancellationToken cancellationToken);
+}
+
 public interface IShippingProvider
 {
     string ProviderName { get; }

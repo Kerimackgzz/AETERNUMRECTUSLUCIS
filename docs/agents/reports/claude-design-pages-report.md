@@ -105,3 +105,14 @@ AFK runtime commitleri: `fae14fd` (uygulama + Node davranış testleri), `80cd6d
 ## Merge hazır durumu
 
 Ajan 4'ün açtığı her route için view vardır; Admin ürün oluşturma ve kampanya hedefleme dahil önceki dilimler integration'a merge edildi. AFK istemci dilimi güncel integration tabanında build 0/0, frontend 5/5, unit 33/33 ve integration 58/58 sonuçlarıyla merge'e hazırdır. Ajan 1 branch'i integration'a doğrudan merge edilmemiştir.
+
+## 2026-08-05 Final integration sync
+
+- Branch, üretim güvenliği ve authenticated payment webhook değişikliklerini içeren `integration` / `84610f2` ile senkronlandı.
+- AFK cross-tab/logout uygulaması korunurken frontend QA'nın modal focus yakalama ve önceki odağa dönüş davranışı birleştirildi.
+- Yerel expiry yalnız bir CSRF korumalı same-origin logout POST'u üretir; üç saniyelik timeout login yönlendirmesini garanti eder ve sekmeler duplicate POST üretmez.
+- `npm run test:frontend`: 5/5 başarılı.
+- Release build: 0 uyarı / 0 hata.
+- Unit: 54/54; Integration: 77/77 başarılı.
+- `dotnet format --verify-no-changes`, `node --check` ve `git diff --check`: başarılı.
+- Final branch hash'i Coordinator merge mesajında bildirilecektir; branch doğrudan `integration` üzerine yazılmadı.

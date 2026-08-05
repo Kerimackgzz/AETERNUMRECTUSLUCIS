@@ -181,6 +181,19 @@ public sealed record PaymentInitializationResult(
 
 public sealed record PaymentCallbackRequest(string RequestReference, string TransactionId, string StatusCode);
 
+public sealed record PaymentWebhookEnvelope(
+    string Provider,
+    string HttpMethod,
+    PaymentCallbackRequest Callback,
+    string RawBody,
+    IReadOnlyDictionary<string, string> Headers);
+
+public sealed record PaymentWebhookAuthenticationResult(bool Succeeded, string ResponseCode)
+{
+    public static PaymentWebhookAuthenticationResult Accepted() => new(true, "VERIFIED");
+    public static PaymentWebhookAuthenticationResult Rejected(string responseCode) => new(false, responseCode);
+}
+
 public sealed record PaymentVerificationResult(
     bool Succeeded,
     bool Cancelled,

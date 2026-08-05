@@ -11,7 +11,7 @@ builder.Services.AddApplicationModule(builder.Configuration);
 builder.Services.AddInfrastructureModule(builder.Configuration);
 builder.Services.AddIdentityAndSecurityModule(builder.Configuration);
 builder.Services.AddCommerceModule(builder.Configuration);
-builder.Services.AddWebSecurityModule();
+builder.Services.AddWebSecurityModule(builder.Configuration, builder.Environment);
 builder.Services.AddControllersWithViews(options =>
     options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute()));
 builder.Services.AddProblemDetails();
@@ -22,6 +22,7 @@ builder.Services.AddHealthChecks()
 
 var app = builder.Build();
 
+app.UseForwardedHeaders();
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseExceptionHandler();
 app.UseMiddleware<SecurityHeadersMiddleware>();

@@ -23,6 +23,7 @@
     }
     else
     {
+        <div class="table-scroll" tabindex="0" role="region" aria-label="Kargo yönetimi tablosu">
         <table>
             <thead><tr><th>Sipariş No</th><th>Durum</th><th>Takip No</th><th>Güncelleme</th><th></th></tr></thead>
             <tbody>
@@ -41,6 +42,7 @@
                 }
             </tbody>
         </table>
+        </div>
         <partial name="_Pagination" model="(Model.Shipments.Page, Model.Shipments.TotalPages)" />
     }
 </div>

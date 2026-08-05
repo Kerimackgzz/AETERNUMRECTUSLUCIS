@@ -74,7 +74,10 @@ public sealed class CartController(ICartService cartService, IDataProtectionProv
         guestToken ??= Guid.NewGuid();
         Response.Cookies.Append(GuestCartMergeFilter.CookieName, _protector.Protect(guestToken.Value.ToString("D")), new CookieOptions
         {
-            HttpOnly = true, IsEssential = true, SameSite = SameSiteMode.Lax, Secure = Request.IsHttps,
+            HttpOnly = true,
+            IsEssential = true,
+            SameSite = SameSiteMode.Lax,
+            Secure = Request.IsHttps,
             MaxAge = TimeSpan.FromDays(commerceOptions.Value.GuestCartLifetimeDays),
         });
         return new CartOwner(null, guestToken);

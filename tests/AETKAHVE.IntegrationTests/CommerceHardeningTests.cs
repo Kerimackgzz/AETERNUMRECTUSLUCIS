@@ -223,12 +223,12 @@ public sealed class CommerceHardeningTests(AeternumWebApplicationFactory factory
         using (var cancel = await PostWithoutBodyAsync(client, $"/account/orders/{foreign.OrderId}/cancel", token))
             Assert.Equal(HttpStatusCode.Conflict, cancel.StatusCode);
         using (var returnRequest = await PostJsonAsync(client, "/account/returns", token, new
-               {
-                   orderId = foreign.OrderId,
-                   reason = "Ownership probe",
-                   description = "Must fail",
-                   items = new[] { new { orderItemId = foreign.OrderItemId, quantity = 1, reason = "Probe", condition = 0, imageStorageKey = (string?)null } },
-               }))
+        {
+            orderId = foreign.OrderId,
+            reason = "Ownership probe",
+            description = "Must fail",
+            items = new[] { new { orderItemId = foreign.OrderItemId, quantity = 1, reason = "Probe", condition = 0, imageStorageKey = (string?)null } },
+        }))
             Assert.Equal(HttpStatusCode.Conflict, returnRequest.StatusCode);
         using (var review = await PostJsonAsync(client, "/account/reviews", token,
                    new { orderItemId = foreign.OrderItemId, rating = 5, comment = "Ownership probe" }))
@@ -267,13 +267,13 @@ public sealed class CommerceHardeningTests(AeternumWebApplicationFactory factory
         var token = await GetAntiforgeryTokenAsync(client, "/checkout");
         var firstKey = Guid.NewGuid().ToString("N");
         using (var foreignCart = await PostJsonAsync(client, "/checkout", token, new
-               {
-                   cartId = foreignCartId,
-                   shippingAddressId = foreignAddressId,
-                   billingAddressId = foreignAddressId,
-                   idempotencyKey = firstKey,
-                   paymentScenario = "success",
-               }))
+        {
+            cartId = foreignCartId,
+            shippingAddressId = foreignAddressId,
+            billingAddressId = foreignAddressId,
+            idempotencyKey = firstKey,
+            paymentScenario = "success",
+        }))
             Assert.Equal(HttpStatusCode.Conflict, foreignCart.StatusCode);
 
         await using var assertionScope = factory.Services.CreateAsyncScope();
@@ -300,14 +300,14 @@ public sealed class CommerceHardeningTests(AeternumWebApplicationFactory factory
 
         var token = await GetAntiforgeryTokenAsync(client, "/contact");
         using (var invalidEmail = await PostJsonAsync(client, "/contact", token, new
-               {
-                   fullName = "Invalid Email",
-                   email = "not-an-email",
-                   phoneNumber = (string?)null,
-                   subject = "Validation",
-                   message = "This request must not persist either.",
-                   privacyAccepted = true,
-               }))
+        {
+            fullName = "Invalid Email",
+            email = "not-an-email",
+            phoneNumber = (string?)null,
+            subject = "Validation",
+            message = "This request must not persist either.",
+            privacyAccepted = true,
+        }))
             Assert.Equal(HttpStatusCode.BadRequest, invalidEmail.StatusCode);
 
         await using var scope = factory.Services.CreateAsyncScope();

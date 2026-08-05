@@ -30,6 +30,7 @@
   var tickHandle = null;
   var statusPollHandle = null;
   var warningVisible = false;
+  var focusBeforeWarning = null;
   var endingSession = false;
   var redirectStarted = false;
   var logoutRequestStarted = false;
@@ -74,8 +75,15 @@
     if (!dialog) {
       return;
     }
+    var shouldRestoreFocus = warningVisible;
     warningVisible = false;
     dialog.hidden = true;
+    if (shouldRestoreFocus && focusBeforeWarning &&
+        typeof focusBeforeWarning.focus === "function" &&
+        focusBeforeWarning.isConnected !== false) {
+      focusBeforeWarning.focus();
+    }
+    focusBeforeWarning = null;
   }
 
   function redirectToLogin() {
@@ -340,9 +348,16 @@
     if (!dialog) {
       return;
     }
+    var wasVisible = warningVisible;
     warningVisible = true;
     dialog.hidden = false;
     updateRemaining(remaining);
+    if (!wasVisible) {
+      focusBeforeWarning = document.activeElement || null;
+      if (continueBtn && typeof continueBtn.focus === "function") {
+        continueBtn.focus();
+      }
+    }
   }
 
   function updateRemaining(remainingSeconds) {
@@ -410,6 +425,15 @@
   if (continueBtn) {
     continueBtn.addEventListener("click", function () {
       keepAlive();
+    });
+  }
+
+  if (dialog && typeof dialog.addEventListener === "function") {
+    dialog.addEventListener("keydown", function (event) {
+      if (warningVisible && event.key === "Tab" && continueBtn && typeof continueBtn.focus === "function") {
+        event.preventDefault();
+        continueBtn.focus();
+      }
     });
   }
 
