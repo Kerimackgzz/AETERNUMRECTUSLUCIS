@@ -138,6 +138,8 @@ internal sealed class StockMovementConfiguration : CommerceEntityConfiguration<S
         builder.Property(x => x.MovementType).HasConversion<string>().HasMaxLength(30);
         builder.Property(x => x.ReferenceType).HasMaxLength(80).IsRequired();
         builder.Property(x => x.Description).HasMaxLength(500).IsRequired();
+        // Live-catalog queries follow Product's filter; audit/idempotency queries explicitly bypass both filters.
+        builder.HasQueryFilter(x => x.Product.DeletedAtUtc == null);
         builder.HasIndex(x => new { x.ReferenceType, x.ReferenceId, x.ProductId, x.ProductVariantId, x.MovementType }).IsUnique();
         builder.HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Restrict);
         builder.HasOne(x => x.ProductVariant).WithMany().HasForeignKey(x => x.ProductVariantId).OnDelete(DeleteBehavior.Restrict);
