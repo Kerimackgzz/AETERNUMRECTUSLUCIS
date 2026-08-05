@@ -2,9 +2,9 @@
 
 ## Branch / Repo durumu
 
-- Branch: `agent/claude-design-pages`, `integration`'dan oluşturuldu (foundation `bcfbf8d` merge sonrası).
-- Bu oturumda Coordinator rolü de üstlenildi: `agent/codex-architecture-security` build/test doğrulandı ve `integration`'a merge edildi (`bcfbf8d`); `AGENT_BOARD.md`/`PROJECT_STATUS.md` güncellendi (`eb80222`).
-- Son commit: `28dc5a9` — "feat: add design system foundation and non-hero page designs".
+- Branch: `agent/claude-design-pages`; 2026-08-05 turu başında `integration` (`446e9c4`) ile fast-forward, son doğrulama öncesinde production/commerce ve auth-clock düzeltmelerini içeren `integration` (`49d0fc8`) ile merge edilerek senkronlandı.
+- Ajan 3 AFK client request'i backend sözleşmesine dokunulmadan Ajan 1 sahipliğinde tamamlandı; backend ajanıyla logout redirect/cookie davranışı doğrudan teyit edildi.
+- Son uygulama/test commit'i: `80cd6db`; ilk AFK runtime commit'i: `fae14fd`.
 
 ## Tamamlanan sayfalar / bileşenler
 
@@ -69,6 +69,12 @@ Bu ortamda frontend/UI-UX/accessibility/performance skill'i veya browser/screens
 - HTTP smoke test (`dotnet run`, yerel curl): `/`, `/account/login`, `/account/register`, `/account/forgot-password`, `/admin/login`, `/superadmin/login` → 200; `/admin` (anonim) → 302; `/css/tokens.css`, `/css/admin/admin.css`, `/font/Mellos.otf`, `/js/admin/idle-session.js` → 200. `/account/login` içeriğinde `account-card`/`csrf-token`/`tokens.css`; `/` içeriğinde `data-frame-manifest-url`/`data-product-card-list` (hero hook'ları bozulmamış); `/admin/login` içeriğinde `admin-topbar` **yok** (doğru — kimliksiz sayfa).
 - ProductCard doğrulaması: `Views/Home/Index.cshtml`'e **geçici olarak** (Ajan 2 sahipliğindeki dosyada, commit edilmeden) iki örnek `ProductCardViewModel` ile `_ProductCard` partial'ı bağlanıp `dotnet run` + curl ile gerçek render alındı — tüm data-* hook'ları, `tr-TR` fiyat biçimi ("349,90 ₺") ve stok durumuna göre koşullu `disabled` attribute'u doğru render edildi. Doğrulama sonrası dosya `git diff` ile bire bir Ajan 2'nin haline geri alındı (kalıntı yok, doğrulandı).
 
+**2026-08-05 AFK istemci doğrulaması**
+- `npm run test:frontend`: 5/5 başarılı (yerel expiry logout POST'u, ağ timeout'u, portal-scope cross-tab logout/expiry, başarılı keep-alive senkronizasyonu ve BroadcastChannel yokken storage fallback'i).
+- `ManagementFrontendContractTests`: 3/3 başarılı (Admin/SuperAdmin layout hook'ları ile dağıtılan statik runtime sözleşmesi).
+- `dotnet build AETKAHVE.sln --no-restore`: başarılı, 0 uyarı / 0 hata.
+- Güncel birleşik tabanda UnitTests 33/33 ve IntegrationTests 58/58 başarılı. İlk koşudaki frontend dışı auth clock/cookie uyumsuzluğu Ajan 3/Coordinator tarafından `60cddc2` ile giderildi ve aynı AFK testi son koşuda geçti.
+
 ## Contract request
 
 Yok. Shared ViewModel property'leri, route'lar ve frozen contract dosyaları değiştirilmedi. `DashboardSummaryViewModel.Statuses` şu an boş geliyor (controller'lar benim sahiplik alanım dışında) — mevcut boş-durum bileşeniyle karşılandı, ek contract gerekmedi.
@@ -78,18 +84,35 @@ Yok. Shared ViewModel property'leri, route'lar ve frozen contract dosyaları de�
 - Admin Products sayfasına tam "yeni ürün ekle" formu eklendi (`AdminProductInput`'un tüm alanları; Koleksiyon zorunlu, diğer lookup'lar opsiyonel, hepsi yapıştırılan ID ile).
 - Admin Campaigns formuna ürün/kategori hedefleme eklendi (virgül/satırla ayrılmış ID textarea'ları, client-side parse edilip `ProductIds`/`CategoryIds`'e bağlanıyor); boş bırakılırsa kampanya genel kapsamlı kalıyor (önceki davranış korunuyor).
 
+**AFK client expiry + cross-tab hardening** — altıncı dilim (`fae14fd`, `80cd6db`)
+- Ajan 3'ün `codex-architecture-security-20260804-afk-client-expiry.md` talebi backend route/JSON sözleşmesi değiştirilmeden karşılandı.
+- Yerel sayaç sıfıra indiğinde `logoutUrl` adresine CSRF header ve `credentials: same-origin` ile yalnız bir POST gönderilir. Yanıt/401 sonrasında veya 3 saniyelik ağ timeout'unda login route'una `location.replace` ile geçilir.
+- `BroadcastChannel`, hata/uyumsuzluk halinde `localStorage` fallback'i kullanır. Mesajlar version, portal (`admin|superadmin`), kaynak ve iki dakikalık freshness sınırıyla doğrulanır; bir portalın olayı diğer portalı kapatmaz.
+- Açık logout ve expiry diğer aynı-portal sekmelerini gecikmeden kapatır; alıcı sekme logout POST'unu çoğaltmaz. Başarılı keep-alive yeni server deadline'ını paylaşır; status polling hâlâ aktivite sayılmaz ve sunucu kaydı nihai gerçektir.
+- Native logout formu antiforgery otoritesi olarak korunur; ikinci submit engellenir. JS devre dışıysa mevcut server-side AFK enforcement değişmeden çalışır.
+
 ## Bilinen sorunlar
 
 - **Gerçek tarayıcı/ekran görüntüsü doğrulaması yapılmadı** — bu ortamda SQL Server olmadığı için `dotnet run` gerçek veriyle başlatılamıyor; doğrulama SQLite tabanlı `WebApplicationFactory` testleri ve HTML içerik kontrolüyle yapıldı. Görsel/responsive/klavye-focus/renk kontrastı incelemesi kullanıcı veya browser MCP ile teyit edilmeli.
 - **İki contract gap'i kapatıldı** (`90a7efd`): `/contact` ve OrderItemId tabanlı Return/Review oluşturma akışları çalışıyor.
 - Admin ürün/kampanya formlarında lookup ID'leri gerçek bir `<select>` yerine kopyala-yapıştır ile giriliyor — kullanılabilir ama ideal değil; gerçek dropdown için Admin Products/Campaigns action'larının da `CatalogLookupSet` döndürmesi gerekir (küçük, contract request'e dahil edilmemiş bir iyileştirme fırsatı).
-- Cross-tab AFK senkronizasyonu (contract: "frontend runtime sahibindedir") uygulanmadı; her sekme kendi 30 saniyelik status poll'una güveniyor — kabul edilebilir ama geliştirilebilir bir basitleştirme.
 - Adres düzenleme (yalnız ekleme/silme var) ve checkout'ta adres CRUD'unun tam entegrasyonu (şu an checkout sayfası adres yoksa Addresses'e yönlendiriyor, aynı akışta ekleyip geri dönme yok) basitleştirildi.
 
 ## Son commit hash
 
-`e922196` (admin ürün oluşturma + kampanya hedefleme); önceki: `2988382` (kalan Account + tüm Admin view'ları), `2f53f36` (public commerce view'ları), `45b43b5` (ProductCard), `28dc5a9` (foundation dilimi). Coordinator merge'ler: `bcfbf8d` (foundation), Ajan 1/2 merge zinciri, Ajan 4 merge, bu üç dilimin merge'i (Ajan 1 → integration).
+AFK runtime commitleri: `fae14fd` (uygulama + Node davranış testleri), `80cd6db` (same-origin/double-submit guard + .NET contract testleri), `f078a10` (storage fallback testi + rapor). Güncel integration senkron merge'i: `606687e`. Önceki son tasarım commit'i: `e922196`.
 
 ## Merge hazır durumu
 
-Ajan 4'ün açtığı her route için view vardır; Admin ürün oluşturma ve kampanya hedefleme dahil tüm dilimler integration'a merge edildi. Son contract gap'leri `90a7efd` ile kapatıldı ve Development SQLite üzerinde birleşik HTTP smoke yapılabiliyor.
+Ajan 4'ün açtığı her route için view vardır; Admin ürün oluşturma ve kampanya hedefleme dahil önceki dilimler integration'a merge edildi. AFK istemci dilimi güncel integration tabanında build 0/0, frontend 5/5, unit 33/33 ve integration 58/58 sonuçlarıyla merge'e hazırdır. Ajan 1 branch'i integration'a doğrudan merge edilmemiştir.
+
+## 2026-08-05 Final integration sync
+
+- Branch, üretim güvenliği ve authenticated payment webhook değişikliklerini içeren `integration` / `84610f2` ile senkronlandı.
+- AFK cross-tab/logout uygulaması korunurken frontend QA'nın modal focus yakalama ve önceki odağa dönüş davranışı birleştirildi.
+- Yerel expiry yalnız bir CSRF korumalı same-origin logout POST'u üretir; üç saniyelik timeout login yönlendirmesini garanti eder ve sekmeler duplicate POST üretmez.
+- `npm run test:frontend`: 5/5 başarılı.
+- Release build: 0 uyarı / 0 hata.
+- Unit: 54/54; Integration: 77/77 başarılı.
+- `dotnet format --verify-no-changes`, `node --check` ve `git diff --check`: başarılı.
+- Final branch hash'i Coordinator merge mesajında bildirilecektir; branch doğrudan `integration` üzerine yazılmadı.

@@ -1,0 +1,7 @@
+{
+  "name": "aetkahve-frontend-contract-tests",
+  "private": true,
+  "scripts": {
+    "test:frontend": "node --test tests/frontend/idle-session.test.js"
+  }
+}
