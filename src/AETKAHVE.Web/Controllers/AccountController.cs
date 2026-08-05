@@ -137,6 +137,43 @@ public sealed class AccountController(
     }
 
     [AllowAnonymous]
+    [HttpGet("resend-confirmation")]
+    public IActionResult ResendConfirmation() => View(new ResendConfirmationViewModel());
+
+    [AllowAnonymous]
+    [EnableRateLimiting(SecurityRateLimitPolicies.PasswordRecovery)]
+    [HttpPost("resend-confirmation")]
+    public async Task<IActionResult> ResendConfirmation(
+        ResendConfirmationViewModel model,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var user = await userManager.FindByEmailAsync(model.Email.Trim());
+        if (user is not null && user.IsActive && !user.EmailConfirmed)
+        {
+            var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+            var callback = Url.Action(
+                nameof(ConfirmEmail),
+                "Account",
+                new { userId = user.Id, token },
+                Request.Scheme)!;
+            await messageSender.SendAsync(
+                new IdentityMessage(
+                    user.Email!,
+                    "E-posta adresinizi doğrulayın",
+                    $"<p>E-posta adresinizi doğrulamak için <a href=\"{HtmlEncoder.Default.Encode(callback)}\">bağlantıyı açın</a>.</p>"),
+                cancellationToken);
+        }
+
+        TempData["StatusMessage"] = "Hesap uygunsa yeni doğrulama bağlantısı gönderildi.";
+        return RedirectToAction(nameof(Login));
+    }
+
+    [AllowAnonymous]
     [HttpGet("forgot-password")]
     public IActionResult ForgotPassword() => View(new ForgotPasswordViewModel());
 

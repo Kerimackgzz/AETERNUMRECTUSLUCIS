@@ -109,6 +109,40 @@ public sealed class ProductionReadinessTests
     }
 
     [Fact]
+    public void Development_requires_an_explicit_opt_in_before_selecting_external_email_delivery()
+    {
+        var configuration = CreateConfiguration(
+            useMockProviders: false,
+            smtpHost: "smtp.test.local",
+            fromAddress: "noreply@test.local",
+            allowExternalDeliveryInDevelopment: true);
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSingleton<IHostEnvironment>(new TestHostEnvironment(Environments.Development, AppContext.BaseDirectory));
+        services.AddInfrastructureModule(configuration);
+        services.AddCommerceModule(configuration);
+        using var provider = services.BuildServiceProvider();
+        using var scope = provider.CreateScope();
+
+        Assert.IsType<SmtpEmailSender>(scope.ServiceProvider.GetRequiredService<IEmailSender>());
+        Assert.IsType<OutboxIdentityMessageSender>(scope.ServiceProvider.GetRequiredService<IIdentityMessageSender>());
+    }
+
+    [Fact]
+    public void Testing_never_selects_external_email_delivery_even_when_opted_in()
+    {
+        var configuration = CreateConfiguration(
+            useMockProviders: false,
+            smtpHost: "smtp.test.local",
+            fromAddress: "noreply@test.local",
+            allowExternalDeliveryInDevelopment: true);
+        var services = CreateCommerceServices("Testing", configuration);
+        using var provider = services.BuildServiceProvider();
+
+        Assert.IsType<MockEmailSender>(provider.GetRequiredService<IEmailSender>());
+    }
+
+    [Fact]
     public async Task Identity_sender_persists_email_to_outbox_without_external_delivery()
     {
         await using var connection = new SqliteConnection("Data Source=:memory:");
@@ -278,12 +312,14 @@ public sealed class ProductionReadinessTests
     private static IConfiguration CreateConfiguration(
         bool useMockProviders,
         string? smtpHost = null,
-        string? fromAddress = null) =>
+        string? fromAddress = null,
+        bool allowExternalDeliveryInDevelopment = false) =>
         new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["Database:Provider"] = "Sqlite",
             ["Database:ConnectionString"] = "Data Source=:memory:",
             ["Notifications:UseMockProviders"] = useMockProviders.ToString(),
+            ["Notifications:AllowExternalDeliveryInDevelopment"] = allowExternalDeliveryInDevelopment.ToString(),
             ["Notifications:EmailDeliveryEnabled"] = "true",
             ["Notifications:SmsDeliveryEnabled"] = "false",
             ["Smtp:Host"] = smtpHost,

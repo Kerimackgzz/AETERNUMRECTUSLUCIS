@@ -24,6 +24,7 @@
         <a asp-controller="Home" asp-action="Index" class="account-layout__brand font-display">AETERNUM RECTUS LUCIS</a>
         @RenderBody()
     </main>
+    <script src="~/js/auth/password-visibility.js" asp-append-version="true" defer></script>
     @await RenderSectionAsync("PageScripts", required: false)
 </body>
 </html>

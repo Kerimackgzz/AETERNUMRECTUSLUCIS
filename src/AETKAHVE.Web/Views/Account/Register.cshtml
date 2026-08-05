@@ -10,29 +10,36 @@
         <div asp-validation-summary="ModelOnly" role="alert" class="text-sm"></div>
         <div class="field">
             <label asp-for="FirstName">Ad</label>
-            <input asp-for="FirstName" />
+            <input asp-for="FirstName" autocomplete="given-name" placeholder="Adınız" />
             <span asp-validation-for="FirstName" class="field-validation-error"></span>
         </div>
         <div class="field">
             <label asp-for="LastName">Soyad</label>
-            <input asp-for="LastName" />
+            <input asp-for="LastName" autocomplete="family-name" placeholder="Soyadınız" />
             <span asp-validation-for="LastName" class="field-validation-error"></span>
         </div>
         <div class="field">
             <label asp-for="Email">E-posta</label>
-            <input asp-for="Email" autocomplete="email" />
+            <input asp-for="Email" autocomplete="email" placeholder="ornek@eposta.com" />
             <span asp-validation-for="Email" class="field-validation-error"></span>
         </div>
         <div class="field">
             <label asp-for="Password">Parola</label>
-            <input asp-for="Password" autocomplete="new-password" />
+            <div class="password-input" data-password-field>
+                <input asp-for="Password" autocomplete="new-password" placeholder="Güçlü bir parola oluşturun" aria-describedby="password-requirements" data-password-input />
+                <partial name="_PasswordVisibilityButton" />
+            </div>
             <span asp-validation-for="Password" class="field-validation-error"></span>
         </div>
         <div class="field">
             <label asp-for="ConfirmPassword">Parola tekrarı</label>
-            <input asp-for="ConfirmPassword" autocomplete="new-password" />
+            <div class="password-input" data-password-field>
+                <input asp-for="ConfirmPassword" autocomplete="new-password" placeholder="Parolanızı tekrar girin" data-password-input />
+                <partial name="_PasswordVisibilityButton" />
+            </div>
             <span asp-validation-for="ConfirmPassword" class="field-validation-error"></span>
         </div>
+        <partial name="_PasswordRequirements" />
         <div class="field">
             <label><input asp-for="AcceptPrivacyTerms" /> Gizlilik koşullarını kabul ediyorum</label>
             <span asp-validation-for="AcceptPrivacyTerms" class="field-validation-error"></span>

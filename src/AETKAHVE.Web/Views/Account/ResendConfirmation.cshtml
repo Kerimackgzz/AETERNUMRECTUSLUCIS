@@ -1,0 +1,21 @@
+@model ResendConfirmationViewModel
+@{
+    Layout = "_AccountLayout";
+    ViewData["Title"] = "Doğrulama E-postasını Yeniden Gönder";
+}
+<div class="account-card surface surface--padded">
+    <h1 class="account-card__title">Doğrulama e-postasını yeniden gönder</h1>
+    <p class="account-card__subtitle text-muted">Kayıtta kullandığınız e-posta adresini girin.</p>
+    <form class="account-form" asp-action="ResendConfirmation" method="post" novalidate>
+        <div asp-validation-summary="ModelOnly" role="alert" class="text-sm"></div>
+        <div class="field">
+            <label asp-for="Email">E-posta</label>
+            <input asp-for="Email" type="email" autocomplete="email" placeholder="ornek@eposta.com" />
+            <span asp-validation-for="Email" class="field-validation-error"></span>
+        </div>
+        <button type="submit" class="btn btn--primary btn--block">Bağlantıyı Yeniden Gönder</button>
+    </form>
+    <div class="account-form__footer">
+        <a asp-action="Login">Girişe dön</a>
+    </div>
+</div>
