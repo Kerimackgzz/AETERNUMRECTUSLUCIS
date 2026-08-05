@@ -2,7 +2,7 @@
 
 ## Branch / Repo durumu
 
-- Branch: `agent/claude-design-pages`; 2026-08-05 turu başında `integration` (`446e9c4`) ile fast-forward senkronlandı.
+- Branch: `agent/claude-design-pages`; 2026-08-05 turu başında `integration` (`446e9c4`) ile fast-forward, son doğrulama öncesinde production/commerce ve auth-clock düzeltmelerini içeren `integration` (`49d0fc8`) ile merge edilerek senkronlandı.
 - Ajan 3 AFK client request'i backend sözleşmesine dokunulmadan Ajan 1 sahipliğinde tamamlandı; backend ajanıyla logout redirect/cookie davranışı doğrudan teyit edildi.
 - Son uygulama/test commit'i: `80cd6db`; ilk AFK runtime commit'i: `fae14fd`.
 
@@ -72,8 +72,8 @@ Bu ortamda frontend/UI-UX/accessibility/performance skill'i veya browser/screens
 **2026-08-05 AFK istemci doğrulaması**
 - `npm run test:frontend`: 5/5 başarılı (yerel expiry logout POST'u, ağ timeout'u, portal-scope cross-tab logout/expiry, başarılı keep-alive senkronizasyonu ve BroadcastChannel yokken storage fallback'i).
 - `ManagementFrontendContractTests`: 3/3 başarılı (Admin/SuperAdmin layout hook'ları ile dağıtılan statik runtime sözleşmesi).
-- `dotnet build AETKAHVE.sln --no-restore`: başarılı, 0 uyarı / 0 hata; UnitTests 23/23 başarılı.
-- İlk tam integration koşusunda 46/47 başarılı; tek hata frontend dışındaki `Idle_timeout_deletes_the_management_authentication_cookie` test clock/cookie clock uyumsuzluğu olarak Ajan 3'e iletildi. Ajan 3 düzeltmesi integration'a alındıktan sonra tam suite yeniden koşulacaktır.
+- `dotnet build AETKAHVE.sln --no-restore`: başarılı, 0 uyarı / 0 hata.
+- Güncel birleşik tabanda UnitTests 33/33 ve IntegrationTests 58/58 başarılı. İlk koşudaki frontend dışı auth clock/cookie uyumsuzluğu Ajan 3/Coordinator tarafından `60cddc2` ile giderildi ve aynı AFK testi son koşuda geçti.
 
 ## Contract request
 
@@ -100,8 +100,8 @@ Yok. Shared ViewModel property'leri, route'lar ve frozen contract dosyaları de�
 
 ## Son commit hash
 
-AFK runtime commitleri: `fae14fd` (uygulama + Node davranış testleri), `80cd6db` (same-origin/double-submit guard + .NET contract testleri). Önceki son tasarım commit'i: `e922196`.
+AFK runtime commitleri: `fae14fd` (uygulama + Node davranış testleri), `80cd6db` (same-origin/double-submit guard + .NET contract testleri), `f078a10` (storage fallback testi + rapor). Güncel integration senkron merge'i: `606687e`. Önceki son tasarım commit'i: `e922196`.
 
 ## Merge hazır durumu
 
-Ajan 4'ün açtığı her route için view vardır; Admin ürün oluşturma ve kampanya hedefleme dahil önceki dilimler integration'a merge edildi. AFK istemci dilimi kendi `agent/claude-design-pages` branch'inde doğrulandı; Ajan 3 backend regresyon düzeltmesi integration'a girdikten sonra son kez senkronlanıp merge'e hazır teslim edilecektir.
+Ajan 4'ün açtığı her route için view vardır; Admin ürün oluşturma ve kampanya hedefleme dahil önceki dilimler integration'a merge edildi. AFK istemci dilimi güncel integration tabanında build 0/0, frontend 5/5, unit 33/33 ve integration 58/58 sonuçlarıyla merge'e hazırdır. Ajan 1 branch'i integration'a doğrudan merge edilmemiştir.
