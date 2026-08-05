@@ -49,6 +49,30 @@ class BroadcastHub {
   }
 }
 
+class StorageHub {
+  constructor() {
+    this.clients = [];
+    this.values = new Map();
+  }
+
+  register(client) {
+    this.clients.push(client);
+  }
+
+  setItem(source, key, value) {
+    const oldValue = this.values.get(key) || null;
+    this.values.set(key, value);
+    for (const client of this.clients) {
+      if (client === source) {
+        continue;
+      }
+      for (const listener of client.listeners.get("storage") || []) {
+        listener({ key, oldValue, newValue: value });
+      }
+    }
+  }
+}
+
 function response(status, data) {
   return {
     status,
@@ -59,6 +83,8 @@ function response(status, data) {
 
 function createRuntime({
   hub = new BroadcastHub(),
+  storageHub = new StorageHub(),
+  broadcastEnabled = true,
   kind = "admin",
   now = Date.parse("2026-08-05T10:00:00Z"),
   initialStatus,
@@ -138,9 +164,10 @@ function createRuntime({
     }
   };
 
+  let storageClient;
   const window = {
     AbortController,
-    BroadcastChannel: hub.createConstructor(),
+    BroadcastChannel: broadcastEnabled ? hub.createConstructor() : undefined,
     URL,
     location: {
       href: `https://example.test/${kind}`,
@@ -150,7 +177,9 @@ function createRuntime({
       }
     },
     localStorage: {
-      setItem() {}
+      setItem(key, value) {
+        storageHub.setItem(storageClient, key, value);
+      }
     },
     addEventListener(type, listener) {
       const listeners = windowListeners.get(type) || [];
@@ -174,6 +203,8 @@ function createRuntime({
       timeoutCallbacks.delete(id);
     }
   };
+  storageClient = { listeners: windowListeners };
+  storageHub.register(storageClient);
 
   async function fetch(url, options = {}) {
     fetchCalls.push({ url, options });
@@ -336,5 +367,19 @@ test("successful keep-alive extends the peer tab deadline", async () => {
   second.clock.now += 61000;
   second.runIntervals(1000);
   assert.deepEqual(second.locationReplacements, []);
+  assert.equal(second.fetchCalls.filter((call) => call.url === "/admin/logout").length, 0);
+});
+
+test("storage events preserve cross-tab expiry when BroadcastChannel is unavailable", async () => {
+  const storageHub = new StorageHub();
+  const first = createRuntime({ broadcastEnabled: false, storageHub });
+  const second = createRuntime({ broadcastEnabled: false, storageHub });
+  await Promise.all([first.flush(), second.flush()]);
+
+  first.clock.now += 61000;
+  first.runIntervals(1000);
+  await first.flush();
+
+  assert.deepEqual(second.locationReplacements, ["/admin/login"]);
   assert.equal(second.fetchCalls.filter((call) => call.url === "/admin/logout").length, 0);
 });
