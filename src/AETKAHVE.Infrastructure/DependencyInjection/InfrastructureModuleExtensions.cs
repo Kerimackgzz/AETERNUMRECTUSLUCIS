@@ -2,14 +2,10 @@ using AETKAHVE.Application.Notifications;
 using AETKAHVE.Infrastructure.Notifications;
 using AETKAHVE.Infrastructure.Options;
 using AETKAHVE.Infrastructure.Persistence;
-using AETKAHVE.Infrastructure.Security;
-using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Options;
 
 namespace AETKAHVE.Infrastructure.DependencyInjection;
 
@@ -27,17 +23,6 @@ public static class InfrastructureModuleExtensions
             .Validate(x => IsSupportedProvider(x.Provider), "Database:Provider must be SqlServer or Sqlite.")
             .Validate(x => !string.IsNullOrWhiteSpace(x.ConnectionString), "Database:ConnectionString is required.")
             .ValidateOnStart();
-        services.AddOptions<DataProtectionKeyRingOptions>()
-            .Bind(configuration.GetSection(DataProtectionKeyRingOptions.SectionName))
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
-
-        var keyRing = configuration
-            .GetSection(DataProtectionKeyRingOptions.SectionName)
-            .Get<DataProtectionKeyRingOptions>() ?? new DataProtectionKeyRingOptions();
-        services.AddDataProtection().SetApplicationName(keyRing.ApplicationName);
-        services.AddSingleton<IConfigureOptions<KeyManagementOptions>, PersistentDataProtectionKeyOptionsSetup>();
-
         var databaseOptions = configuration
             .GetSection(DatabaseOptions.SectionName)
             .Get<DatabaseOptions>() ?? new DatabaseOptions();

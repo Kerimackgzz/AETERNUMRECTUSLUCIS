@@ -58,6 +58,7 @@ public sealed class AccountController(
     public IActionResult Register() => View(new RegisterViewModel());
 
     [AllowAnonymous]
+    [EnableRateLimiting(SecurityRateLimitPolicies.CustomerRegistration)]
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterViewModel model, CancellationToken cancellationToken)
     {
@@ -140,6 +141,7 @@ public sealed class AccountController(
     public IActionResult ForgotPassword() => View(new ForgotPasswordViewModel());
 
     [AllowAnonymous]
+    [EnableRateLimiting(SecurityRateLimitPolicies.PasswordRecovery)]
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model, CancellationToken cancellationToken)
     {
@@ -175,6 +177,7 @@ public sealed class AccountController(
         View(new ResetPasswordViewModel { Email = email, Token = token });
 
     [AllowAnonymous]
+    [EnableRateLimiting(SecurityRateLimitPolicies.PasswordRecovery)]
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
     {

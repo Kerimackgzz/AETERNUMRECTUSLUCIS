@@ -7,8 +7,8 @@ public sealed class CorrelationIdMiddleware(RequestDelegate next)
     public async Task InvokeAsync(HttpContext context)
     {
         var supplied = context.Request.Headers[HeaderName].FirstOrDefault();
-        var correlationId = !string.IsNullOrWhiteSpace(supplied) && supplied.Length <= 128
-            ? supplied
+        var correlationId = IsSafeCorrelationId(supplied)
+            ? supplied!
             : Guid.NewGuid().ToString("N");
         context.TraceIdentifier = correlationId;
         context.Response.OnStarting(() =>
@@ -18,5 +18,10 @@ public sealed class CorrelationIdMiddleware(RequestDelegate next)
         });
         await next(context);
     }
+
+    private static bool IsSafeCorrelationId(string? value) =>
+        !string.IsNullOrWhiteSpace(value) &&
+        value.Length <= 128 &&
+        value.All(character => char.IsAsciiLetterOrDigit(character) || character is '-' or '_' or '.');
 }
 

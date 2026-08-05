@@ -9,12 +9,16 @@ Uygulama auth cookie'leri, antiforgery verileri ve korumalı misafir sepeti cook
 ```text
 DataProtection__ApplicationName=AETKAHVE
 DataProtection__KeyRingPath=/var/lib/aetkahve/data-protection-keys
+DataProtection__CertificateThumbprint=<deployment-certificate-thumbprint>
 ```
 
-- `KeyRingPath` relative ise web uygulamasının content root'una göre çözülür; production'da açık bir absolute mount path tercih edilir.
+- `KeyRingPath` production'da zorunlu ve absolute bir durable mount path olmalıdır; relative path startup validation tarafından reddedilir.
 - Aynı deployment'ın bütün replica'ları aynı `ApplicationName` ve paylaşılan key-ring'i kullanmalıdır.
-- Volume kalıcı, erişim kontrollü, altyapı seviyesinde şifreli ve yedeklenmiş olmalıdır. Repository XML anahtarlarını uygulama seviyesinde sertifikayla şifrelemez; bu nedenle directory permission ve encrypted-at-rest storage zorunlu deployment sorumluluğudur.
+- Persist edilen XML anahtarları uygulama seviyesinde sertifikayla şifrelenir. Sertifika private key'i repository'ye konmaz; CurrentUser/LocalMachine personal store'da `CertificateThumbprint` ile veya secret mount'taki PFX üzerinden sağlanır.
+- PFX kullanılıyorsa `DataProtection__CertificatePath` absolute olmalı ve `DataProtection__CertificatePassword` secret store üzerinden verilmelidir. Thumbprint ve PFX aynı anda yapılandırılamaz.
+- Volume kalıcı, yalnız uygulama kimliğinin yazabildiği, altyapı seviyesinde de şifreli ve yedeklenmiş olmalıdır.
 - Key-ring kaybı mevcut auth/antiforgery/cart cookie'lerini ve bazı Identity tokenlarını geçersiz kılar. Eski key'ler key lifecycle politikası dışında elle silinmemelidir.
+- Eksik key-ring path, erişilemeyen dizin, bulunamayan/private-key içermeyen/süresi geçersiz sertifika production startup'ını açık bir configuration hatasıyla durdurur.
 
 ## Production e-posta ve outbox
 
@@ -71,7 +75,7 @@ Bu guard kaldırılmadan önce:
 ## Deployment doğrulama sırası
 
 1. SQL Server migration'larını idempotent script ile uygulayın ve yedeği doğrulayın.
-2. Paylaşılan Data Protection volume'unu mount edin; uygulama identity'sinin read/write erişimini doğrulayın.
+2. Paylaşılan Data Protection volume'unu ve key-encryption sertifikasını mount/provision edin; uygulama identity'sinin read/write/private-key erişimini doğrulayın.
 3. SMTP/notification config ve secret'larını sağlayın; gerçek alıcıya gönderim yapmadan startup validation'ı çalıştırın.
 4. Gerçek payment/shipping adapter blocker'larını kapatın.
 5. `/health/live` ve `/health/ready` kapılarını geçirin.

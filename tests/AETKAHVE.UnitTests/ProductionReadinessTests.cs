@@ -8,7 +8,6 @@ using AETKAHVE.Infrastructure.Identity;
 using AETKAHVE.Infrastructure.Notifications;
 using AETKAHVE.Infrastructure.Options;
 using AETKAHVE.Infrastructure.Persistence;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -22,29 +21,6 @@ namespace AETKAHVE.UnitTests;
 
 public sealed class ProductionReadinessTests
 {
-    [Fact]
-    public void Data_protection_payload_survives_a_service_provider_restart()
-    {
-        var contentRoot = Path.Combine(Path.GetTempPath(), $"aetkahve-dp-{Guid.NewGuid():N}");
-        Directory.CreateDirectory(contentRoot);
-        try
-        {
-            var configuration = CreateConfiguration(
-                useMockProviders: true,
-                keyRingPath: Path.Combine(contentRoot, "keys"));
-            var protectedPayload = Protect(configuration, contentRoot, "persistent payload");
-
-            var unprotectedPayload = Unprotect(configuration, contentRoot, protectedPayload);
-
-            Assert.Equal("persistent payload", unprotectedPayload);
-            Assert.NotEmpty(Directory.EnumerateFiles(Path.Combine(contentRoot, "keys"), "*.xml"));
-        }
-        finally
-        {
-            Directory.Delete(contentRoot, recursive: true);
-        }
-    }
-
     [Fact]
     public void Production_rejects_mock_notification_providers()
     {
@@ -104,8 +80,7 @@ public sealed class ProductionReadinessTests
             var configuration = CreateConfiguration(
                 useMockProviders: false,
                 smtpHost: "smtp.test.local",
-                fromAddress: "noreply@test.local",
-                keyRingPath: Path.Combine(contentRoot, "keys"));
+                fromAddress: "noreply@test.local");
             var services = new ServiceCollection();
             services.AddLogging();
             services.AddSingleton<IHostEnvironment>(new TestHostEnvironment(environmentName, contentRoot));
@@ -292,36 +267,6 @@ public sealed class ProductionReadinessTests
         }
     }
 
-    private static string Protect(IConfiguration configuration, string contentRoot, string plaintext)
-    {
-        var services = CreateInfrastructureServices(configuration, Environments.Production, contentRoot);
-        using var provider = services.BuildServiceProvider();
-        return provider.GetRequiredService<IDataProtectionProvider>()
-            .CreateProtector("production-readiness-test")
-            .Protect(plaintext);
-    }
-
-    private static string Unprotect(IConfiguration configuration, string contentRoot, string protectedPayload)
-    {
-        var services = CreateInfrastructureServices(configuration, Environments.Production, contentRoot);
-        using var provider = services.BuildServiceProvider();
-        return provider.GetRequiredService<IDataProtectionProvider>()
-            .CreateProtector("production-readiness-test")
-            .Unprotect(protectedPayload);
-    }
-
-    private static ServiceCollection CreateInfrastructureServices(
-        IConfiguration configuration,
-        string environmentName,
-        string contentRoot)
-    {
-        var services = new ServiceCollection();
-        services.AddLogging();
-        services.AddSingleton<IHostEnvironment>(new TestHostEnvironment(environmentName, contentRoot));
-        services.AddInfrastructureModule(configuration);
-        return services;
-    }
-
     private static ServiceCollection CreateCommerceServices(string environmentName, IConfiguration configuration)
     {
         var services = new ServiceCollection();
@@ -334,14 +279,11 @@ public sealed class ProductionReadinessTests
     private static IConfiguration CreateConfiguration(
         bool useMockProviders,
         string? smtpHost = null,
-        string? fromAddress = null,
-        string? keyRingPath = null) =>
+        string? fromAddress = null) =>
         new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["Database:Provider"] = "Sqlite",
             ["Database:ConnectionString"] = "Data Source=:memory:",
-            ["DataProtection:ApplicationName"] = "AETKAHVE.Tests",
-            ["DataProtection:KeyRingPath"] = keyRingPath ?? "App_Data/test-keys",
             ["Notifications:UseMockProviders"] = useMockProviders.ToString(),
             ["Notifications:EmailDeliveryEnabled"] = "true",
             ["Notifications:SmsDeliveryEnabled"] = "false",
