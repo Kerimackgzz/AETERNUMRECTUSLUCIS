@@ -6,7 +6,10 @@
 | Ajan 1 — Design/Pages | `agent/claude-design-pages` | AFK frontend hardening dahil integration'a merge edildi (`243b9f6`) | Tamamlandı; tek CSRF logout POST'u, portal-scope cross-tab sync ve erişilebilir modal focus davranışı testlerle kilitli |
 | Ajan 2 — Hero/Motion + Frontend QA | `agent/claude-home-hero`, `agent/frontend-qa` | Integration'a merge edildi (`ec20497`) | Tamamlandı: frame pipeline, motion engine, şeffaf/scroll navbar, mobil disclosure, fetch auth redirect ve accessibility hardening |
 | Ajan 4 — Commerce | `agent/codex-commerce`, `agent/commerce-hardening` | Payment/webhook hardening dahil integration'a merge edildi (`62e4de5`, `18d5d99`, `84610f2`) | Tamamlandı; `Disabled` production ödeme, environment-gated Mock ve HMAC/timestamp/replay webhook doğrulaması aktif |
-| Ortak — Production readiness | `agent/prod-readiness` | Integration'a merge edildi (`49d0fc8`), Data Protection güvenliği Ajan 3 tarafından yükseltildi (`b86da0c`) | SMTP/Identity outbox korundu; key-ring absolute path ve sertifika ile şifreleme zorunlu; gerçek adapter eksikleri fail-closed |
+| Ortak — Production readiness | `agent/prod-readiness` | Integration'a merge edildi (`49d0fc8`), Data Protection güvenliği Ajan 3 tarafından yükseltildi (`b86da0c`), deployment runbook eklendi (`e960d2c`) | SMTP/Identity outbox korundu; key-ring absolute path ve sertifika ile şifreleme zorunlu; gerçek adapter eksikleri fail-closed; `docs/deployment/PRODUCTION_SETUP.md` |
+| Claude (Coordinator oturumu) — Stripe ödeme | `agent/claude-stripe-payment` | Integration'a merge edildi | Gerçek Stripe Checkout Session `IPaymentGateway`/`IPaymentWebhookVerifier`; kullanıcı talebiyle kapsam dışı bırakılan gerçek kargo entegrasyonu hariç |
+| Ajan 3 — SQL Server smoke | `agent/codex-architecture-security` | Integration'a merge edildi (`ba47acb`) | 4 migration gerçek `.\SQLEXPRESS` instance'ına uygulandı, idempotent script iki kez hatasız çalıştı |
+| Ajan 4 — StockMovement audit fix | `agent/codex-commerce` | Integration'a merge edildi (`535bfac`) | Soft-delete `Product` + required `StockMovement.Product` navigation EF uyarısı giderildi, regresyon testi eklendi |
 
 Coordinator build/test doğrulaması (2026-08-04):
 - `agent/codex-architecture-security` → `integration` merge (`bcfbf8d`, no-ff, çakışmasız); build/test 0 hata, 8/8+16/16.
@@ -39,3 +42,10 @@ Coordinator integrated hardening closure (2026-08-05):
 - Release build: 0 uyarı / 0 hata. Node: 5/5. Unit: 54/54. Integration: 77/77.
 - Dört migration sıralı, pending model change yok; SQL Server idempotent script 54.628 bayt.
 - NuGet direct/transitive vulnerability audit, 26 JavaScript syntax kontrolü, tam `dotnet format --verify-no-changes` ve `git diff --check` başarılı.
+
+Coordinator son tur (2026-08-05, öğleden sonra) — kullanıcı talebiyle paralel dağıtılan 4 iş:
+
+- Gerçek Stripe ödeme adaptörü, gerçek SQL Server smoke, StockMovement audit fix ve production SMTP/Data Protection runbook'u eş zamanlı olarak ayrı worktree'lerde tamamlandı; hepsi çakışmasız/az çakışmayla (`PROJECT_STATUS.md`'de bir merge conflict, elle çözüldü) `integration`'a alındı.
+- Merge sırası: `agent/codex-architecture-security` (`ba47acb`), `agent/codex-commerce` (`deab633`), `agent/prod-readiness` (`bdaccfc` merge), `agent/claude-stripe-payment` (263914b → merge).
+- Merge öncesi ana checkout'ta kilitli kalmış eski bir `dotnet run` süreci (PID 29076, 11:41'den beri açık) kullanıcı onayıyla durduruldu.
+- `dotnet build` + `dotnet test`: 0 hata/uyarı, **68/68 unit + 77/77 integration = 145/145**.
