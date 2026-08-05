@@ -26,7 +26,10 @@ public sealed class AeternumWebApplicationFactory : WebApplicationFactory<Progra
 
     private readonly SqliteConnection _connection = new("Data Source=:memory:");
 
-    public MutableTimeProvider Clock { get; } = new(new DateTimeOffset(2026, 8, 4, 12, 0, 0, TimeSpan.Zero));
+    // Persistent cookies are evaluated by HttpClient's CookieContainer against the real
+    // wall clock. Start the mutable application clock at the same instant, then advance it
+    // relatively in tests, so the fixture does not become date-dependent.
+    public MutableTimeProvider Clock { get; } = new(TimeProvider.System.GetUtcNow());
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {

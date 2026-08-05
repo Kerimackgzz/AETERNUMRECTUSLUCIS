@@ -34,6 +34,8 @@ public sealed class ReturnService(
     public async Task<Guid> CreateAsync(ReturnCreateRequest request, CancellationToken cancellationToken)
     {
         if (request.Items.Count == 0) throw new CommerceRuleException("At least one return item is required.");
+        if (request.Items.Select(x => x.OrderItemId).Distinct().Count() != request.Items.Count)
+            throw new CommerceRuleException("Each purchased item can appear only once in a return request.");
         var order = await dbContext.Orders.Include(x => x.Items).Include(x => x.StatusHistory)
             .SingleOrDefaultAsync(x => x.Id == request.OrderId && x.UserId == request.UserId, cancellationToken)
             ?? throw new CommerceRuleException("Order was not found.");
