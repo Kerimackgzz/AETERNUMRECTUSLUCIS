@@ -28,6 +28,25 @@ AETKAHVE_Database__ConnectionString=Server=...;Database=AETKAHVE;...
 
 ASP.NET Core varsayılan environment değişkeni eşlemesi için `Database__ConnectionString` da kullanılabilir.
 
+## Development Ortamında Gerçek SMTP
+
+SMTP parolasını `appsettings*.json` dosyalarına, Git'e veya sohbet mesajına yazmayın. Development ortamında dış e-posta teslimi varsayılan olarak kapalıdır; yalnızca local user-secrets ile açıkça etkinleştirilir:
+
+```powershell
+dotnet user-secrets set "Notifications:UseMockProviders" "false" --project .\src\AETKAHVE.Web
+dotnet user-secrets set "Notifications:AllowExternalDeliveryInDevelopment" "true" --project .\src\AETKAHVE.Web
+dotnet user-secrets set "Notifications:Smtp:Host" "smtp.example.com" --project .\src\AETKAHVE.Web
+dotnet user-secrets set "Notifications:Smtp:Port" "587" --project .\src\AETKAHVE.Web
+dotnet user-secrets set "Notifications:Smtp:UseSsl" "true" --project .\src\AETKAHVE.Web
+dotnet user-secrets set "Notifications:Smtp:UserName" "mail@example.com" --project .\src\AETKAHVE.Web
+dotnet user-secrets set "Notifications:Smtp:Password" "UYGULAMA_PAROLASI" --project .\src\AETKAHVE.Web
+dotnet user-secrets set "Notifications:Smtp:FromAddress" "mail@example.com" --project .\src\AETKAHVE.Web
+dotnet user-secrets set "Notifications:Smtp:FromName" "AETERNUM RECTUS LUCIS" --project .\src\AETKAHVE.Web
+dotnet run --project .\src\AETKAHVE.Web
+```
+
+Sağlayıcı destekliyorsa normal hesap parolası yerine uygulama parolası kullanın. Kimlik e-postaları önce kalıcı outbox'a yazılır, arka plan worker'ı tarafından SMTP'ye teslim edilir. Daha önce kayıt olmuş fakat doğrulanmamış kullanıcılar `/account/resend-confirmation` sayfasından yeni doğrulama bağlantısı isteyebilir.
+
 ## Identity Seed
 
 Roller ve isteğe bağlı development yönetim hesapları `IdentitySeed` seçenekleriyle üretilir. Repository içinde parola bulunmaz.
@@ -92,7 +111,7 @@ Integration testleri gerçek Identity/cookie/token davranışını SQLite, geçi
 
 ## Mock Servis ve Production Notları
 
-- Development ve Testing ortamlarında kimlik/commerce e-postaları deterministik in-memory mock sender'larda tutulur; bu ortamlarda yapılandırma yanlışlıkla SMTP seçse bile dış gönderim yapılmaz.
+- Testing ortamında kimlik/commerce e-postaları her zaman deterministik in-memory mock sender'larda tutulur. Development da varsayılan olarak mock kullanır; gerçek SMTP ancak iki ayrı opt-in ayarı ve geçerli SMTP secret'larıyla etkinleşir.
 - Production'da kimlik e-postaları kalıcı commerce outbox'ına yazılır ve SMTP worker tarafından kontrollü retry ile teslim edilir. Eksik/örnek SMTP ayarları startup validation'ı geçemez.
 - Yönetim oturumları ve audit kayıtları SQL Server’da kalıcıdır.
 - `/health/live` uygulama, `/health/ready` veritabanı erişimini kontrol eder; cevaplar secret içermez.

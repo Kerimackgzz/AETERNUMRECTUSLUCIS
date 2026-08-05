@@ -9,6 +9,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>AETKAHVE.Web-2b6396a5-70ab-4cf8-a85e-08b82cdf735d</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

@@ -56,6 +56,13 @@ public sealed class ForgotPasswordViewModel
     public string Email { get; set; } = string.Empty;
 }
 
+public sealed class ResendConfirmationViewModel
+{
+    [Required(ErrorMessage = "E-posta zorunludur.")]
+    [EmailAddress(ErrorMessage = "Geçerli bir e-posta girin.")]
+    public string Email { get; set; } = string.Empty;
+}
+
 public sealed class ResetPasswordViewModel
 {
     [Required]

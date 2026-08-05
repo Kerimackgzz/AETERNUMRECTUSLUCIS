@@ -89,7 +89,7 @@ public sealed class SmtpOptionsValidator(
 internal static class NotificationProviderSelection
 {
     public static bool UseMockProviders(IHostEnvironment environment, NotificationOptions options) =>
-        environment.IsDevelopment() ||
         environment.IsEnvironment("Testing") ||
+        (environment.IsDevelopment() && !options.AllowExternalDeliveryInDevelopment) ||
         options.UseMockProviders;
 }

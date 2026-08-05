@@ -57,6 +57,7 @@ public sealed class NotificationOptions
 {
     public const string SectionName = "Notifications";
     public bool UseMockProviders { get; set; } = true;
+    public bool AllowExternalDeliveryInDevelopment { get; set; }
     public bool EmailDeliveryEnabled { get; set; } = true;
     public bool SmsDeliveryEnabled { get; set; }
     public bool WorkerEnabled { get; set; } = true;
