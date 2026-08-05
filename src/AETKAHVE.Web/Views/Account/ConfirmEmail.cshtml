@@ -1,0 +1,47 @@
+@model ConfirmEmailViewModel
+@{
+    Layout = "_AccountLayout";
+    ViewData["Title"] = Model.CanConfirm ? "Üyeliği Tamamla" : "Doğrulama Bağlantısı";
+}
+<div class="account-card account-card--center surface surface--padded"
+     data-confirm-email-state="@(Model.CanConfirm ? "ready" : "invalid")">
+    @if (Model.CanConfirm)
+    {
+        <span class="status-badge account-confirmation__status" data-status-kind="success">Bağlantı doğrulandı</span>
+        <h1 class="account-card__title">Üyeliğinizi tamamlayın</h1>
+        <p class="account-card__subtitle text-muted">
+            E-posta bağlantınız güvenli biçimde doğrulandı. Aşağıdaki onayı vermeden hesabınız oluşturulmaz.
+        </p>
+        @if (!string.IsNullOrWhiteSpace(Model.MaskedEmail))
+        {
+            <p class="account-confirmation__email text-sm">Doğrulanacak adres: <strong>@Model.MaskedEmail</strong></p>
+        }
+        <form class="account-form account-confirmation__form"
+              asp-controller="Account"
+              asp-action="ConfirmEmail"
+              asp-antiforgery="true"
+              method="post"
+              data-confirm-email-form>
+            <input asp-for="RegistrationId" type="hidden" />
+            <input asp-for="Token" type="hidden" />
+            <button type="submit" class="btn btn--primary btn--block">Üyeliği tamamla</button>
+        </form>
+        <p class="account-confirmation__note text-sm text-muted">
+            Bu tek kullanımlık işlem tamamlandığında giriş ekranına yönlendirileceksiniz.
+        </p>
+    }
+    else
+    {
+        <span class="status-badge account-confirmation__status" data-status-kind="error">Bağlantı kullanılamıyor</span>
+        <h1 class="account-card__title">Bağlantı geçersiz veya süresi dolmuş</h1>
+        <p class="account-card__subtitle text-muted">
+            Güvenliğiniz için bu bağlantıyla üyelik tamamlanamadı. Yeni bir doğrulama bağlantısı isteyebilirsiniz.
+        </p>
+        <a class="btn btn--primary btn--block" asp-action="ResendConfirmation">
+            Yeni doğrulama bağlantısı iste
+        </a>
+        <div class="account-form__footer">
+            <a asp-action="Login">Girişe dön</a>
+        </div>
+    }
+</div>

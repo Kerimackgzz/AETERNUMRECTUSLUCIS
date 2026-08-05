@@ -5,7 +5,9 @@
 }
 <div class="account-card surface surface--padded">
     <h1 class="account-card__title">Hesap oluştur</h1>
-    <p class="account-card__subtitle text-muted">AETERNUM RECTUS LUCIS dünyasına katılın.</p>
+    <p class="account-card__subtitle text-muted">
+        Bilgilerinizi gönderin; üyeliğinizi güvenle tamamlamanız için e-posta adresinize tek kullanımlık bir bağlantı iletelim.
+    </p>
     <form class="account-form" asp-action="Register" method="post" novalidate>
         <div asp-validation-summary="ModelOnly" role="alert" class="text-sm"></div>
         <div class="field">
@@ -44,9 +46,13 @@
             <label><input asp-for="AcceptPrivacyTerms" /> Gizlilik koşullarını kabul ediyorum</label>
             <span asp-validation-for="AcceptPrivacyTerms" class="field-validation-error"></span>
         </div>
-        <button type="submit" class="btn btn--primary btn--block">Kayıt Ol</button>
+        <button type="submit" class="btn btn--primary btn--block">Doğrulama bağlantısı gönder</button>
     </form>
+    <p class="text-sm text-muted">
+        Bağlantıyı açmak hesabınızı otomatik olarak oluşturmaz; açılan ekranda “Üyeliği tamamla” onayını vermeniz gerekir.
+    </p>
     <div class="account-form__footer">
         <a asp-action="Login">Zaten hesabınız var mı? Giriş yapın</a>
+        <a asp-action="ResendConfirmation">Bağlantı gelmedi mi?</a>
     </div>
 </div>
