@@ -37,6 +37,15 @@ public static class PaymentProviderNames
 {
     public const string Disabled = "Disabled";
     public const string Mock = "Mock";
+    public const string Stripe = "Stripe";
+}
+
+public sealed class StripeOptions
+{
+    public const string SectionName = "Stripe";
+    public string? SecretKey { get; set; }
+    public string? PublishableKey { get; set; }
+    public string? WebhookSecret { get; set; }
 }
 
 public sealed class ShippingOptions

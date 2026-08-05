@@ -5,6 +5,8 @@ using System.Text;
 using AETKAHVE.Application.Commerce;
 using AETKAHVE.Infrastructure.Options;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
+using Stripe;
 
 namespace AETKAHVE.Infrastructure.Commerce;
 
@@ -208,5 +210,61 @@ public sealed class DisabledPaymentWebhookVerifier : IPaymentWebhookVerifier
     {
         cancellationToken.ThrowIfCancellationRequested();
         return ValueTask.FromResult(PaymentWebhookAuthenticationResult.Rejected("PAYMENTS_DISABLED"));
+    }
+}
+
+/// <summary>
+/// The GET leg is the customer's browser returning from Stripe Checkout — it carries no signature,
+/// so it is only let through to <see cref="IPaymentGateway.VerifyAsync"/>, which re-fetches the
+/// Checkout Session from Stripe and is the actual source of truth (CheckoutService also cross-checks
+/// amount/currency). The POST leg is Stripe's server-to-server webhook and is authenticated for real
+/// via the Stripe-Signature header against Stripe:WebhookSecret.
+/// </summary>
+public sealed class StripePaymentWebhookVerifier(IOptions<StripeOptions> options) : IPaymentWebhookVerifier
+{
+    private readonly StripeOptions _options = options.Value;
+
+    public string ProviderName => PaymentProviderNames.Stripe;
+
+    public ValueTask<PaymentWebhookAuthenticationResult> AuthenticateAsync(
+        PaymentWebhookEnvelope envelope,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (!envelope.Provider.Equals(ProviderName, StringComparison.OrdinalIgnoreCase))
+        {
+            return ValueTask.FromResult(PaymentWebhookAuthenticationResult.Rejected("UNSUPPORTED_DELIVERY"));
+        }
+
+        if (envelope.HttpMethod.Equals("GET", StringComparison.OrdinalIgnoreCase))
+        {
+            return ValueTask.FromResult(PaymentWebhookAuthenticationResult.Accepted());
+        }
+
+        if (string.IsNullOrWhiteSpace(_options.WebhookSecret))
+        {
+            return ValueTask.FromResult(PaymentWebhookAuthenticationResult.Rejected("STRIPE_WEBHOOK_NOT_CONFIGURED"));
+        }
+
+        var signatureHeader = envelope.Headers
+            .FirstOrDefault(pair => pair.Key.Equals("Stripe-Signature", StringComparison.OrdinalIgnoreCase))
+            .Value;
+        if (string.IsNullOrWhiteSpace(signatureHeader))
+        {
+            return ValueTask.FromResult(PaymentWebhookAuthenticationResult.Rejected("MISSING_SECURITY_HEADERS"));
+        }
+
+        try
+        {
+            // throwOnApiVersionMismatch:false — we only rely on the signature for authenticity, not on
+            // the SDK's bundled API version matching the sender's; a version skew must not turn into an
+            // unhandled exception (Stripe.net's own event parsing can NRE on unexpected payload shapes).
+            EventUtility.ConstructEvent(envelope.RawBody, signatureHeader, _options.WebhookSecret, tolerance: 300, throwOnApiVersionMismatch: false);
+            return ValueTask.FromResult(PaymentWebhookAuthenticationResult.Accepted());
+        }
+        catch (Exception exception) when (exception is StripeException or Newtonsoft.Json.JsonException or NullReferenceException)
+        {
+            return ValueTask.FromResult(PaymentWebhookAuthenticationResult.Rejected("INVALID_SIGNATURE"));
+        }
     }
 }

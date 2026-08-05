@@ -124,6 +124,8 @@ public sealed class CommerceProviderTests
     [InlineData("Testing", PaymentProviderNames.Mock, true)]
     [InlineData("Production", PaymentProviderNames.Disabled, true)]
     [InlineData("Production", "Unregistered", false)]
+    [InlineData("Production", PaymentProviderNames.Stripe, true)]
+    [InlineData("Development", PaymentProviderNames.Stripe, true)]
     public void Payment_provider_validation_fails_closed_for_unsafe_environment_combinations(
         string environmentName,
         string providerName,
@@ -196,6 +198,107 @@ public sealed class CommerceProviderTests
         using var pdf = PdfReader.Open(stream, PdfDocumentOpenMode.Import);
         Assert.True(pdf.PageCount >= 3);
     }
+
+    [Theory]
+    [InlineData(125.50, 12550)]
+    [InlineData(10, 1000)]
+    [InlineData(0.1, 10)]
+    [InlineData(19.995, 2000)]
+    public void Stripe_minor_unit_conversion_round_trips_decimal_amounts(decimal amount, long expectedMinorUnits)
+    {
+        var minorUnits = StripePaymentGateway.ToMinorUnits(amount);
+
+        Assert.Equal(expectedMinorUnits, minorUnits);
+        Assert.Equal(Math.Round(amount, 2, MidpointRounding.AwayFromZero), StripePaymentGateway.FromMinorUnits(minorUnits));
+    }
+
+    [Fact]
+    public async Task Stripe_gateway_fails_closed_when_secret_key_is_not_configured()
+    {
+        var gateway = new StripePaymentGateway(Microsoft.Extensions.Options.Options.Create(new StripeOptions()));
+
+        var initialized = await gateway.InitializeAsync(
+            new PaymentRequest(Guid.NewGuid(), Guid.NewGuid(), 10m, "TRY", "idem", "success", "https://localhost/payments/Stripe/callback"), default);
+        var verified = await gateway.VerifyAsync(new PaymentCallbackRequest("cs_test_1", "pi_test_1", "success"), default);
+        var refunded = await gateway.RefundAsync(new RefundRequest(Guid.NewGuid(), "pi_test_1", 10m, "TRY", "return"), default);
+
+        Assert.False(initialized.Succeeded);
+        Assert.Equal("STRIPE_NOT_CONFIGURED", initialized.FailureCode);
+        Assert.False(verified.Succeeded);
+        Assert.False(refunded.Succeeded);
+    }
+
+    [Theory]
+    [InlineData(PaymentProviderNames.Stripe, null, false)]
+    [InlineData(PaymentProviderNames.Stripe, "whsec_valid_secret_at_least_this_long", true)]
+    [InlineData(PaymentProviderNames.Mock, null, true)]
+    public void Stripe_options_require_a_secret_key_only_when_selected_as_the_active_provider(
+        string activeProvider, string? secretKey, bool expectedSuccess)
+    {
+        var validator = new StripeOptionsValidator(
+            new TestHostEnvironment("Development"),
+            Microsoft.Extensions.Options.Options.Create(new PaymentOptions { Provider = activeProvider }));
+
+        var result = validator.Validate(null, new StripeOptions { SecretKey = secretKey });
+
+        Assert.Equal(expectedSuccess, result.Succeeded);
+    }
+
+    [Fact]
+    public void Stripe_options_require_a_webhook_secret_in_production()
+    {
+        var validator = new StripeOptionsValidator(
+            new TestHostEnvironment("Production"),
+            Microsoft.Extensions.Options.Options.Create(new PaymentOptions { Provider = PaymentProviderNames.Stripe }));
+
+        var result = validator.Validate(null, new StripeOptions { SecretKey = "sk_live_x" });
+
+        Assert.True(result.Failed);
+        Assert.Contains(result.Failures, failure => failure.Contains("WebhookSecret", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public async Task Stripe_webhook_verifier_accepts_the_unsigned_checkout_redirect_leg()
+    {
+        var verifier = new StripePaymentWebhookVerifier(Microsoft.Extensions.Options.Options.Create(new StripeOptions()));
+        var envelope = new PaymentWebhookEnvelope(
+            PaymentProviderNames.Stripe, "GET",
+            new PaymentCallbackRequest("cs_test_1", "cs_test_1", "success"),
+            string.Empty, new Dictionary<string, string>());
+
+        var result = await verifier.AuthenticateAsync(envelope, default);
+
+        Assert.True(result.Succeeded);
+    }
+
+    [Fact]
+    public async Task Stripe_webhook_verifier_validates_the_real_stripe_signature_scheme_on_the_server_to_server_leg()
+    {
+        const string webhookSecret = "whsec_test_secret_used_only_in_unit_tests";
+        var verifier = new StripePaymentWebhookVerifier(
+            Microsoft.Extensions.Options.Options.Create(new StripeOptions { WebhookSecret = webhookSecret }));
+        const string payload = "{\"id\":\"evt_1\",\"type\":\"checkout.session.completed\"}";
+        var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var signedPayload = $"{timestamp}.{payload}";
+        var validSignature = Convert.ToHexString(HMACSHA256.HashData(Encoding.UTF8.GetBytes(webhookSecret), Encoding.UTF8.GetBytes(signedPayload))).ToLowerInvariant();
+
+        var accepted = await verifier.AuthenticateAsync(
+            CreateStripeWebhookEnvelope(payload, $"t={timestamp},v1={validSignature}"), default);
+        var rejected = await verifier.AuthenticateAsync(
+            CreateStripeWebhookEnvelope(payload, $"t={timestamp},v1=0000000000000000000000000000000000000000000000000000000000000000"), default);
+
+        Assert.True(accepted.Succeeded);
+        Assert.False(rejected.Succeeded);
+        Assert.Equal("INVALID_SIGNATURE", rejected.ResponseCode);
+    }
+
+    private static PaymentWebhookEnvelope CreateStripeWebhookEnvelope(string rawBody, string stripeSignatureHeader) =>
+        new(
+            PaymentProviderNames.Stripe,
+            "POST",
+            new PaymentCallbackRequest("cs_test_1", "cs_test_1", "success"),
+            rawBody,
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { ["Stripe-Signature"] = stripeSignatureHeader });
 
     private sealed class TestHostEnvironment(string environmentName) : IHostEnvironment
     {
