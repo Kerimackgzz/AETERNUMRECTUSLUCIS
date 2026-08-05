@@ -18,10 +18,17 @@ public sealed class AddressesController(IAddressService addressService) : Commer
     public async Task<IActionResult> Save([FromBody] AddressInputModel input, CancellationToken cancellationToken)
     {
         if (!ModelState.IsValid) return BadRequest(new CommerceMutationResponse(false, "Adres doğrulanamadı."));
-        var result = await addressService.SaveAsync(RequiredUserId, input.Id, new AddressInput(input.Title, input.FirstName, input.LastName,
-            input.PhoneNumber, input.Country, input.City, input.District, input.Neighborhood, input.PostalCode, input.AddressLine,
-            input.IsDefaultShipping, input.IsDefaultBilling), cancellationToken);
-        return Ok(new CommerceMutationResponse(true, "Adres kaydedildi.", Data: result));
+        try
+        {
+            var result = await addressService.SaveAsync(RequiredUserId, input.Id, new AddressInput(input.Title, input.FirstName, input.LastName,
+                input.PhoneNumber, input.Country, input.City, input.District, input.Neighborhood, input.PostalCode, input.AddressLine,
+                input.IsDefaultShipping, input.IsDefaultBilling), cancellationToken);
+            return Ok(new CommerceMutationResponse(true, "Adres kaydedildi.", Data: result));
+        }
+        catch (CommerceRuleException exception)
+        {
+            return Conflict(new CommerceMutationResponse(false, exception.Message));
+        }
     }
 
     [HttpPost("{id:guid}/delete")]

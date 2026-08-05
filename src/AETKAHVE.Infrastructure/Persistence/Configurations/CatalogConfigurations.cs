@@ -65,6 +65,7 @@ internal sealed class ProductImageConfiguration : CommerceEntityConfiguration<Pr
         builder.Property(x => x.StorageKey).HasMaxLength(512).IsRequired();
         builder.Property(x => x.AltText).HasMaxLength(250).IsRequired();
         builder.HasIndex(x => new { x.ProductId, x.DisplayOrder });
+        builder.HasQueryFilter(x => x.Product.DeletedAtUtc == null);
         builder.HasOne(x => x.Product).WithMany(x => x.Images).HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -113,6 +113,7 @@ public sealed class SmtpEmailSender(IOptions<SmtpOptions> options) : IEmailSende
         {
             EnableSsl = _options.UseSsl,
             Credentials = string.IsNullOrWhiteSpace(_options.UserName) ? CredentialCache.DefaultNetworkCredentials : new NetworkCredential(_options.UserName, _options.Password),
+            Timeout = checked(_options.TimeoutSeconds * 1000),
         };
         using var mail = new MailMessage
         {
