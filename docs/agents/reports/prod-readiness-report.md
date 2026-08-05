@@ -54,7 +54,9 @@ Program.cs değiştirilmeden production Data Protection, e-posta/Identity wiring
 - `dotnet build AETKAHVE.sln --no-restore`: başarılı, 0 warning / 0 error.
 - Yeni `ProductionReadinessTests`: 10/10 geçti.
 - Branch suite (tarih-bağımlı mevcut AFK testi hariç): 33 unit + 43 integration = 76/76 geçti.
-- Full suite ilk koşu: 33/33 unit; 43/44 integration. Tek hata `Idle_timeout_deletes_the_management_authentication_cookie`; aynı hata değişikliksiz `446e9c4` integration root'ta yeniden üretildi. Coordinator kök nedeni fixture'ın 2026-08-04 sabit saatli persistent cookie'sinin 2026-08-05 sistem saatinde HttpClient tarafından expired kabul edilmesi olarak buldu; dynamic fixture saati ve cookie scheme `TimeProvider` düzeltmesi ayrı coordinator commit'inde hazır. Merge sonrası full suite Coordinator tarafından tekrar çalıştırılacak.
+- Full suite ilk koşu: 33/33 unit; 43/44 integration. Tek hata `Idle_timeout_deletes_the_management_authentication_cookie`; aynı hata değişikliksiz `446e9c4` integration root'ta yeniden üretildi. Coordinator kök nedeni fixture'ın 2026-08-04 sabit saatli persistent cookie'sinin 2026-08-05 sistem saatinde HttpClient tarafından expired kabul edilmesi olarak buldu.
+- Coordinator auth/test-clock düzeltmesi `60cddc2` ile tamamlandı ve `211127a` üzerinden integration'a alındı. Final birleşik suite 33/33 unit + 60/60 integration = 93/93 geçti; tarih bağımlı AFK regresyonu kapandı.
+- Gerçek Production startup audit'i iki ayrı prosesle geçti: varsayılan config `Notifications:UseMockProviders must be false in Production.` mesajıyla; geçerli notification/SMTP override ise gerçek adapter bulunmadığı için Payment ve Shipping guard'larıyla exit 1 oldu. Host/listener veya SMTP bağlantısı oluşmadı.
 - Changed-file scoped `dotnet format --verify-no-changes`: başarılı. Repository genel format kapısı, bu branch'e ait olmayan mevcut commerce dosyalarındaki whitespace nedeniyle baseline'da başarısız; sahiplik dışı toplu format yapılmadı.
 - `dotnet ef migrations has-pending-model-changes`: model değişikliği yok.
 - `git diff --check`: başarılı.
@@ -62,4 +64,4 @@ Program.cs değiştirilmeden production Data Protection, e-posta/Identity wiring
 
 ## Merge durumu
 
-Implementation commit hazır: `8432baa`. Bu raporun commit'i handoff mesajında ayrıca verilecek. Merge sahibi Coordinator; branch doğrudan `integration` üzerine yazılmadı.
+Implementation commit `8432baa` ve rapor commit'i `91b614a`, Coordinator tarafından `49d0fc8` merge commit'iyle `integration` üzerine alındı. Frontend QA merge'i sonrası final doğrulama tabanı `ec20497` oldu.
