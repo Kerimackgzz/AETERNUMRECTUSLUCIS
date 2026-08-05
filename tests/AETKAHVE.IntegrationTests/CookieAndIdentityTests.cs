@@ -37,13 +37,75 @@ public sealed class CookieAndIdentityTests(AeternumWebApplicationFactory factory
         var linkMatch = Regex.Match(message.HtmlBody, "href=\\\"([^\\\"]+)\\\"");
         Assert.True(linkMatch.Success);
         var confirmationUrl = WebUtility.HtmlDecode(linkMatch.Groups[1].Value);
-        Assert.Equal(HttpStatusCode.Redirect, (await client.GetAsync(confirmationUrl)).StatusCode);
+
+        await AssertCustomerDoesNotExistAsync(email);
+
+        var confirmationPage = await client.GetAsync(confirmationUrl);
+        var confirmationHtml = await confirmationPage.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, confirmationPage.StatusCode);
+        Assert.Contains("data-confirm-email-state=\"ready\"", confirmationHtml, StringComparison.Ordinal);
+        Assert.Contains("data-confirm-email-form", confirmationHtml, StringComparison.Ordinal);
+        Assert.Contains("Üyeliği tamamla", confirmationHtml, StringComparison.Ordinal);
+        await AssertCustomerDoesNotExistAsync(email);
+
+        var completion = await FormClient.PostWithTokenAsync(
+            client,
+            "/account/confirm-email",
+            ExtractHiddenValue(confirmationHtml, "__RequestVerificationToken"),
+            new Dictionary<string, string>
+            {
+                ["RegistrationId"] = ExtractHiddenValue(confirmationHtml, "RegistrationId"),
+                ["Token"] = ExtractHiddenValue(confirmationHtml, "Token"),
+            });
+
+        Assert.Equal(HttpStatusCode.Redirect, completion.StatusCode);
+        Assert.Equal("/account/login", completion.Headers.Location?.AbsolutePath);
+
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var user = Assert.IsType<ApplicationUser>(await userManager.FindByEmailAsync(email));
+            Assert.True(user.EmailConfirmed);
+        }
 
         using var loginClient = factory.CreateClientWithoutRedirects();
         Assert.Equal(HttpStatusCode.Redirect, (await FormClient.LoginAsync(
             loginClient,
             "/account",
             email)).StatusCode);
+    }
+
+    [Fact]
+    public async Task Invalid_confirmation_link_renders_recovery_without_completion_form()
+    {
+        using var client = factory.CreateClientWithoutRedirects();
+
+        var response = await client.GetAsync(
+            $"/account/confirm-email?registrationId={Guid.NewGuid():D}&token=invalid");
+        var html = await response.Content.ReadAsStringAsync();
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("data-confirm-email-state=\"invalid\"", html, StringComparison.Ordinal);
+        Assert.Contains("Bağlantı geçersiz veya süresi dolmuş", html, StringComparison.Ordinal);
+        Assert.Contains("/account/resend-confirmation", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("data-confirm-email-form", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Confirmation_completion_requires_antiforgery_token()
+    {
+        using var client = factory.CreateClientWithoutRedirects();
+
+        var response = await client.PostAsync(
+            "/account/confirm-email",
+            new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["RegistrationId"] = Guid.NewGuid().ToString("D"),
+                ["Token"] = "invalid",
+            }));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 
     [Fact]
@@ -199,4 +261,23 @@ public sealed class CookieAndIdentityTests(AeternumWebApplicationFactory factory
 
     private static string FindAuthenticationCookie(HttpResponseMessage response, string cookieName) =>
         response.Headers.GetValues("Set-Cookie").Single(value => value.StartsWith(cookieName, StringComparison.Ordinal));
+
+    private async Task AssertCustomerDoesNotExistAsync(string email)
+    {
+        await using var scope = factory.Services.CreateAsyncScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        Assert.Null(await userManager.FindByEmailAsync(email));
+    }
+
+    private static string ExtractHiddenValue(string html, string name)
+    {
+        var input = Regex.Match(
+            html,
+            $"<input[^>]*name=\"{Regex.Escape(name)}\"[^>]*>",
+            RegexOptions.IgnoreCase);
+        Assert.True(input.Success, $"Hidden input '{name}' was not rendered.");
+        var value = Regex.Match(input.Value, "value=\"([^\"]*)\"", RegexOptions.IgnoreCase);
+        Assert.True(value.Success, $"Hidden input '{name}' has no value.");
+        return WebUtility.HtmlDecode(value.Groups[1].Value);
+    }
 }

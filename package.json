@@ -2,6 +2,6 @@
   "name": "aetkahve-frontend-contract-tests",
   "private": true,
   "scripts": {
-    "test:frontend": "node --test tests/frontend/idle-session.test.js tests/frontend/password-visibility.test.js"
+    "test:frontend": "node --test tests/frontend/confirm-email-view.test.js tests/frontend/idle-session.test.js tests/frontend/password-visibility.test.js"
   }
 }
