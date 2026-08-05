@@ -51,33 +51,62 @@ public sealed class CheckoutService(
         var now = timeProvider.GetUtcNow();
         var order = new Order
         {
-            OrderNumber = CreateOrderNumber(now), UserId = request.UserId, BillingAddressSnapshot = SerializeAddress(billing),
-            ShippingAddressSnapshot = SerializeAddress(shipping), Subtotal = summary.Subtotal, DiscountTotal = summary.DiscountTotal,
-            TaxTotal = summary.TaxTotal, ShippingTotal = summary.ShippingTotal, GrandTotal = summary.GrandTotal,
-            Currency = summary.Currency, CustomerNote = request.CustomerNote?.Trim(), IdempotencyKey = request.IdempotencyKey,
-            CreatedAtUtc = now, UpdatedAtUtc = now,
+            OrderNumber = CreateOrderNumber(now),
+            UserId = request.UserId,
+            BillingAddressSnapshot = SerializeAddress(billing),
+            ShippingAddressSnapshot = SerializeAddress(shipping),
+            Subtotal = summary.Subtotal,
+            DiscountTotal = summary.DiscountTotal,
+            TaxTotal = summary.TaxTotal,
+            ShippingTotal = summary.ShippingTotal,
+            GrandTotal = summary.GrandTotal,
+            Currency = summary.Currency,
+            CustomerNote = request.CustomerNote?.Trim(),
+            IdempotencyKey = request.IdempotencyKey,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
         };
         foreach (var line in summary.Items)
         {
             order.Items.Add(new OrderItem
             {
-                ProductId = line.ProductId, ProductVariantId = line.VariantId, ProductName = line.ProductName, Sku = line.Sku,
-                VariantName = line.VariantName, UnitPrice = line.UnitPrice, DiscountAmount = line.DiscountAmount,
-                TaxRate = cart.Items.Single(x => x.Id == line.ItemId).Product.TaxRate, TaxAmount = line.TaxAmount,
-                Quantity = line.Quantity, LineTotal = line.LineTotal, CreatedAtUtc = now, UpdatedAtUtc = now,
+                ProductId = line.ProductId,
+                ProductVariantId = line.VariantId,
+                ProductName = line.ProductName,
+                Sku = line.Sku,
+                VariantName = line.VariantName,
+                UnitPrice = line.UnitPrice,
+                DiscountAmount = line.DiscountAmount,
+                TaxRate = cart.Items.Single(x => x.Id == line.ItemId).Product.TaxRate,
+                TaxAmount = line.TaxAmount,
+                Quantity = line.Quantity,
+                LineTotal = line.LineTotal,
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now,
             });
         }
         order.StatusHistory.Add(new OrderStatusHistory
         {
-            PreviousStatus = OrderStatus.PendingPayment, NewStatus = OrderStatus.PendingPayment, Description = "Checkout initialized.",
-            ChangedByUserId = request.UserId, ChangedAtUtc = now, CreatedAtUtc = now, UpdatedAtUtc = now,
+            PreviousStatus = OrderStatus.PendingPayment,
+            NewStatus = OrderStatus.PendingPayment,
+            Description = "Checkout initialized.",
+            ChangedByUserId = request.UserId,
+            ChangedAtUtc = now,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
         });
 
         var gateway = ResolveGateway(_paymentOptions.Provider);
         var payment = new Payment
         {
-            Order = order, Provider = gateway.ProviderName, IdempotencyKey = request.IdempotencyKey,
-            Amount = order.GrandTotal, Currency = order.Currency, Status = PaymentStatus.Pending, CreatedAtUtc = now, UpdatedAtUtc = now,
+            Order = order,
+            Provider = gateway.ProviderName,
+            IdempotencyKey = request.IdempotencyKey,
+            Amount = order.GrandTotal,
+            Currency = order.Currency,
+            Status = PaymentStatus.Pending,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
         };
         dbContext.Orders.Add(order);
         dbContext.Payments.Add(payment);
@@ -184,9 +213,12 @@ public sealed class CheckoutService(
             dbContext.Invoices.Add(invoice);
             var shipment = new Shipment
             {
-                OrderId = order.Id, Order = order,
-                ShippingCompany = "Pending", Status = ShipmentStatus.Pending,
-                CreatedAtUtc = timeProvider.GetUtcNow(), UpdatedAtUtc = timeProvider.GetUtcNow(),
+                OrderId = order.Id,
+                Order = order,
+                ShippingCompany = "Pending",
+                Status = ShipmentStatus.Pending,
+                CreatedAtUtc = timeProvider.GetUtcNow(),
+                UpdatedAtUtc = timeProvider.GetUtcNow(),
             };
             order.Shipment = shipment;
             dbContext.Shipments.Add(shipment);
@@ -234,9 +266,14 @@ public sealed class CheckoutService(
         payment.Order.CancelledAtUtc = now;
         dbContext.Refunds.Add(new Refund
         {
-            PaymentId = payment.Id, Amount = payment.Amount, Status = refundResult.Succeeded ? RefundStatus.Succeeded : RefundStatus.Failed,
-            ProviderReference = refundResult.ProviderReference, FailureReason = refundResult.FailureReason ?? reason,
-            CompletedAtUtc = refundResult.Succeeded ? now : null, CreatedAtUtc = now, UpdatedAtUtc = now,
+            PaymentId = payment.Id,
+            Amount = payment.Amount,
+            Status = refundResult.Succeeded ? RefundStatus.Succeeded : RefundStatus.Failed,
+            ProviderReference = refundResult.ProviderReference,
+            FailureReason = refundResult.FailureReason ?? reason,
+            CompletedAtUtc = refundResult.Succeeded ? now : null,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
         });
         await ReleaseCouponAsync(payment.OrderId, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);

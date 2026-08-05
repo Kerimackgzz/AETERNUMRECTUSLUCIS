@@ -49,8 +49,13 @@ public sealed class ReturnService(
         var now = timeProvider.GetUtcNow();
         var entity = new ReturnRequest
         {
-            Order = order, UserId = request.UserId, Reason = Required(request.Reason, 250), Description = Truncate(request.Description, 2000),
-            RequestedAtUtc = now, CreatedAtUtc = now, UpdatedAtUtc = now,
+            Order = order,
+            UserId = request.UserId,
+            Reason = Required(request.Reason, 250),
+            Description = Truncate(request.Description, 2000),
+            RequestedAtUtc = now,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
         };
         foreach (var input in request.Items)
         {
@@ -59,8 +64,13 @@ public sealed class ReturnService(
             if (input.Quantity < 1 || input.Quantity + already > item.Quantity) throw new CommerceRuleException("Return quantity exceeds purchased quantity.");
             entity.Items.Add(new ReturnItem
             {
-                OrderItem = item, Quantity = input.Quantity, Reason = Required(input.Reason, 500), Condition = input.Condition,
-                ImageStorageKey = Truncate(input.ImageStorageKey, 512), CreatedAtUtc = now, UpdatedAtUtc = now,
+                OrderItem = item,
+                Quantity = input.Quantity,
+                Reason = Required(input.Reason, 500),
+                Condition = input.Condition,
+                ImageStorageKey = Truncate(input.ImageStorageKey, 512),
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now,
             });
             entity.RefundAmount += Math.Round(item.LineTotal / item.Quantity * input.Quantity, 2, MidpointRounding.AwayFromZero);
         }
@@ -114,8 +124,14 @@ public sealed class ReturnService(
         {
             dbContext.Refunds.Add(new Refund
             {
-                PaymentId = payment.Id, ReturnRequestId = request.Id, Amount = request.RefundAmount, Status = RefundStatus.Succeeded,
-                ProviderReference = refundResult!.ProviderReference, CompletedAtUtc = now, CreatedAtUtc = now, UpdatedAtUtc = now,
+                PaymentId = payment.Id,
+                ReturnRequestId = request.Id,
+                Amount = request.RefundAmount,
+                Status = RefundStatus.Succeeded,
+                ProviderReference = refundResult!.ProviderReference,
+                CompletedAtUtc = now,
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now,
             });
             var refundedTotal = await dbContext.Refunds.Where(x => x.PaymentId == payment.Id && x.Status == RefundStatus.Succeeded).SumAsync(x => (decimal?)x.Amount, cancellationToken) ?? 0;
             if (refundedTotal + request.RefundAmount >= payment.Amount)
@@ -154,9 +170,18 @@ public sealed class ReturnService(
             var now = timeProvider.GetUtcNow();
             dbContext.StockMovements.Add(new StockMovement
             {
-                ProductId = item.OrderItem.ProductId, ProductVariantId = item.OrderItem.ProductVariantId, MovementType = StockMovementType.Return,
-                Quantity = item.Quantity, PreviousStock = previous, NewStock = next, ReferenceType = nameof(ReturnRequest), ReferenceId = request.Id,
-                Description = "Approved returned inventory.", CreatedByUserId = actorUserId, CreatedAtUtc = now, UpdatedAtUtc = now,
+                ProductId = item.OrderItem.ProductId,
+                ProductVariantId = item.OrderItem.ProductVariantId,
+                MovementType = StockMovementType.Return,
+                Quantity = item.Quantity,
+                PreviousStock = previous,
+                NewStock = next,
+                ReferenceType = nameof(ReturnRequest),
+                ReferenceId = request.Id,
+                Description = "Approved returned inventory.",
+                CreatedByUserId = actorUserId,
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now,
             });
         }
     }
@@ -230,10 +255,14 @@ public sealed class ContactService(AppDbContext dbContext, TimeProvider timeProv
         var now = timeProvider.GetUtcNow();
         var entity = new ContactMessage
         {
-            FullName = fullName.Trim()[..Math.Min(200, fullName.Trim().Length)], Email = email.Trim()[..Math.Min(320, email.Trim().Length)],
+            FullName = fullName.Trim()[..Math.Min(200, fullName.Trim().Length)],
+            Email = email.Trim()[..Math.Min(320, email.Trim().Length)],
             PhoneNumber = string.IsNullOrWhiteSpace(phone) ? null : phone.Trim()[..Math.Min(30, phone.Trim().Length)],
-            Subject = subject.Trim()[..Math.Min(200, subject.Trim().Length)], Message = message.Trim()[..Math.Min(5000, message.Trim().Length)],
-            PrivacyAccepted = true, CreatedAtUtc = now, UpdatedAtUtc = now,
+            Subject = subject.Trim()[..Math.Min(200, subject.Trim().Length)],
+            Message = message.Trim()[..Math.Min(5000, message.Trim().Length)],
+            PrivacyAccepted = true,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
         };
         dbContext.ContactMessages.Add(entity);
         await dbContext.SaveChangesAsync(cancellationToken);
