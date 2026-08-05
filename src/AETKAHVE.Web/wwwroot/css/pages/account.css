@@ -41,6 +41,22 @@
   margin-bottom: var(--space-6);
 }
 
+.account-confirmation__status {
+  margin-bottom: var(--space-3);
+}
+
+.account-confirmation__email {
+  margin-bottom: 0;
+}
+
+.account-confirmation__form {
+  margin-top: var(--space-6);
+}
+
+.account-confirmation__note {
+  margin: var(--space-4) 0 0;
+}
+
 .account-form .field {
   margin-bottom: var(--space-5);
 }
