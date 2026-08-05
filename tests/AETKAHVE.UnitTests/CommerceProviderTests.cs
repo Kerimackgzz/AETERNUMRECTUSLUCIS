@@ -9,12 +9,33 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using PdfSharp.Pdf.IO;
 
 namespace AETKAHVE.UnitTests;
 
 public sealed class CommerceProviderTests
 {
+    [Fact]
+    public async Task Commerce_module_fails_host_start_when_mock_is_configured_in_production()
+    {
+        var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
+        {
+            EnvironmentName = Environments.Production,
+        });
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Payment:Provider"] = PaymentProviderNames.Mock,
+        });
+        builder.Services.AddCommerceModule(builder.Configuration);
+        builder.Services.AddSingleton(TimeProvider.System);
+        using var host = builder.Build();
+
+        var exception = await Assert.ThrowsAsync<OptionsValidationException>(() => host.StartAsync());
+
+        Assert.Contains("restricted to Development and Testing", exception.Message, StringComparison.Ordinal);
+    }
+
     [Fact]
     public async Task Signed_webhook_accepts_one_fresh_event_and_rejects_its_replay()
     {
