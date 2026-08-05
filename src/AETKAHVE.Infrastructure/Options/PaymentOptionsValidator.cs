@@ -26,6 +26,11 @@ public sealed class PaymentOptionsValidator(IHostEnvironment environment) : IVal
             return ValidateOptionsResult.Success;
         }
 
+        if (options.Provider.Equals(PaymentProviderNames.Stripe, StringComparison.OrdinalIgnoreCase))
+        {
+            return ValidateOptionsResult.Success;
+        }
+
         return ValidateOptionsResult.Fail(
             $"Payment provider '{options.Provider}' has no registered production adapter. Configure a supported provider or use Disabled to fail closed.");
     }

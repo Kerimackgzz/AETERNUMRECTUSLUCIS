@@ -26,6 +26,8 @@ public static class CommerceModuleExtensions
         services.AddOptions<CommerceOptions>().Bind(configuration.GetSection(CommerceOptions.SectionName)).ValidateDataAnnotations().ValidateOnStart();
         services.AddSingleton<IValidateOptions<PaymentOptions>, PaymentOptionsValidator>();
         services.AddOptions<PaymentOptions>().Bind(configuration.GetSection(PaymentOptions.SectionName)).ValidateDataAnnotations().ValidateOnStart();
+        services.AddSingleton<IValidateOptions<StripeOptions>, StripeOptionsValidator>();
+        services.AddOptions<StripeOptions>().Bind(configuration.GetSection(StripeOptions.SectionName)).ValidateOnStart();
         services.AddOptions<ShippingOptions>().Bind(configuration.GetSection(ShippingOptions.SectionName)).ValidateDataAnnotations().ValidateOnStart();
         services.AddOptions<InvoiceOptions>().Bind(configuration.GetSection(InvoiceOptions.SectionName)).ValidateDataAnnotations().ValidateOnStart();
         services.AddOptions<NotificationOptions>().Bind(configuration.GetSection(NotificationOptions.SectionName)).ValidateDataAnnotations().ValidateOnStart();
@@ -50,11 +52,15 @@ public static class CommerceModuleExtensions
         services.AddScoped<INotificationQueue, NotificationQueue>();
         services.AddSingleton<MockPaymentGateway>();
         services.AddSingleton<IPaymentGateway>(provider => provider.GetRequiredService<MockPaymentGateway>());
+        services.AddSingleton<StripePaymentGateway>();
+        services.AddSingleton<IPaymentGateway>(provider => provider.GetRequiredService<StripePaymentGateway>());
         services.AddSingleton<IPaymentWebhookReplayStore, InMemoryPaymentWebhookReplayStore>();
         services.AddSingleton<MockPaymentWebhookVerifier>();
         services.AddSingleton<DisabledPaymentWebhookVerifier>();
+        services.AddSingleton<StripePaymentWebhookVerifier>();
         services.AddSingleton<IPaymentWebhookVerifier>(provider => provider.GetRequiredService<MockPaymentWebhookVerifier>());
         services.AddSingleton<IPaymentWebhookVerifier>(provider => provider.GetRequiredService<DisabledPaymentWebhookVerifier>());
+        services.AddSingleton<IPaymentWebhookVerifier>(provider => provider.GetRequiredService<StripePaymentWebhookVerifier>());
         services.AddSingleton<MockShippingProvider>();
         services.AddSingleton<IShippingProvider>(provider => provider.GetRequiredService<MockShippingProvider>());
         services.AddSingleton<MockEmailSender>();
