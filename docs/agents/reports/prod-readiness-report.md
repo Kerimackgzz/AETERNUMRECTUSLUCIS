@@ -65,3 +65,11 @@ Program.cs değiştirilmeden production Data Protection, e-posta/Identity wiring
 ## Merge durumu
 
 Implementation commit `8432baa` ve rapor commit'i `91b614a`, Coordinator tarafından `49d0fc8` merge commit'iyle `integration` üzerine alındı. Frontend QA merge'i sonrası final doğrulama tabanı `ec20497` oldu.
+
+## Coordinator security supersession — 2026-08-05
+
+- Bu rapordaki ilk relative/unprotected key-ring yaklaşımı, Ajan 3 production security merge'i `b86da0c` ile bilinçli olarak değiştirildi.
+- Production artık absolute `DataProtection:KeyRingPath` ile thumbprint veya PFX tabanlı private-key sertifikası ister; persist edilen XML key'ler uygulama seviyesinde şifrelenir ve eksik/erişilemez ayar startup'ı durdurur.
+- SMTP, Identity SQL outbox, lease/retry ve notification validator işleri korunmuştur.
+- Payment varsayılanı `Disabled` olarak fail-closed kalır; Mock yalnız Development/Testing'de kabul edilir. Gerçek shipping adapter'ı yokken Production startup guard'ı sürer.
+- Final birleşik kapı: build 0/0, frontend 5/5, unit 54/54, integration 77/77, migration/model/script, vulnerability, JavaScript syntax ve tam format kontrolleri başarılı.

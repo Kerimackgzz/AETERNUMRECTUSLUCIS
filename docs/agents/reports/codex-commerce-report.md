@@ -77,3 +77,10 @@ SQL Server migration sırası, pending-model kontrolü ve idempotent script Coor
 - Production payment/shipping adapter'ları ve gerçek provider secret'ları teslim edilmedi; güvenli fail-closed davranış bilinçlidir.
 - SQL Server instance'ı bu ortamda çalıştırılmadı; migration üretimi SQL Server, çalışan testler SQLite ile doğrulanır.
 - `Product` global query filter ile required `StockMovement.Product` navigation uyarısı kayıt silmez; soft-delete ürün hareketlerinin navigation join'li tarihsel raporları için `IgnoreQueryFilters()` veya optional/history ilişki tasarımı takip işidir.
+
+## Coordinator final integration — 2026-08-05
+
+- Ajan 4 branch'i `84610f2` ile, ardından AFK frontend teslimi `243b9f6` ile `integration` üzerine alındı.
+- Release build 0 uyarı / 0 hata; frontend 5/5, unit 54/54 ve integration 77/77 geçti.
+- Dört migration doğru sırada; pending model change yok; idempotent SQL 54.628 bayt üretildi.
+- NuGet vulnerability audit, 26 JavaScript syntax kontrolü, tam solution format ve `git diff --check` geçti.

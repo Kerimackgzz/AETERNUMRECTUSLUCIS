@@ -58,13 +58,13 @@
 
 ## Bilinen Konular
 
-- Gerçek SMTP/outbox production entegrasyonu yok; in-memory mock kullanılır.
-- AFK frontend runtime’ı sözleşmeyle ayrılmıştır; sunucu enforcement çalışır.
+- Production SMTP/Identity SQL outbox entegrasyonu vardır; gerçek SMTP secret'ları deployment ortamında sağlanmalıdır.
+- AFK frontend runtime'ı tek logout POST'u ve cross-tab senkronizasyonuyla tamamlanmıştır; sunucu enforcement nihai otoritedir.
 - Bu oturum dışında oluşan Ajan 2 kök `wwwroot/*` ve raporu korunmuş, Ajan 3 commit’lerinden dışlanmıştır.
 
 ## Merge Hazır Durumu
 
-Foundation, final EF ve Git kontrolleri başarılı olduktan sonra Coordinator review/merge için hazırdır. Ajan 3 doğrudan `integration` veya `main` üzerine merge yapmaz.
+Foundation ve sonraki production security hardening Coordinator tarafından `integration` üzerine alınmıştır. `main` değiştirilmemiştir; migration/snapshot sahipliği Ajan 4'e devredilmiştir.
 
 ## Post-Foundation Security Hardening — 2026-08-04
 
@@ -112,3 +112,19 @@ Foundation, final EF ve Git kontrolleri başarılı olduktan sonra Coordinator r
 - `codex-architecture-security-20260804-afk-client-expiry.md` isteğindeki yerel expiry sırasında antiforgery korumalı logout ve cross-tab senkronizasyonu henüz uygulanmış değildir; backend AFK enforcement ve cookie silme testleri çalışmaktadır.
 - Bu turdaki uygulama commit'leri: `31381ff91501cd55555e118d7a69968b327822e5`, `9243a1d725e68c7ecadda12693c91e0a64c436e2`.
 - Rapor commit'inden sonraki nihai branch HEAD hash'i teslim mesajında bildirilir; Ajan 3 doğrudan `integration` veya `main` üzerine merge yapmaz.
+
+## Final integrated security closure — 2026-08-05
+
+- Ajan 3 production security dalı `b86da0c` ile `integration` üzerine alındı. Ajan 4 payment/webhook teslimi `84610f2`, Ajan 1 AFK frontend teslimi `243b9f6` ile bunu izledi.
+- Forwarded headers varsayılan kapalıdır. Etkinleştirme explicit `KnownProxies`/`KnownNetworks`, sınırlı forward count ve header symmetry gerektirir; middleware rate limiter'dan önce çalışır. Trusted, untrusted ve disabled proxy partition testleri geçer.
+- Production Data Protection absolute durable key-ring path ve thumbprint veya PFX sertifikası ister. Persist edilen key XML'i sertifikayla şifrelenir; eksik path, erişilemeyen dizin, bulunamayan/private-key içermeyen/geçersiz sertifika fail-fast sonuçlanır.
+- SMTP/Identity SQL outbox ve notification retry/lease işleri korunmuş; eski relative ve uygulama seviyesinde şifrelenmemiş key repository implementasyonu kaldırılmıştır.
+- Customer/Admin/SuperAdmin scheme, rol ve policy ayrımı korunur. Cookie handler ve management session aynı uygulama `TimeProvider`'ını kullanır; test fixture başlangıcı `HttpClient` cookie wall-clock davranışıyla hizalıdır.
+- Customer login/register/password recovery, Admin/SuperAdmin login ve public contact limitleri doğrulanan IP-bölümlü ayarlara bağlıdır. Güvensiz correlation ID değerleri audit/log/response'a taşınmadan yenilenir.
+- AFK expiry isteği tamamlandı: tek antiforgery same-origin logout POST'u, üç saniyelik redirect fallback'i, duplicate-submit guard ve Admin/SuperAdmin portal-scope cross-tab logout/keep-alive senkronizasyonu vardır.
+- Commerce security isteği tamamlandı: Production ödeme varsayılanı `Disabled`, Mock yalnız Development/Testing, unknown provider reddi, active-provider eşleşmesi, 64 KiB body sınırı ve HMAC-SHA256/timestamp/constant-time/replay doğrulaması uygulanır.
+- Final doğrulama: Release build 0 uyarı / 0 hata; frontend 5/5; unit 54/54; integration 77/77.
+- EF zinciri `InitialIdentity` + üç commerce migration'ından oluşur; pending model change yoktur. SQL Server idempotent script 54.628 bayt, SHA-256 `DF956CA76B4DED1E5885DB67F90FAE385F1CAF9FDACD32CDAE147E6F1FC705DF`.
+- NuGet direct/transitive vulnerability audit temiz; 26 JavaScript syntax kontrolü, repository-geneli `dotnet format --verify-no-changes` ve `git diff --check` başarılı.
+- Açık production işleri: gerçek payment/shipping adapter'ları, çok-instance deployment için distributed/durable replay store, deployment SMTP secret'ları ve private-key erişimli Data Protection sertifikası.
+- Bu raporun documentation commit'i self-reference nedeniyle kendi hash'ini içermez; temiz final `integration` hash'i teslim mesajında bildirilir. `main` değiştirilmemiştir.

@@ -2,11 +2,11 @@
 
 | Ajan | Branch | Durum | Gate |
 |---|---|---|---|
-| Ajan 3 — Architecture/Security | `agent/codex-architecture-security` | Foundation ve auth-clock düzeltmesi integration’a merge edildi (`bcfbf8d`, `211127a`) | Tamamlandı; tüm cookie handler'ları uygulama `TimeProvider`'ını kullanıyor, tarih bağımlı AFK regresyonu kapandı |
-| Ajan 1 — Design/Pages | `agent/claude-design-pages` | Integration'a merge edildi — **kapsam tamamlandı** | Design system, ProductCard ve Public/Account/Admin commerce view'ları tamamlandı; `/contact`, koleksiyonlar, hikâye ve post-purchase iade/yorum bağlantıları Coordinator tarafından kapatıldı (`90a7efd`) |
+| Ajan 3 — Architecture/Security | `agent/codex-architecture-security` | Foundation, auth-clock ve production security integration’a merge edildi (`bcfbf8d`, `211127a`, `b86da0c`) | Tamamlandı; cookie/AFK, abuse limiter, trusted proxy ve sertifikayla şifreli Data Protection kapıları geçti |
+| Ajan 1 — Design/Pages | `agent/claude-design-pages` | AFK frontend hardening dahil integration'a merge edildi (`243b9f6`) | Tamamlandı; tek CSRF logout POST'u, portal-scope cross-tab sync ve erişilebilir modal focus davranışı testlerle kilitli |
 | Ajan 2 — Hero/Motion + Frontend QA | `agent/claude-home-hero`, `agent/frontend-qa` | Integration'a merge edildi (`ec20497`) | Tamamlandı: frame pipeline, motion engine, şeffaf/scroll navbar, mobil disclosure, fetch auth redirect ve accessibility hardening |
-| Ajan 4 — Commerce | `agent/codex-commerce`, `agent/commerce-hardening` | Integration'a merge edildi (`62e4de5`, `18d5d99`) | Tamamlandı: çekirdek, migration, Development SQLite, sahiplik/idempotency ve edge-case hardening (`7cabb93`) |
-| Ortak — Production readiness | `agent/prod-readiness` | Integration'a merge edildi (`49d0fc8`) | Kalıcı key-ring, SMTP/Identity outbox ve worker hardening tamam; gerçek payment/shipping adapter'ları gelene kadar Production fail-closed |
+| Ajan 4 — Commerce | `agent/codex-commerce`, `agent/commerce-hardening` | Payment/webhook hardening dahil integration'a merge edildi (`62e4de5`, `18d5d99`, `84610f2`) | Tamamlandı; `Disabled` production ödeme, environment-gated Mock ve HMAC/timestamp/replay webhook doğrulaması aktif |
+| Ortak — Production readiness | `agent/prod-readiness` | Integration'a merge edildi (`49d0fc8`), Data Protection güvenliği Ajan 3 tarafından yükseltildi (`b86da0c`) | SMTP/Identity outbox korundu; key-ring absolute path ve sertifika ile şifreleme zorunlu; gerçek adapter eksikleri fail-closed |
 
 Coordinator build/test doğrulaması (2026-08-04):
 - `agent/codex-architecture-security` → `integration` merge (`bcfbf8d`, no-ff, çakışmasız); build/test 0 hata, 8/8+16/16.
@@ -32,3 +32,10 @@ Coordinator final hardening doğrulaması (2026-08-05):
 - Bilinen EF uyarısı `Product` query filter + required `StockMovement.Product` navigation'ı içindir. Doğrudan audit/idempotency sorguları görünür kalır; soft-delete ürün hareketlerini navigation join'li tarihsel raporlarda korumak için `IgnoreQueryFilters()` veya optional/history ilişki tasarımı takip edilmelidir.
 
 Bu dosya foundation merge’inden sonra yalnız Coordinator tarafından güncellenir.
+
+Coordinator integrated hardening closure (2026-08-05):
+
+- Merge sırası: production security `b86da0c`, payment/webhook `84610f2`, AFK frontend `243b9f6`.
+- Release build: 0 uyarı / 0 hata. Node: 5/5. Unit: 54/54. Integration: 77/77.
+- Dört migration sıralı, pending model change yok; SQL Server idempotent script 54.628 bayt.
+- NuGet direct/transitive vulnerability audit, 26 JavaScript syntax kontrolü, tam `dotnet format --verify-no-changes` ve `git diff --check` başarılı.
