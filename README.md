@@ -35,13 +35,13 @@ SMTP parolasını `appsettings*.json` dosyalarına, Git'e veya sohbet mesajına 
 ```powershell
 dotnet user-secrets set "Notifications:UseMockProviders" "false" --project .\src\AETKAHVE.Web
 dotnet user-secrets set "Notifications:AllowExternalDeliveryInDevelopment" "true" --project .\src\AETKAHVE.Web
-dotnet user-secrets set "Notifications:Smtp:Host" "smtp.example.com" --project .\src\AETKAHVE.Web
-dotnet user-secrets set "Notifications:Smtp:Port" "587" --project .\src\AETKAHVE.Web
-dotnet user-secrets set "Notifications:Smtp:UseSsl" "true" --project .\src\AETKAHVE.Web
-dotnet user-secrets set "Notifications:Smtp:UserName" "mail@example.com" --project .\src\AETKAHVE.Web
-dotnet user-secrets set "Notifications:Smtp:Password" "UYGULAMA_PAROLASI" --project .\src\AETKAHVE.Web
-dotnet user-secrets set "Notifications:Smtp:FromAddress" "mail@example.com" --project .\src\AETKAHVE.Web
-dotnet user-secrets set "Notifications:Smtp:FromName" "AETERNUM RECTUS LUCIS" --project .\src\AETKAHVE.Web
+dotnet user-secrets set "Smtp:Host" "smtp.example.com" --project .\src\AETKAHVE.Web
+dotnet user-secrets set "Smtp:Port" "587" --project .\src\AETKAHVE.Web
+dotnet user-secrets set "Smtp:UseSsl" "true" --project .\src\AETKAHVE.Web
+dotnet user-secrets set "Smtp:UserName" "mail@example.com" --project .\src\AETKAHVE.Web
+dotnet user-secrets set "Smtp:Password" "UYGULAMA_PAROLASI" --project .\src\AETKAHVE.Web
+dotnet user-secrets set "Smtp:FromAddress" "mail@example.com" --project .\src\AETKAHVE.Web
+dotnet user-secrets set "Smtp:FromName" "AETERNUM RECTUS LUCIS" --project .\src\AETKAHVE.Web
 dotnet run --project .\src\AETKAHVE.Web
 ```
 
