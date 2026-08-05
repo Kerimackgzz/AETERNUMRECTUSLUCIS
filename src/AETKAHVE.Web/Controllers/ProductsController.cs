@@ -34,7 +34,7 @@ public sealed class SearchController(ICatalogQueryService catalogQueryService) :
 }
 
 [Route("campaigns")]
-public sealed class CampaignsController(ICatalogQueryService catalogQueryService) : Controller
+public sealed class CampaignsController(ICatalogQueryService catalogQueryService) : CommerceControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> Index(CancellationToken cancellationToken) => View(new CampaignListViewModel(await catalogQueryService.GetActiveCampaignsAsync(cancellationToken)));

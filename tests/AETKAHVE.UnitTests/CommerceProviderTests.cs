@@ -17,7 +17,7 @@ namespace AETKAHVE.UnitTests;
 public sealed class CommerceProviderTests
 {
     [Fact]
-    public async Task Commerce_module_fails_host_start_when_mock_is_configured_in_production()
+    public async Task Production_host_fails_start_when_mock_payment_is_configured()
     {
         var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
         {
@@ -27,8 +27,11 @@ public sealed class CommerceProviderTests
         {
             ["Payment:Provider"] = PaymentProviderNames.Mock,
         });
-        builder.Services.AddCommerceModule(builder.Configuration);
-        builder.Services.AddSingleton(TimeProvider.System);
+        builder.Services.AddSingleton<IValidateOptions<PaymentOptions>, PaymentOptionsValidator>();
+        builder.Services.AddOptions<PaymentOptions>()
+            .Bind(builder.Configuration.GetSection(PaymentOptions.SectionName))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
         using var host = builder.Build();
 
         var exception = await Assert.ThrowsAsync<OptionsValidationException>(() => host.StartAsync());

@@ -37,6 +37,7 @@
     }
     else
     {
+        <div class="table-scroll" tabindex="0" role="region" aria-label="Kampanya yönetimi tablosu">
         <table>
             <thead><tr><th>Ad</th><th>Tip</th><th>Değer</th><th>Aktif</th><th>Bitiş</th></tr></thead>
             <tbody>
@@ -52,6 +53,7 @@
                 }
             </tbody>
         </table>
+        </div>
         <partial name="_Pagination" model="(Model.Campaigns.Page, Model.Campaigns.TotalPages)" />
     }
 </div>

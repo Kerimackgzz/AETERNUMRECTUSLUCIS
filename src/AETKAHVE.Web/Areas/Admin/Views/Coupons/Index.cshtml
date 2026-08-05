@@ -38,6 +38,7 @@
     }
     else
     {
+        <div class="table-scroll" tabindex="0" role="region" aria-label="Kupon yönetimi tablosu">
         <table>
             <thead><tr><th>Ad</th><th>Kod</th><th>Tip</th><th>Değer</th><th>Kullanım</th><th>Aktif</th></tr></thead>
             <tbody>
@@ -54,6 +55,7 @@
                 }
             </tbody>
         </table>
+        </div>
         <partial name="_Pagination" model="(Model.Coupons.Page, Model.Coupons.TotalPages)" />
     }
 </div>

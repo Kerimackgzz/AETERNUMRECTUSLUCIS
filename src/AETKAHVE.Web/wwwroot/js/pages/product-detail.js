@@ -79,7 +79,9 @@ function initFavorite(root) {
     const result = await toggleFavorite(favBtn.getAttribute("data-toggle-favorite-url"));
     favBtn.disabled = false;
     if (result.ok && result.data?.data) {
-      favBtn.setAttribute("aria-pressed", String(Boolean(result.data.data.isFavorite)));
+      const isFavorite = Boolean(result.data.data.isFavorite);
+      favBtn.setAttribute("aria-pressed", String(isFavorite));
+      favBtn.setAttribute("aria-label", isFavorite ? "Favorilerden çıkar" : "Favorilere ekle");
     }
   });
 }

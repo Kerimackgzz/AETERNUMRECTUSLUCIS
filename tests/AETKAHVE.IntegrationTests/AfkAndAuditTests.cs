@@ -70,6 +70,30 @@ public sealed class AfkAndAuditTests(AeternumWebApplicationFactory factory)
     }
 
     [Fact]
+    public async Task Management_logout_deletes_the_persistent_authentication_cookie()
+    {
+        using var client = factory.CreateClientWithoutRedirects();
+        Assert.Equal(HttpStatusCode.Redirect, (await FormClient.LoginAsync(
+            client,
+            "/admin",
+            AeternumWebApplicationFactory.AdminEmail,
+            rememberMe: true)).StatusCode);
+        var (_, token) = await FormClient.GetFormAsync(client, "/admin");
+
+        var response = await FormClient.PostWithTokenAsync(
+            client,
+            "/admin/logout",
+            token,
+            new Dictionary<string, string>());
+
+        Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        var deletionCookie = Assert.Single(
+            response.Headers.GetValues("Set-Cookie"),
+            value => value.StartsWith("AETKAHVE.Admin.Auth=", StringComparison.Ordinal));
+        Assert.Contains("expires=", deletionCookie, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task Status_poll_does_not_extend_idle_session()
     {
         using var client = factory.CreateClientWithoutRedirects();

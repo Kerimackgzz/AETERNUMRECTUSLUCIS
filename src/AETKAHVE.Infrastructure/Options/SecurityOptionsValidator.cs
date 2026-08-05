@@ -16,9 +16,17 @@ public sealed class SecurityOptionsValidator : IValidateOptions<SecurityOptions>
         ValidateRange(options.IdleWarningSeconds, 10, 600, nameof(options.IdleWarningSeconds), failures);
         ValidateRange(options.MaxFailedAccessAttempts, 3, 20, nameof(options.MaxFailedAccessAttempts), failures);
         ValidateRange(options.LockoutMinutes, 1, 1440, nameof(options.LockoutMinutes), failures);
+        ValidateRange(options.CustomerLoginRequestsPerMinute, 1, 1000, nameof(options.CustomerLoginRequestsPerMinute), failures);
+        ValidateRange(options.AdminLoginRequestsPerMinute, 1, 1000, nameof(options.AdminLoginRequestsPerMinute), failures);
+        ValidateRange(options.SuperAdminLoginRequestsPerMinute, 1, 1000, nameof(options.SuperAdminLoginRequestsPerMinute), failures);
+        ValidateRange(options.CustomerRegistrationRequestsPerMinute, 1, 1000, nameof(options.CustomerRegistrationRequestsPerMinute), failures);
+        ValidateRange(options.PasswordRecoveryRequestsPerMinute, 1, 1000, nameof(options.PasswordRecoveryRequestsPerMinute), failures);
+        ValidateRange(options.ContactRequestsPerMinute, 1, 1000, nameof(options.ContactRequestsPerMinute), failures);
 
         ValidateRoute(options.AdminRoute, nameof(options.AdminRoute), failures);
         ValidateRoute(options.SuperAdminRoute, nameof(options.SuperAdminRoute), failures);
+        ValidateFixedRoute(options.AdminRoute, "admin", nameof(options.AdminRoute), failures);
+        ValidateFixedRoute(options.SuperAdminRoute, "superadmin", nameof(options.SuperAdminRoute), failures);
 
         if (string.Equals(options.AdminRoute, options.SuperAdminRoute, StringComparison.OrdinalIgnoreCase))
         {
@@ -43,6 +51,18 @@ public sealed class SecurityOptionsValidator : IValidateOptions<SecurityOptions>
         if (string.IsNullOrWhiteSpace(value) || value.Contains('/') || value.Contains('\\'))
         {
             failures.Add($"{name} must be a non-empty single URL segment.");
+        }
+    }
+
+    private static void ValidateFixedRoute(
+        string value,
+        string expectedValue,
+        string name,
+        ICollection<string> failures)
+    {
+        if (!string.Equals(value, expectedValue, StringComparison.OrdinalIgnoreCase))
+        {
+            failures.Add($"{name} must be '{expectedValue}' because management endpoint routes are fixed by contract.");
         }
     }
 }

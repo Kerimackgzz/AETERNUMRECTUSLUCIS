@@ -13,7 +13,8 @@
 }
 else
 {
-    <table>
+        <div class="table-scroll" tabindex="0" role="region" aria-label="Fatura yönetimi tablosu">
+        <table>
         <thead><tr><th>Fatura No</th><th>Sipariş No</th><th>Tarih</th><th>Tutar</th><th></th></tr></thead>
         <tbody>
             @foreach (var invoice in Model.Invoices.Items)
@@ -27,7 +28,8 @@ else
                 </tr>
             }
         </tbody>
-    </table>
+        </table>
+        </div>
     <partial name="_Pagination" model="(Model.Invoices.Page, Model.Invoices.TotalPages)" />
 }
 

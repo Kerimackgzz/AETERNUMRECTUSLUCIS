@@ -136,6 +136,27 @@ public sealed class CookieAndIdentityTests(AeternumWebApplicationFactory factory
     }
 
     [Fact]
+    public async Task Correlation_id_accepts_safe_values_and_replaces_unsafe_values()
+    {
+        using var client = factory.CreateClientWithoutRedirects();
+        using var safeRequest = new HttpRequestMessage(HttpMethod.Get, "/");
+        safeRequest.Headers.TryAddWithoutValidation("X-Correlation-ID", "safe-trace_123");
+
+        var safeResponse = await client.SendAsync(safeRequest);
+
+        Assert.Equal("safe-trace_123", Assert.Single(safeResponse.Headers.GetValues("X-Correlation-ID")));
+
+        using var unsafeRequest = new HttpRequestMessage(HttpMethod.Get, "/");
+        unsafeRequest.Headers.TryAddWithoutValidation("X-Correlation-ID", "unsafe trace value");
+
+        var unsafeResponse = await client.SendAsync(unsafeRequest);
+        var replacement = Assert.Single(unsafeResponse.Headers.GetValues("X-Correlation-ID"));
+
+        Assert.NotEqual("unsafe trace value", replacement);
+        Assert.Matches("^[a-f0-9]{32}$", replacement);
+    }
+
+    [Fact]
     public async Task Security_stamp_change_deletes_the_customer_authentication_cookie()
     {
         var email = $"stamp-{Guid.NewGuid():N}@test.local";

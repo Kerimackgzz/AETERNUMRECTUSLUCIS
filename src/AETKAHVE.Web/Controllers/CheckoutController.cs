@@ -50,9 +50,9 @@ public sealed class PaymentsController(
     [HttpGet("{provider}/callback")]
     public Task<IActionResult> Callback(
         string provider,
-        [FromQuery] string reference,
+        [FromQuery] string? reference,
         [FromQuery] string? transactionId,
-        [FromQuery] string status,
+        [FromQuery] string? status,
         CancellationToken cancellationToken) =>
         AuthenticateAndCompleteAsync(provider, reference, transactionId, status, Request.QueryString.Value ?? string.Empty, cancellationToken);
 
@@ -67,8 +67,9 @@ public sealed class PaymentsController(
         using var reader = new StreamReader(Request.Body, Encoding.UTF8, false, 4096, true);
         var rawBody = await reader.ReadToEndAsync(cancellationToken);
         Request.Body.Position = 0;
-        if (Encoding.UTF8.GetByteCount(rawBody) > MaximumWebhookBodyBytes ||
-            (originalBodyLimit is not null && Encoding.UTF8.GetByteCount(rawBody) > originalBodyLimit))
+        var bodyBytes = Encoding.UTF8.GetByteCount(rawBody);
+        if (bodyBytes > MaximumWebhookBodyBytes ||
+            (originalBodyLimit is not null && bodyBytes > originalBodyLimit))
         {
             return StatusCode(StatusCodes.Status413PayloadTooLarge);
         }
@@ -85,9 +86,9 @@ public sealed class PaymentsController(
 
     private async Task<IActionResult> AuthenticateAndCompleteAsync(
         string provider,
-        string reference,
+        string? reference,
         string? transactionId,
-        string status,
+        string? status,
         string rawBody,
         CancellationToken cancellationToken)
     {
@@ -112,7 +113,7 @@ public sealed class PaymentsController(
                                      provider.Equals(PaymentProviderNames.Mock, StringComparison.OrdinalIgnoreCase)
             ? $"mock_tx_{Guid.NewGuid():N}"
             : transactionId ?? string.Empty;
-        var callback = new PaymentCallbackRequest(reference, effectiveTransactionId, status);
+        var callback = new PaymentCallbackRequest(reference!, effectiveTransactionId, status!);
         var headers = Request.Headers.ToDictionary(
             header => header.Key,
             header => header.Value.ToString(),
@@ -133,7 +134,7 @@ public sealed class PaymentsController(
         catch (CommerceRuleException exception) { return Conflict(new CommerceMutationResponse(false, exception.Message)); }
     }
 
-    private static bool IsValidCallback(string provider, string reference, string? transactionId, string status) =>
+    private static bool IsValidCallback(string provider, string? reference, string? transactionId, string? status) =>
         !string.IsNullOrWhiteSpace(provider) && provider.Length <= 80 &&
         !string.IsNullOrWhiteSpace(reference) && reference.Length <= 160 &&
         (transactionId is null || transactionId.Length <= 160) &&

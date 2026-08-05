@@ -57,9 +57,14 @@ public sealed class NotificationOptions
 {
     public const string SectionName = "Notifications";
     public bool UseMockProviders { get; set; } = true;
+    public bool EmailDeliveryEnabled { get; set; } = true;
+    public bool SmsDeliveryEnabled { get; set; }
+    public bool WorkerEnabled { get; set; } = true;
     [Range(1, 20)] public int MaximumAttempts { get; set; } = 5;
+    [Range(1, 100)] public int BatchSize { get; set; } = 20;
     [Range(1, 3600)] public int PollIntervalSeconds { get; set; } = 5;
     [Range(10, 3600)] public int ProcessingLeaseSeconds { get; set; } = 300;
+    [Range(1, 1440)] public int MaximumRetryDelayMinutes { get; set; } = 60;
 }
 
 public sealed class SmtpOptions
@@ -71,7 +76,8 @@ public sealed class SmtpOptions
     public string? UserName { get; set; }
     public string? Password { get; set; }
     [EmailAddress] public string FromAddress { get; set; } = "noreply@example.invalid";
-    public string FromName { get; set; } = "AETERNUM RECTUS LUCIS";
+    [Required] public string FromName { get; set; } = "AETERNUM RECTUS LUCIS";
+    [Range(5, 120)] public int TimeoutSeconds { get; set; } = 30;
 }
 
 public sealed class FileStorageOptions

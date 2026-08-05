@@ -23,7 +23,6 @@ public static class InfrastructureModuleExtensions
             .Validate(x => IsSupportedProvider(x.Provider), "Database:Provider must be SqlServer or Sqlite.")
             .Validate(x => !string.IsNullOrWhiteSpace(x.ConnectionString), "Database:ConnectionString is required.")
             .ValidateOnStart();
-
         var databaseOptions = configuration
             .GetSection(DatabaseOptions.SectionName)
             .Get<DatabaseOptions>() ?? new DatabaseOptions();
