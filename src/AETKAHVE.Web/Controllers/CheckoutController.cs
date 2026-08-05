@@ -4,8 +4,10 @@ using AETKAHVE.Domain.Common;
 using AETKAHVE.Web.Models;
 using AETKAHVE.Infrastructure.Options;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using System.Text;
 
 namespace AETKAHVE.Web.Controllers;
 
@@ -38,24 +40,102 @@ public sealed class CheckoutController(ICartService cartService, IAddressService
 }
 
 [Route("payments")]
-public sealed class PaymentsController(ICheckoutService checkoutService) : Controller
+public sealed class PaymentsController(
+    ICheckoutService checkoutService,
+    IEnumerable<IPaymentWebhookVerifier> paymentWebhookVerifiers,
+    IOptions<PaymentOptions> paymentOptions) : Controller
 {
+    private const int MaximumWebhookBodyBytes = 64 * 1024;
+
     [HttpGet("{provider}/callback")]
-    public Task<IActionResult> Callback(string provider, [FromQuery] string reference, [FromQuery] string? transactionId, [FromQuery] string status, CancellationToken cancellationToken) =>
-        CompleteAsync(provider, reference, transactionId, status, cancellationToken);
+    public Task<IActionResult> Callback(
+        string provider,
+        [FromQuery] string reference,
+        [FromQuery] string? transactionId,
+        [FromQuery] string status,
+        CancellationToken cancellationToken) =>
+        AuthenticateAndCompleteAsync(provider, reference, transactionId, status, Request.QueryString.Value ?? string.Empty, cancellationToken);
 
     [HttpPost("{provider}/callback")]
     [IgnoreAntiforgeryToken]
-    public Task<IActionResult> Webhook(string provider, [FromForm] string reference, [FromForm] string? transactionId, [FromForm] string status, CancellationToken cancellationToken) =>
-        CompleteAsync(provider, reference, transactionId, status, cancellationToken);
-
-    private async Task<IActionResult> CompleteAsync(string provider, string reference, string? transactionId, string status, CancellationToken cancellationToken)
+    [Consumes("application/x-www-form-urlencoded")]
+    [RequestSizeLimit(MaximumWebhookBodyBytes)]
+    public async Task<IActionResult> Webhook(string provider, CancellationToken cancellationToken)
     {
+        Request.EnableBuffering();
+        var originalBodyLimit = HttpContext.Features.Get<IHttpMaxRequestBodySizeFeature>()?.MaxRequestBodySize;
+        using var reader = new StreamReader(Request.Body, Encoding.UTF8, false, 4096, true);
+        var rawBody = await reader.ReadToEndAsync(cancellationToken);
+        Request.Body.Position = 0;
+        if (Encoding.UTF8.GetByteCount(rawBody) > MaximumWebhookBodyBytes ||
+            (originalBodyLimit is not null && Encoding.UTF8.GetByteCount(rawBody) > originalBodyLimit))
+        {
+            return StatusCode(StatusCodes.Status413PayloadTooLarge);
+        }
+
+        var form = await Request.ReadFormAsync(cancellationToken);
+        return await AuthenticateAndCompleteAsync(
+            provider,
+            form["reference"].ToString(),
+            form["transactionId"].ToString(),
+            form["status"].ToString(),
+            rawBody,
+            cancellationToken);
+    }
+
+    private async Task<IActionResult> AuthenticateAndCompleteAsync(
+        string provider,
+        string reference,
+        string? transactionId,
+        string status,
+        string rawBody,
+        CancellationToken cancellationToken)
+    {
+        if (!IsValidCallback(provider, reference, transactionId, status))
+        {
+            return BadRequest(new CommerceMutationResponse(false, "Payment callback is invalid."));
+        }
+
+        if (!provider.Equals(paymentOptions.Value.Provider, StringComparison.OrdinalIgnoreCase))
+        {
+            return Unauthorized(new CommerceMutationResponse(false, "Payment callback could not be verified."));
+        }
+
+        var verifier = paymentWebhookVerifiers.SingleOrDefault(candidate =>
+            candidate.ProviderName.Equals(provider, StringComparison.OrdinalIgnoreCase));
+        if (verifier is null)
+        {
+            return Unauthorized(new CommerceMutationResponse(false, "Payment callback could not be verified."));
+        }
+
+        var effectiveTransactionId = string.IsNullOrWhiteSpace(transactionId) &&
+                                     provider.Equals(PaymentProviderNames.Mock, StringComparison.OrdinalIgnoreCase)
+            ? $"mock_tx_{Guid.NewGuid():N}"
+            : transactionId ?? string.Empty;
+        var callback = new PaymentCallbackRequest(reference, effectiveTransactionId, status);
+        var headers = Request.Headers.ToDictionary(
+            header => header.Key,
+            header => header.Value.ToString(),
+            StringComparer.OrdinalIgnoreCase);
+        var authentication = await verifier.AuthenticateAsync(
+            new PaymentWebhookEnvelope(provider, Request.Method, callback, rawBody, headers),
+            cancellationToken);
+        if (!authentication.Succeeded)
+        {
+            return Unauthorized(new CommerceMutationResponse(false, "Payment callback could not be verified."));
+        }
+
         try
         {
-            var result = await checkoutService.CompleteAsync(provider, new PaymentCallbackRequest(reference, transactionId ?? $"mock_tx_{Guid.NewGuid():N}", status), cancellationToken);
+            var result = await checkoutService.CompleteAsync(provider, callback, cancellationToken);
             return Ok(result);
         }
         catch (CommerceRuleException exception) { return Conflict(new CommerceMutationResponse(false, exception.Message)); }
     }
+
+    private static bool IsValidCallback(string provider, string reference, string? transactionId, string status) =>
+        !string.IsNullOrWhiteSpace(provider) && provider.Length <= 80 &&
+        !string.IsNullOrWhiteSpace(reference) && reference.Length <= 160 &&
+        (transactionId is null || transactionId.Length <= 160) &&
+        !string.IsNullOrWhiteSpace(status) && status.Length <= 80;
 }

@@ -43,6 +43,11 @@ public static class CommerceModuleExtensions
         services.AddScoped<INotificationQueue, NotificationQueue>();
         services.AddSingleton<MockPaymentGateway>();
         services.AddSingleton<IPaymentGateway>(provider => provider.GetRequiredService<MockPaymentGateway>());
+        services.AddSingleton<IPaymentWebhookReplayStore, InMemoryPaymentWebhookReplayStore>();
+        services.AddSingleton<MockPaymentWebhookVerifier>();
+        services.AddSingleton<DisabledPaymentWebhookVerifier>();
+        services.AddSingleton<IPaymentWebhookVerifier>(provider => provider.GetRequiredService<MockPaymentWebhookVerifier>());
+        services.AddSingleton<IPaymentWebhookVerifier>(provider => provider.GetRequiredService<DisabledPaymentWebhookVerifier>());
         services.AddSingleton<MockShippingProvider>();
         services.AddSingleton<IShippingProvider>(provider => provider.GetRequiredService<MockShippingProvider>());
         services.AddSingleton<MockEmailSender>();
