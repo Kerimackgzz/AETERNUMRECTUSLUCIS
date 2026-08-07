@@ -10,6 +10,7 @@ public sealed class ApplicationUserConfiguration : IEntityTypeConfiguration<Appl
     {
         builder.Property(x => x.FirstName).HasMaxLength(100).IsRequired();
         builder.Property(x => x.LastName).HasMaxLength(100).IsRequired();
+        builder.Property(x => x.ProfileImageStorageKey).HasMaxLength(512);
         builder.Property(x => x.CreatedAtUtc).IsRequired();
         builder.HasIndex(x => x.CreatedAtUtc);
         builder.HasIndex(x => new { x.IsActive, x.DeletedAtUtc });

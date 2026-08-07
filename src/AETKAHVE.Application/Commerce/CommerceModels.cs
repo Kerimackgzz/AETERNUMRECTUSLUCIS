@@ -259,6 +259,69 @@ public sealed record CatalogLookupSet(
 public sealed record CampaignSummary(Guid Id, string Name, string Slug, DiscountType DiscountType, decimal DiscountValue, DateTimeOffset EndDateUtc);
 public sealed record NotificationItem(Guid Id, string Title, string Message, string Type, string? RelatedEntityType, Guid? RelatedEntityId, bool IsRead, DateTimeOffset CreatedAtUtc);
 
+public sealed record CustomerAccountDashboard(
+    CustomerProfileDetails Profile,
+    CustomerAccountCounters Counters,
+    CustomerCartPreview Cart,
+    CustomerLatestOrder? LatestOrder);
+
+public sealed record CustomerProfileDetails(
+    Guid UserId,
+    string FirstName,
+    string LastName,
+    string Email,
+    string? PhoneNumber,
+    DateOnly? DateOfBirth,
+    DateTimeOffset CreatedAtUtc,
+    DateTimeOffset? LastLoginAtUtc,
+    bool HasProfileImage)
+{
+    public string FullName => $"{FirstName} {LastName}".Trim();
+    public string Initials => string.Concat(
+        string.IsNullOrWhiteSpace(FirstName) ? "" : FirstName[0],
+        string.IsNullOrWhiteSpace(LastName) ? "" : LastName[0]).ToUpperInvariant();
+}
+
+public sealed record CustomerProfileUpdate(
+    string FirstName,
+    string LastName,
+    string? PhoneNumber,
+    DateOnly? DateOfBirth);
+
+public sealed record CustomerAccountCounters(
+    int OrderCount,
+    int FavoriteCount,
+    int AddressCount,
+    int UnreadNotificationCount);
+
+public sealed record CustomerCartPreview(
+    IReadOnlyList<CustomerCartPreviewLine> Items,
+    int ItemCount,
+    decimal GrandTotal,
+    string Currency);
+
+public sealed record CustomerCartPreviewLine(
+    Guid ItemId,
+    string ProductName,
+    string? VariantName,
+    int Quantity,
+    decimal LineTotal,
+    string ImageUrl);
+
+public sealed record CustomerLatestOrder(
+    Guid Id,
+    string OrderNumber,
+    OrderStatus Status,
+    decimal GrandTotal,
+    string Currency,
+    DateTimeOffset CreatedAtUtc);
+
+public sealed record CustomerProfilePhoto(Stream Content, string ContentType);
+
+public sealed record CustomerEmailChangeStartResult(bool Succeeded, string Message, string? Token = null);
+
+public sealed record CustomerEmailChangeValidation(bool CanConfirm, string MaskedEmail);
+
 public sealed record AdminProductInput(
     Guid? Id,
     string Name,

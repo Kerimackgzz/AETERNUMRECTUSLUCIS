@@ -2,6 +2,12 @@
 
 Bu belge, `docs/project/PROJECT_STATUS.md` içindeki "Production SMTP değerleri ve kalıcı/shared Data Protection key-ring yolu deployment ortamında açıkça sağlanmalıdır" açık kapısını kapatmak için gereken adımları anlatır. Hangi config anahtarının hangi ortam değişkeninden geldiğini, bu değerlerin deployment öncesi nasıl sağlanacağını ve neden bir key-ring'in birden fazla instance arasında paylaşılması gerektiğini adım adım açıklar.
 
+## Müşteri profil fotoğrafları
+
+`FileStorage:RootDirectory` (`FileStorage__RootDirectory`) Production'da container veya uygulama instance'ının ephemeral dosya sistemine verilmemelidir. Profil fotoğrafları bu private kökte saklandığı için bütün replica'ların okuyup yazabildiği kalıcı/paylaşılan bir volume kullanılmalıdır. Dizin public web root'un dışında kalmalı, yalnız uygulama identity'sine okuma-yazma izni verilmeli, yedeklenmeli ve uygulama loglarına storage key dışında dosya içeriği veya kullanıcı profil verisi yazılmamalıdır.
+
+Örnek: `FileStorage__RootDirectory=/mnt/aetkahve-private/uploads`. Kubernetes'te uygun bir RWX PersistentVolume, VM/on-prem kurulumunda erişim kontrollü kalıcı disk/NFS/SMB mount kullanılabilir. Rolling deployment öncesinde yeni ve eski replica'ların aynı yolu gördüğü doğrulanmalıdır.
+
 Kapının teknik/kod tarafı zaten tamamdır: `SmtpOptions` (`src/AETKAHVE.Infrastructure/Options/CommerceOptions.cs`) ve `DataProtectionKeyRingOptions` (`src/AETKAHVE.Infrastructure/Options/ProductionSecurityOptions.cs`), ilgili validator'ları (`ProductionOptionsValidators.cs`, `ProductionSecurityOptionsValidators.cs`) ile Production'da `ValidateOnStart()` zinciriyle zorunlu kılınır. Eksik veya geçersiz config ile host, ilk `IOptions<T>` çözümlemesinde veya `AddWebSecurityModule` sırasında `OptionsValidationException` fırlatarak başlamayı reddeder (fail-closed). Bu belge sadece **operasyonel** boşluğu kapatır: gerçek bir deployment'ta bu değerler nereden ve nasıl sağlanır.
 
 Genel gate özeti ve outbox/retry operasyon detayları için bkz. [`docs/project/PRODUCTION_DEPLOYMENT.md`](../project/PRODUCTION_DEPLOYMENT.md). Placeholder değerlerin tam şekli için bkz. [`src/AETKAHVE.Web/appsettings.Example.json`](../../src/AETKAHVE.Web/appsettings.Example.json).

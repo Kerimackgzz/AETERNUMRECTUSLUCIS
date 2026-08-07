@@ -17,6 +17,8 @@ public sealed class ApplicationUser : IdentityUser<Guid>
     public bool IsActive { get; set; } = true;
 
     public DateTimeOffset? DeletedAtUtc { get; set; }
+
+    public string? ProfileImageStorageKey { get; set; }
 }
 
 public sealed class ApplicationRole : IdentityRole<Guid>

@@ -1,0 +1,78 @@
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    var antiforgery = Antiforgery.GetAndStoreTokens(Context);
+    var path = Context.Request.Path.Value?.TrimEnd('/').ToLowerInvariant() ?? string.Empty;
+    string? Current(string target) => path == target || (target != "/account" && path.StartsWith(target + "/", StringComparison.Ordinal))
+        ? "page"
+        : null;
+}
+<!doctype html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content="@antiforgery.RequestToken" />
+    <title>@ViewData["Title"] — AETERNUM RECTUS LUCIS</title>
+    <link rel="stylesheet" href="~/css/tokens.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/typography.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/base.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/button.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/product-card.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/navbar.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/toast.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/core/page-transition.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/account.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/customer-account.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="public-layout public-layout--inner customer-account-layout">
+    <a href="#main-content" class="skip-link">İçeriğe geç</a>
+    <partial name="_Navbar" />
+    <partial name="_PageTransitionOverlay" />
+    <main id="main-content" class="customer-account">
+        <div class="container customer-account__mobile-bar">
+            <p class="text-eyebrow">Hesap merkezi</p>
+            <button class="customer-account__menu-toggle" type="button" aria-expanded="false" aria-controls="customer-account-menu" data-account-menu-toggle>
+                <span>Hesap menüsü</span>
+                <span aria-hidden="true">＋</span>
+            </button>
+        </div>
+        <div class="customer-account__backdrop" data-account-menu-backdrop hidden></div>
+        <div class="container customer-account__shell">
+            <aside id="customer-account-menu" class="customer-account__sidebar" aria-label="Hesap menüsü" data-account-menu>
+                <div class="customer-account__sidebar-heading">
+                    <span class="text-eyebrow">AETERNUM</span>
+                    <p class="font-display">Hesabım</p>
+                    <button type="button" class="customer-account__menu-close" aria-label="Hesap menüsünü kapat" data-account-menu-close>×</button>
+                </div>
+                <nav class="customer-account__nav">
+                    <a asp-controller="Account" asp-action="Index" aria-current="@Current("/account")">Dashboard</a>
+                    <a href="/account#profile">Profil</a>
+                    <a asp-controller="Cart" asp-action="Index" aria-current="@Current("/cart")">Sepetim</a>
+                    <a asp-controller="Favorites" asp-action="Index" aria-current="@Current("/favorites")">Favorilerim</a>
+                    <a asp-controller="Orders" asp-action="Index" aria-current="@Current("/account/orders")">Siparişlerim</a>
+                    <a asp-controller="Addresses" asp-action="Index" aria-current="@Current("/account/addresses")">Adreslerim</a>
+                    <a asp-controller="Invoices" asp-action="Index" aria-current="@Current("/account/invoices")">Faturalarım</a>
+                    <a asp-controller="Returns" asp-action="Index" aria-current="@Current("/account/returns")">İadelerim</a>
+                    <a asp-controller="Reviews" asp-action="Index" aria-current="@Current("/account/reviews")">Yorumlarım</a>
+                    <a asp-controller="Notifications" asp-action="Index" aria-current="@Current("/account/notifications")">Bildirimler</a>
+                </nav>
+                <form asp-controller="Account" asp-action="Logout" method="post" class="customer-account__logout">
+                    <button type="submit">Çıkış</button>
+                </form>
+            </aside>
+            <section class="customer-account__content">
+                @RenderBody()
+            </section>
+        </div>
+    </main>
+    <script type="module" src="~/js/components/navbar-motion.js" asp-append-version="true"></script>
+    <script type="module" src="~/js/components/product-card-actions.js" asp-append-version="true"></script>
+    <script type="module" src="~/js/core/page-transition.js" asp-append-version="true"></script>
+    <script type="module" src="~/js/pages/customer-account.js" asp-append-version="true"></script>
+    <script src="~/js/auth/password-visibility.js" asp-append-version="true" defer></script>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    @await RenderSectionAsync("PageScripts", required: false)
+</body>
+</html>

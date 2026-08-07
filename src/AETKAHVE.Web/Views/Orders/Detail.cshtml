@@ -4,7 +4,7 @@
 @{
     var order = Model.Order;
     ViewData["Title"] = order.Summary.OrderNumber;
-    Layout = "_AccountLayout";
+    Layout = "_CustomerAccountLayout";
     var currency = new CultureInfo("tr-TR");
 
     (string Label, string Kind) StatusInfo(OrderStatus status) => status switch

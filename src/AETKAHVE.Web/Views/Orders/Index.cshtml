@@ -3,7 +3,7 @@
 @model OrderListViewModel
 @{
     ViewData["Title"] = "Siparişlerim";
-    Layout = "_AccountLayout";
+    Layout = "_CustomerAccountLayout";
     var currency = new CultureInfo("tr-TR");
 
     (string Label, string Kind) StatusInfo(OrderStatus status) => status switch

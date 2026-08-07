@@ -3,7 +3,7 @@
 @model ReviewListViewModel
 @{
     ViewData["Title"] = "Yorumlarım";
-    Layout = "_AccountLayout";
+    Layout = "_CustomerAccountLayout";
     var currency = new CultureInfo("tr-TR");
 
     (string Label, string Kind) StatusInfo(ReviewStatus status) => status switch

@@ -1,0 +1,27 @@
+@model CustomerEmailChangeConfirmViewModel
+@{
+    Layout = "_CustomerAccountLayout";
+    ViewData["Title"] = "E-posta değişikliğini doğrula";
+}
+<section class="customer-confirmation">
+    <p class="text-eyebrow">Güvenlik doğrulaması</p>
+    <h1>E-posta değişikliğini tamamlayın</h1>
+    @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+    {
+        <p class="customer-account__notice customer-account__notice--error" role="alert">@Model.StatusMessage</p>
+    }
+    @if (Model.CanConfirm)
+    {
+        <p class="text-muted"><strong>@Model.MaskedEmail</strong> adresini hesabınıza bağlamak üzeresiniz. İşlemden sonra tüm oturumlarınız kapatılır.</p>
+        <form asp-action="ConfirmEmailChangePost" method="post">
+            <input asp-for="NewEmail" type="hidden" />
+            <input asp-for="Token" type="hidden" />
+            <button type="submit" class="btn btn--primary">E-posta adresini değiştir</button>
+        </form>
+    }
+    else
+    {
+        <p class="text-muted">Bu doğrulama bağlantısı geçersiz, daha önce kullanılmış veya süresi dolmuş.</p>
+        <a asp-action="Index" asp-fragment="email-security" class="btn btn--outline">Hesabıma dön</a>
+    }
+</section>

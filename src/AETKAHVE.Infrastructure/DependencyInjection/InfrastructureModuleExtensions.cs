@@ -43,6 +43,7 @@ public static class InfrastructureModuleExtensions
 
             throw new InvalidOperationException("Database:Provider must be SqlServer or Sqlite.");
         });
+        services.AddHostedService<DevelopmentSqliteSchemaUpgradeService>();
         services.AddSingleton<InMemoryIdentityMessageSender>();
         services.AddSingleton<IIdentityMessageSender>(provider =>
             provider.GetRequiredService<InMemoryIdentityMessageSender>());

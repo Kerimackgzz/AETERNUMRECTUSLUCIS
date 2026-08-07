@@ -3,7 +3,7 @@
 @model ReturnListViewModel
 @{
     ViewData["Title"] = "İade Taleplerim";
-    Layout = "_AccountLayout";
+    Layout = "_CustomerAccountLayout";
     var currency = new CultureInfo("tr-TR");
 
     (string Label, string Kind) StatusInfo(ReturnStatus status) => status switch

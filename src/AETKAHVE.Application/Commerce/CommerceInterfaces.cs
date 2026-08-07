@@ -94,6 +94,25 @@ public interface INotificationService
     Task<ServiceResult> MarkReadAsync(Guid userId, Guid? notificationId, CancellationToken cancellationToken);
 }
 
+public interface ICustomerAccountQueryService
+{
+    Task<CustomerAccountDashboard> GetDashboardAsync(Guid userId, CancellationToken cancellationToken);
+}
+
+public interface ICustomerProfileService
+{
+    Task<CustomerProfileDetails?> GetAsync(Guid userId, CancellationToken cancellationToken);
+    Task<ServiceResult> UpdateAsync(Guid userId, CustomerProfileUpdate update, CancellationToken cancellationToken);
+    Task<ServiceResult> SavePhotoAsync(Guid userId, Stream content, long length, string fileName, string contentType, CancellationToken cancellationToken);
+    Task<CustomerProfilePhoto?> OpenPhotoAsync(Guid userId, CancellationToken cancellationToken);
+    Task<ServiceResult> DeletePhotoAsync(Guid userId, CancellationToken cancellationToken);
+    Task<CustomerEmailChangeStartResult> BeginEmailChangeAsync(Guid userId, string currentPassword, string newEmail, CancellationToken cancellationToken);
+    Task QueueEmailChangeConfirmationAsync(Guid userId, string newEmail, string confirmationUrl, CancellationToken cancellationToken);
+    Task<CustomerEmailChangeValidation> ValidateEmailChangeAsync(Guid userId, string newEmail, string token, CancellationToken cancellationToken);
+    Task<ServiceResult> ConfirmEmailChangeAsync(Guid userId, string newEmail, string token, CancellationToken cancellationToken);
+    Task<ServiceResult> ChangePasswordAsync(Guid userId, string currentPassword, string newPassword, CancellationToken cancellationToken);
+}
+
 public interface IAdminCommerceService
 {
     Task<Guid> SaveProductAsync(Guid adminUserId, AdminProductInput input, CancellationToken cancellationToken);

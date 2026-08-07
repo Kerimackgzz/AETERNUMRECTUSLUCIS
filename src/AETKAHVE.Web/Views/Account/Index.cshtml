@@ -1,12 +1,202 @@
-@model DashboardSummaryViewModel
+@using System.Globalization
+@using AETKAHVE.Domain.Commerce
+@model CustomerAccountPageViewModel
 @{
-    Layout = "_AccountLayout";
-    ViewData["Title"] = Model.Title;
+    Layout = "_CustomerAccountLayout";
+    ViewData["Title"] = "Hesabım";
+    var dashboard = Model.Dashboard;
+    var culture = new CultureInfo("tr-TR");
+    string Money(decimal value, string currency) => currency == "TRY"
+        ? $"{value.ToString("N2", culture)} ₺"
+        : $"{value.ToString("N2", culture)} {currency}";
+    string OrderStatusLabel(OrderStatus status) => status switch
+    {
+        OrderStatus.PendingPayment => "Ödeme bekleniyor",
+        OrderStatus.PaymentReceived => "Ödeme alındı",
+        OrderStatus.Preparing => "Hazırlanıyor",
+        OrderStatus.Packed => "Paketlendi",
+        OrderStatus.Shipped => "Kargoya verildi",
+        OrderStatus.OutForDelivery => "Dağıtımda",
+        OrderStatus.Delivered => "Teslim edildi",
+        OrderStatus.Cancelled => "İptal edildi",
+        OrderStatus.ReturnRequested => "İade talep edildi",
+        OrderStatus.Returned => "İade edildi",
+        OrderStatus.Refunded => "Ücret iade edildi",
+        _ => status.ToString(),
+    };
 }
-<div class="account-card surface surface--padded">
-    <h1 class="account-card__title">@Model.Title</h1>
-    <p class="account-card__subtitle text-muted">Hesap panelinize hoş geldiniz.</p>
-    <form asp-action="Logout" method="post">
-        <button type="submit" class="btn btn--outline">Çıkış</button>
-    </form>
+
+<header class="customer-dashboard__hero">
+    <div class="customer-dashboard__identity">
+        <div class="customer-dashboard__avatar" aria-label="@dashboard.Profile.FullName profil fotoğrafı">
+            @if (dashboard.Profile.HasProfileImage)
+            {
+                <img src="@Url.Action("ProfilePhoto", "Account")" alt="" />
+            }
+            else
+            {
+                <span aria-hidden="true">@dashboard.Profile.Initials</span>
+            }
+        </div>
+        <div>
+            <p class="text-eyebrow">Kişisel koleksiyonunuz</p>
+            <h1>Hoş geldiniz, @dashboard.Profile.FirstName</h1>
+            <p class="text-muted">@dashboard.Profile.CreatedAtUtc.ToLocalTime().ToString("MMMM yyyy", culture) tarihinden beri AETERNUM üyesi.</p>
+        </div>
+    </div>
+</header>
+
+@if (TempData["StatusMessage"] is string statusMessage)
+{
+    <div class="customer-account__notice" role="status">@statusMessage</div>
+}
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="customer-account__notice customer-account__notice--error" role="alert">@errorMessage</div>
+}
+<div asp-validation-summary="ModelOnly" class="customer-account__notice customer-account__notice--error" role="alert"></div>
+
+<section class="customer-dashboard__counters" aria-label="Hesap özeti">
+    <a asp-controller="Orders" asp-action="Index" class="customer-dashboard__counter">
+        <span>Sipariş</span><strong>@dashboard.Counters.OrderCount</strong>
+    </a>
+    <a asp-controller="Favorites" asp-action="Index" class="customer-dashboard__counter">
+        <span>Favori</span><strong>@dashboard.Counters.FavoriteCount</strong>
+    </a>
+    <a asp-controller="Addresses" asp-action="Index" class="customer-dashboard__counter">
+        <span>Kayıtlı adres</span><strong>@dashboard.Counters.AddressCount</strong>
+    </a>
+    <a asp-controller="Notifications" asp-action="Index" class="customer-dashboard__counter">
+        <span>Okunmamış</span><strong>@dashboard.Counters.UnreadNotificationCount</strong>
+    </a>
+</section>
+
+<div class="customer-dashboard__overview">
+    <section class="customer-dashboard__panel" aria-labelledby="cart-preview-title">
+        <div class="customer-dashboard__panel-heading">
+            <div><p class="text-eyebrow">Seçiminiz</p><h2 id="cart-preview-title">Sepetim</h2></div>
+            <a asp-controller="Cart" asp-action="Index">Sepete git</a>
+        </div>
+        @if (dashboard.Cart.ItemCount == 0)
+        {
+            <div class="customer-dashboard__empty">
+                <p>Sepetiniz yeni bir keşif için hazır.</p>
+                <a asp-controller="Products" asp-action="Index" class="btn btn--outline">Koleksiyonu incele</a>
+            </div>
+        }
+        else
+        {
+            <div class="customer-dashboard__cart-lines">
+                @foreach (var item in dashboard.Cart.Items)
+                {
+                    <div class="customer-dashboard__cart-line">
+                        <img src="@item.ImageUrl" alt="" loading="lazy" />
+                        <div><strong>@item.ProductName</strong><span>@item.VariantName · @item.Quantity adet</span></div>
+                        <span>@Money(item.LineTotal, dashboard.Cart.Currency)</span>
+                    </div>
+                }
+            </div>
+            <div class="customer-dashboard__cart-total">
+                <span>@dashboard.Cart.ItemCount ürün</span><strong>@Money(dashboard.Cart.GrandTotal, dashboard.Cart.Currency)</strong>
+            </div>
+        }
+    </section>
+
+    <section class="customer-dashboard__panel" aria-labelledby="latest-order-title">
+        <div class="customer-dashboard__panel-heading">
+            <div><p class="text-eyebrow">Son hareket</p><h2 id="latest-order-title">Son sipariş</h2></div>
+            <a asp-controller="Orders" asp-action="Index">Tümünü gör</a>
+        </div>
+        @if (dashboard.LatestOrder is { } order)
+        {
+            <div class="customer-dashboard__latest-order">
+                <span class="text-muted">@order.CreatedAtUtc.ToLocalTime().ToString("d MMMM yyyy", culture)</span>
+                <strong>@order.OrderNumber</strong>
+                <p>@OrderStatusLabel(order.Status)</p>
+                <div><span>@Money(order.GrandTotal, order.Currency)</span><a asp-controller="Orders" asp-action="Detail" asp-route-id="@order.Id">Detayı aç →</a></div>
+            </div>
+        }
+        else
+        {
+            <div class="customer-dashboard__empty">
+                <p>Henüz bir siparişiniz yok.</p>
+                <a asp-controller="Products" asp-action="Index" class="btn btn--outline">İlk seçiminizi yapın</a>
+            </div>
+        }
+    </section>
 </div>
+
+<section class="customer-dashboard__links" aria-labelledby="account-links-title">
+    <div class="customer-dashboard__section-heading"><p class="text-eyebrow">Hesap arşivi</p><h2 id="account-links-title">Her şey yerli yerinde</h2></div>
+    <div class="customer-dashboard__link-grid">
+        <a asp-controller="Addresses" asp-action="Index"><span>01</span><strong>Adreslerim</strong><small>Teslimat ve fatura bilgileri</small></a>
+        <a asp-controller="Invoices" asp-action="Index"><span>02</span><strong>Faturalarım</strong><small>PDF fatura arşiviniz</small></a>
+        <a asp-controller="Returns" asp-action="Index"><span>03</span><strong>İadelerim</strong><small>İade taleplerini izleyin</small></a>
+        <a asp-controller="Reviews" asp-action="Index"><span>04</span><strong>Yorumlarım</strong><small>Deneyimlerinizi yönetin</small></a>
+    </div>
+</section>
+
+<section id="profile" class="customer-profile" aria-labelledby="profile-title">
+    <div class="customer-dashboard__section-heading"><p class="text-eyebrow">Kişisel bilgiler</p><h2 id="profile-title">Profilim</h2></div>
+    <div class="customer-profile__grid">
+        <section id="profile-photo" class="customer-profile__card">
+            <h3>Profil fotoğrafı</h3>
+            <p class="text-muted">JPEG, PNG veya WebP · en fazla 2 MiB.</p>
+            <div class="customer-profile__photo-row">
+                <div class="customer-dashboard__avatar customer-dashboard__avatar--small">
+                    @if (dashboard.Profile.HasProfileImage) { <img src="@Url.Action("ProfilePhoto", "Account")" alt="" /> }
+                    else { <span aria-hidden="true">@dashboard.Profile.Initials</span> }
+                </div>
+                <div class="stack">
+                    <form asp-action="UploadProfilePhoto" method="post" enctype="multipart/form-data" class="customer-profile__upload">
+                        <label for="profile-photo-input">Yeni fotoğraf seç</label>
+                        <input id="profile-photo-input" type="file" name="Photo" accept="image/jpeg,image/png,image/webp" required />
+                        <button type="submit" class="btn btn--outline">Fotoğrafı yükle</button>
+                    </form>
+                    @if (dashboard.Profile.HasProfileImage)
+                    {
+                        <form asp-action="DeleteProfilePhoto" method="post"><button type="submit" class="btn btn--ghost">Fotoğrafı kaldır</button></form>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <section class="customer-profile__card">
+            <h3>Temel bilgiler</h3>
+            <form asp-action="UpdateProfile" method="post" class="account-form customer-profile__form">
+                <div class="field"><label asp-for="Profile.FirstName"></label><input asp-for="Profile.FirstName" /><span asp-validation-for="Profile.FirstName"></span></div>
+                <div class="field"><label asp-for="Profile.LastName"></label><input asp-for="Profile.LastName" /><span asp-validation-for="Profile.LastName"></span></div>
+                <div class="field"><label asp-for="Profile.PhoneNumber"></label><input asp-for="Profile.PhoneNumber" type="tel" /><span asp-validation-for="Profile.PhoneNumber"></span></div>
+                <div class="field"><label asp-for="Profile.DateOfBirth"></label><input asp-for="Profile.DateOfBirth" type="date" /><span asp-validation-for="Profile.DateOfBirth"></span></div>
+                <p class="customer-profile__readonly">E-posta <strong>@dashboard.Profile.Email</strong></p>
+                <button type="submit" class="btn btn--primary">Bilgileri kaydet</button>
+            </form>
+        </section>
+
+        <section id="email-security" class="customer-profile__card">
+            <h3>E-posta değişikliği</h3>
+            <p class="text-muted">Yeni adresinize gönderilen bağlantıyla doğrulanır. Tamamlandığında tüm oturumlar kapanır.</p>
+            <form asp-action="BeginEmailChange" method="post" class="account-form customer-profile__form">
+                <div class="field"><label asp-for="EmailChange.NewEmail"></label><input asp-for="EmailChange.NewEmail" type="email" autocomplete="email" /><span asp-validation-for="EmailChange.NewEmail"></span></div>
+                <div class="field"><label asp-for="EmailChange.CurrentPassword"></label><input asp-for="EmailChange.CurrentPassword" type="password" autocomplete="current-password" /><span asp-validation-for="EmailChange.CurrentPassword"></span></div>
+                <button type="submit" class="btn btn--outline">Doğrulama gönder</button>
+            </form>
+        </section>
+
+        <section class="customer-profile__card">
+            <h3>Parola</h3>
+            <p class="text-muted">Değişiklik sonrası bütün cihazlarda yeniden giriş gerekir.</p>
+            <form asp-action="ChangePassword" method="post" class="account-form customer-profile__form">
+                <div class="field"><label asp-for="PasswordChange.CurrentPassword"></label><input asp-for="PasswordChange.CurrentPassword" type="password" autocomplete="current-password" /><span asp-validation-for="PasswordChange.CurrentPassword"></span></div>
+                <div class="field"><label asp-for="PasswordChange.NewPassword"></label><input asp-for="PasswordChange.NewPassword" type="password" autocomplete="new-password" /><span asp-validation-for="PasswordChange.NewPassword"></span></div>
+                <partial name="_PasswordRequirements" />
+                <div class="field"><label asp-for="PasswordChange.ConfirmPassword"></label><input asp-for="PasswordChange.ConfirmPassword" type="password" autocomplete="new-password" /><span asp-validation-for="PasswordChange.ConfirmPassword"></span></div>
+                <button type="submit" class="btn btn--outline">Parolayı değiştir</button>
+            </form>
+        </section>
+    </div>
+</section>
+
+@section PageScripts {
+    <partial name="_ValidationScriptsPartial" />
+}
