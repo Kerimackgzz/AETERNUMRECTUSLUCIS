@@ -25,54 +25,58 @@
     }
 
     <h2 class="text-lg mb-4">Yeni adres ekle</h2>
-    <form class="account-form" data-address-form novalidate>
-        <div class="field">
+    <form class="account-form address-form" data-address-form novalidate>
+        <div class="field field--full">
             <label for="addr-title">Adres başlığı</label>
-            <input id="addr-title" name="Title" required maxlength="80" />
+            <input id="addr-title" name="Title" required maxlength="80" placeholder="Ev, İş, vb." />
         </div>
         <div class="field">
             <label for="addr-firstname">Ad</label>
-            <input id="addr-firstname" name="FirstName" required maxlength="100" />
+            <input id="addr-firstname" name="FirstName" required maxlength="100" placeholder="Ahmet" />
         </div>
         <div class="field">
             <label for="addr-lastname">Soyad</label>
-            <input id="addr-lastname" name="LastName" required maxlength="100" />
+            <input id="addr-lastname" name="LastName" required maxlength="100" placeholder="Yılmaz" />
         </div>
         <div class="field">
             <label for="addr-phone">Telefon</label>
-            <input id="addr-phone" name="PhoneNumber" required maxlength="30" />
+            <input id="addr-phone" name="PhoneNumber" required maxlength="30" placeholder="0555 555 55 55" />
         </div>
         <div class="field">
             <label for="addr-country">Ülke</label>
-            <input id="addr-country" name="Country" required maxlength="100" value="Türkiye" />
+            <input id="addr-country" name="Country" required maxlength="100" value="Türkiye" readonly />
         </div>
         <div class="field">
             <label for="addr-city">İl</label>
-            <input id="addr-city" name="City" required maxlength="100" />
+            <select id="addr-city" name="City" required data-province-select>
+                <option value="">İl seçin</option>
+            </select>
         </div>
         <div class="field">
             <label for="addr-district">İlçe</label>
-            <input id="addr-district" name="District" required maxlength="100" />
+            <select id="addr-district" name="District" required disabled data-district-select>
+                <option value="">Önce il seçin</option>
+            </select>
         </div>
         <div class="field">
             <label for="addr-neighborhood">Mahalle</label>
-            <input id="addr-neighborhood" name="Neighborhood" maxlength="150" />
+            <input id="addr-neighborhood" name="Neighborhood" maxlength="150" placeholder="Caferağa Mahallesi" />
         </div>
         <div class="field">
             <label for="addr-postal">Posta kodu</label>
-            <input id="addr-postal" name="PostalCode" maxlength="20" />
+            <input id="addr-postal" name="PostalCode" maxlength="20" placeholder="34710" />
         </div>
-        <div class="field">
+        <div class="field field--full">
             <label for="addr-line">Açık adres</label>
-            <textarea id="addr-line" name="AddressLine" class="checkout-note" required maxlength="1000" rows="3"></textarea>
+            <textarea id="addr-line" name="AddressLine" class="checkout-note" required maxlength="1000" rows="3" placeholder="Sokak, cadde, bina no, daire no"></textarea>
         </div>
-        <div class="field">
+        <div class="field field--full">
             <label><input type="checkbox" name="isDefaultShipping" /> Varsayılan teslimat adresi</label>
         </div>
-        <div class="field">
+        <div class="field field--full">
             <label><input type="checkbox" name="isDefaultBilling" /> Varsayılan fatura adresi</label>
         </div>
-        <button type="submit" class="btn btn--primary btn--block">Adresi Kaydet</button>
+        <button type="submit" class="btn btn--primary btn--block field--full">Adresi Kaydet</button>
     </form>
 </div>
 
