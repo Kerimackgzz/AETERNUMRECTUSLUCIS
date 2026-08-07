@@ -2,6 +2,8 @@
 
 Tarih: 2026-08-07
 Branch: `integration` (kullanıcı talebiyle doğrudan çalışma ağacı)
+Uygulama commit'i: `3b4db03` (`feat(account): build customer account center`)
+Merge durumu: Değişiklikler doğrudan güncel `integration` üzerinde commitlendi; ayrıca merge beklemiyor.
 
 ## Teslim
 
