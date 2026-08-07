@@ -126,12 +126,26 @@ public sealed class PaymentsController(
             return Unauthorized(new CommerceMutationResponse(false, "Payment callback could not be verified."));
         }
 
+        // GET burada iki farklı yoldan gelebilir: (a) mock/same-origin akış için checkout.js'in
+        // arka planda yaptığı bir fetch — JSON bekler; (b) gerçek harici bir sağlayıcının (Stripe
+        // Checkout gibi) müşteriyi geri getirdiği gerçek tarayıcı navigasyonu — kullanıcıya JSON
+        // göstermek yerine sipariş sayfasına yönlendirilmesi gerekir. İkisini ayırt edecek bir
+        // sinyal yok; Accept header'ı JSON istemeyen (tarayıcı adres çubuğu/HTML navigasyonu)
+        // GET istekleri için yönlendirme, JSON isteyenler (fetch) için mevcut JSON sözleşmesi korunur.
+        var prefersHtml = HttpMethods.IsGet(Request.Method) &&
+                           !(Request.Headers.Accept.ToString().Contains("application/json", StringComparison.OrdinalIgnoreCase));
+
         try
         {
             var result = await checkoutService.CompleteAsync(provider, callback, cancellationToken);
+            if (prefersHtml) return Redirect($"/account/orders/{result.OrderId}");
             return Ok(result);
         }
-        catch (CommerceRuleException exception) { return Conflict(new CommerceMutationResponse(false, exception.Message)); }
+        catch (CommerceRuleException exception)
+        {
+            if (prefersHtml) return Redirect("/checkout");
+            return Conflict(new CommerceMutationResponse(false, exception.Message));
+        }
     }
 
     private static bool IsValidCallback(string provider, string? reference, string? transactionId, string? status) =>

@@ -7,7 +7,9 @@ import { showToast } from "/js/components/toast.js";
 function init() {
   const root = document.querySelector("[data-checkout-page]");
   if (!root) return;
-  const form = root.querySelector("[data-checkout-form]");
+  // data-checkout-form ve data-checkout-page aynı <form> elemanında olabilir —
+  // querySelector yalnız alt elemanlara bakar, kendi kendini bulamaz.
+  const form = root.matches("[data-checkout-form]") ? root : root.querySelector("[data-checkout-form]");
   const submitBtn = form?.querySelector("[type=submit]");
 
   form?.addEventListener("submit", async (event) => {
@@ -35,6 +37,24 @@ function init() {
     }
 
     const initialization = data.data;
+
+    // Gerçek (harici) bir ödeme sağlayıcısı (ör. Stripe) döndüyse RedirectUrl bizim
+    // origin'imizde değildir — kullanıcıyı sağlayıcının barındırdığı gerçek ödeme
+    // sayfasına gönderiyoruz. Mock gibi eşzamanlı/same-origin sağlayıcılarda RedirectUrl
+    // zaten kendi callback URL'imize işaret eder; bu durumda mevcut anlık-tamamlama akışı
+    // (aşağıda) değişmeden çalışmaya devam eder.
+    if (initialization.redirectUrl) {
+      try {
+        const target = new URL(initialization.redirectUrl, window.location.href);
+        if (target.origin !== window.location.origin) {
+          window.location.href = target.href;
+          return;
+        }
+      } catch {
+        // Geçersiz bir URL gelirse mock akışına düş.
+      }
+    }
+
     const callbackUrl = `${initialization.callbackUrl}?reference=${encodeURIComponent(initialization.requestReference)}&status=success`;
     const completion = await getJson(callbackUrl);
 

@@ -153,7 +153,8 @@ public sealed record CheckoutInitializationResult(
     string RequestReference,
     decimal Amount,
     string Currency,
-    string CallbackUrl);
+    string CallbackUrl,
+    string? RedirectUrl = null);
 
 public sealed record CheckoutCompletionResult(
     Guid OrderId,

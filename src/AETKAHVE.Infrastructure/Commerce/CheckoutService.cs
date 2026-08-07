@@ -147,7 +147,7 @@ public sealed class CheckoutService(
         await dbContext.SaveChangesAsync(cancellationToken);
 
         return new CheckoutInitializationResult(order.Id, order.OrderNumber, payment.Id, payment.Provider,
-            initialized.RequestReference, payment.Amount, payment.Currency, callbackUrl);
+            initialized.RequestReference, payment.Amount, payment.Currency, callbackUrl, initialized.RedirectUrl);
     }
 
     public async Task<CheckoutCompletionResult> CompleteAsync(string provider, PaymentCallbackRequest request, CancellationToken cancellationToken)
