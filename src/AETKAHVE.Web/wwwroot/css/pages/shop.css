@@ -7,6 +7,38 @@
   text-align: center;
 }
 
+/* Görsel banner'lı sayfa başlığı (ör. İletişim) — shop-header'ın düz metin halini
+   koyu bir arka plan görseliyle değiştirir; metin renkleri home-hero ile aynı
+   krem/altın paletini kullanır. */
+.page-banner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: clamp(260px, 32vw, 420px);
+  margin-bottom: var(--space-8);
+  background-image: linear-gradient(180deg, rgba(5, 5, 5, 0.1), rgba(5, 5, 5, 0.6)), url("/images/contact-banner.webp");
+  background-size: cover;
+  background-position: center;
+}
+
+.page-banner__content {
+  color: var(--color-cream, #f2ede4);
+}
+
+.page-banner__content .text-eyebrow {
+  color: var(--color-gold-muted, #dac298);
+}
+
+.page-banner__content h1 {
+  margin-block: var(--space-2) var(--space-3);
+  color: var(--color-cream, #f2ede4);
+}
+
+.page-banner__content .text-muted {
+  color: rgba(242, 237, 228, 0.75);
+  max-width: 46ch;
+}
+
 .shop-layout {
   display: grid;
   grid-template-columns: 1fr;
