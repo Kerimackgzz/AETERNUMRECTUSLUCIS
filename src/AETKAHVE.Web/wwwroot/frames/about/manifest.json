@@ -1,0 +1,23 @@
+{
+  "desktop": {
+    "count": 145,
+    "pattern": "/frames/about/desktop/frame-{index}.webp",
+    "startIndex": 0,
+    "padLength": 4,
+    "poster": "/frames/about/desktop/poster.webp"
+  },
+  "tablet": {
+    "count": 145,
+    "pattern": "/frames/about/tablet/frame-{index}.webp",
+    "startIndex": 0,
+    "padLength": 4,
+    "poster": "/frames/about/tablet/poster.webp"
+  },
+  "mobile": {
+    "count": 145,
+    "pattern": "/frames/about/mobile/frame-{index}.webp",
+    "startIndex": 0,
+    "padLength": 4,
+    "poster": "/frames/about/mobile/poster.webp"
+  }
+}

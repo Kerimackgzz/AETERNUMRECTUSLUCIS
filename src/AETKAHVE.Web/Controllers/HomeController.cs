@@ -43,6 +43,6 @@ public sealed class HomeController(ICatalogQueryService catalogQueryService) : C
     }
 
     [HttpGet("/about")]
-    public IActionResult About() => View();
+    public IActionResult About() => View(new AboutPageViewModel());
 
 }

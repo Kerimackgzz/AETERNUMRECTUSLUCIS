@@ -17,6 +17,17 @@ public sealed class HomePageViewModel
     public bool IsReducedMotionFallbackAvailable { get; init; }
 }
 
+public sealed class AboutPageViewModel
+{
+    public string StoryFrameManifestUrl { get; init; } = "/frames/about/manifest.json";
+
+    public string StoryPosterUrl { get; init; } = "/frames/about/desktop/poster.webp";
+
+    public string StoryAccessibilityDescription { get; init; } = "Bir güneşin yavaşça bir kahve çekirdeğine dönüştüğü sinematik sahne.";
+
+    public bool IsReducedMotionFallbackAvailable { get; init; }
+}
+
 public sealed class ProductCardViewModel
 {
     public Guid Id { get; init; }

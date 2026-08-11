@@ -1,0 +1,109 @@
+/* AETERNUM RECTUS LUCIS — Hikâyemiz (About) scroll-scrub sahne
+   Pin/canvas mekanizması home-hero.css ile birebir aynı (HomeFrameSequence sınıfı
+   [data-hero-pin]/[data-hero-canvas] ve --hero-pin-vh custom property'sini hardcoded
+   arıyor/set ediyor — burada da aynı adlar kullanılır, çakışma yok çünkü değer her
+   sayfada kendi kök elemanına inline olarak set edilir).
+   Kök hook: <section data-about-hero data-frame-manifest-url="..." data-poster-url="..."
+   data-reduced-motion="..." data-pin-vh="350">…</section> (bkz. Views/Home/About.cshtml). */
+
+[data-about-hero] {
+  position: relative;
+  height: calc(var(--hero-pin-vh, 350) * 1vh);
+  background-color: var(--color-ink, #050505);
+}
+
+[data-about-hero] .hero-frame-sequence__pin {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-ink, #050505);
+}
+
+[data-about-hero] .hero-frame-sequence__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Video'nun parlak/merkezi konusu (güneş → kahve çekirdeği) yüzünden metnin her zaman
+   okunur kalması için hafif bir karartma — CSP inline style'a izin vermediği için burada,
+   harici stylesheet'te tanımlanır. */
+[data-about-hero] .hero-frame-sequence__pin::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(ellipse at center, rgba(5, 5, 5, 0.45) 0%, rgba(5, 5, 5, 0.72) 100%);
+  pointer-events: none;
+}
+
+.story-hero__content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5, 1.25rem);
+  max-width: 640px;
+  padding-inline: var(--space-6, 1.5rem);
+  text-align: center;
+  color: var(--color-cream, #f2ede4);
+  pointer-events: none;
+}
+
+.story-hero__content .text-eyebrow {
+  margin: 0 0 var(--space-2, 0.5rem);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--color-gold-muted, #dac298);
+}
+
+.story-hero__content h1 {
+  margin: 0;
+  font-family: var(--font-display, "Mellos", serif);
+  font-size: clamp(1.75rem, 4vw, 3.25rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-cream, #f2ede4);
+}
+
+.story-hero__content p {
+  margin: 0;
+  font-size: clamp(0.95rem, 1.4vw, 1.125rem);
+  line-height: 1.7;
+}
+
+.story-hero__content p.text-muted {
+  color: rgba(242, 237, 228, 0.72);
+}
+
+.story-hero__content .btn {
+  pointer-events: auto;
+}
+
+/* Scroll ilerlemesine göre parça parça reveal — about-frame-sequence.js herosequence:progress
+   olayını dinleyip data-reveal-at eşiğine ulaşınca .is-revealed ekler (tek yönlü, geri alınmaz). */
+.story-hero__reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.story-hero__reveal.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .story-hero__reveal {
+    transition: none;
+  }
+}

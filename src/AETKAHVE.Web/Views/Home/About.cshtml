@@ -1,18 +1,32 @@
+@model AboutPageViewModel
 @{
     ViewData["Title"] = "Hikâyemiz";
 }
-<header class="container shop-header">
-    <p class="text-eyebrow">AETERNUM RECTUS LUCIS</p>
-    <h1>Işığın izinde, kahvenin özünde</h1>
-</header>
-<section class="container container--narrow section--tight">
-    <article class="surface surface--padded stack">
-        <p>Her kahveyi kökenine, emeğine ve taşıdığı karaktere saygıyla seçiyoruz. Amacımız yalnızca bir fincan sunmak değil; çekirdeğin yolculuğunu berrak ve özenli bir deneyime dönüştürmek.</p>
-        <p class="text-muted">Nitelikli çekirdekleri küçük partiler hâlinde kavuruyor, tazelik ve izlenebilirliği bütün sürecin merkezinde tutuyoruz.</p>
-        <a class="btn btn--primary" asp-controller="Products" asp-action="Index">Kahveleri keşfet</a>
-    </article>
+<section id="about-hero"
+         data-about-hero
+         data-frame-manifest-url="@Model.StoryFrameManifestUrl"
+         data-poster-url="@Model.StoryPosterUrl"
+         data-reduced-motion="@Model.IsReducedMotionFallbackAvailable.ToString().ToLowerInvariant()"
+         data-pin-vh="350"
+         aria-label="@Model.StoryAccessibilityDescription">
+    <div class="hero-frame-sequence__pin" data-hero-pin>
+        <canvas class="hero-frame-sequence__canvas" data-hero-canvas aria-hidden="true"></canvas>
+        <div class="story-hero__content">
+            <div class="story-hero__reveal" data-reveal-at="0.05">
+                <p class="text-eyebrow">AETERNUM RECTUS LUCIS</p>
+                <h1>Işığın izinde, kahvenin özünde</h1>
+            </div>
+            <p class="story-hero__reveal" data-reveal-at="0.30">Her kahveyi kökenine, emeğine ve taşıdığı karaktere saygıyla seçiyoruz. Amacımız yalnızca bir fincan sunmak değil; çekirdeğin yolculuğunu berrak ve özenli bir deneyime dönüştürmek.</p>
+            <p class="story-hero__reveal text-muted" data-reveal-at="0.55">Nitelikli çekirdekleri küçük partiler hâlinde kavuruyor, tazelik ve izlenebilirliği bütün sürecin merkezinde tutuyoruz.</p>
+            <a class="btn btn--primary story-hero__reveal" data-reveal-at="0.80" asp-controller="Products" asp-action="Index">Kahveleri keşfet</a>
+        </div>
+    </div>
 </section>
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/pages/shop.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/about-hero.css" asp-append-version="true" />
+}
+
+@section PageScripts {
+    <script type="module" src="~/js/pages/about-frame-sequence.js" asp-append-version="true"></script>
 }
