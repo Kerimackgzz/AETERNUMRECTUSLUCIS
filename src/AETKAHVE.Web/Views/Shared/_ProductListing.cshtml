@@ -8,61 +8,73 @@
         <form method="get" asp-controller="Products" asp-action="Index">
             <details class="shop-filters__group" open>
                 <summary>Koleksiyon</summary>
-                <select name="categoryId">
-                    <option value="">Tümü</option>
-                    @foreach (var c in Model.Lookups.Categories)
-                    {
-                        <option value="@c.Id" selected="@(query.CategoryId == c.Id ? "selected" : null)">@c.Name</option>
-                    }
-                </select>
+                <div class="shop-filters__body">
+                    <select name="categoryId">
+                        <option value="">Tümü</option>
+                        @foreach (var c in Model.Lookups.Categories)
+                        {
+                            <option value="@c.Id" selected="@(query.CategoryId == c.Id ? "selected" : null)">@c.Name</option>
+                        }
+                    </select>
+                </div>
             </details>
             <details class="shop-filters__group" open>
                 <summary>Fiyat aralığı</summary>
-                <div class="shop-filters__range">
-                    <input type="number" name="minimumPrice" placeholder="Min" min="0" step="0.01" value="@query.MinimumPrice" />
-                    <span>—</span>
-                    <input type="number" name="maximumPrice" placeholder="Maks" min="0" step="0.01" value="@query.MaximumPrice" />
+                <div class="shop-filters__body">
+                    <div class="shop-filters__range">
+                        <input type="number" name="minimumPrice" placeholder="Min" min="0" step="0.01" value="@query.MinimumPrice" />
+                        <span>—</span>
+                        <input type="number" name="maximumPrice" placeholder="Maks" min="0" step="0.01" value="@query.MaximumPrice" />
+                    </div>
                 </div>
             </details>
             <details class="shop-filters__group">
                 <summary>Kahve tipi</summary>
-                <select name="coffeeTypeId">
-                    <option value="">Tümü</option>
-                    @foreach (var c in Model.Lookups.CoffeeTypes)
-                    {
-                        <option value="@c.Id" selected="@(query.CoffeeTypeId == c.Id ? "selected" : null)">@c.Name</option>
-                    }
-                </select>
+                <div class="shop-filters__body">
+                    <select name="coffeeTypeId">
+                        <option value="">Tümü</option>
+                        @foreach (var c in Model.Lookups.CoffeeTypes)
+                        {
+                            <option value="@c.Id" selected="@(query.CoffeeTypeId == c.Id ? "selected" : null)">@c.Name</option>
+                        }
+                    </select>
+                </div>
             </details>
             <details class="shop-filters__group">
                 <summary>Çekirdek tipi</summary>
-                <select name="beanTypeId">
-                    <option value="">Tümü</option>
-                    @foreach (var c in Model.Lookups.BeanTypes)
-                    {
-                        <option value="@c.Id" selected="@(query.BeanTypeId == c.Id ? "selected" : null)">@c.Name</option>
-                    }
-                </select>
+                <div class="shop-filters__body">
+                    <select name="beanTypeId">
+                        <option value="">Tümü</option>
+                        @foreach (var c in Model.Lookups.BeanTypes)
+                        {
+                            <option value="@c.Id" selected="@(query.BeanTypeId == c.Id ? "selected" : null)">@c.Name</option>
+                        }
+                    </select>
+                </div>
             </details>
             <details class="shop-filters__group">
                 <summary>Kavurma</summary>
-                <select name="roastLevelId">
-                    <option value="">Tümü</option>
-                    @foreach (var c in Model.Lookups.RoastLevels)
-                    {
-                        <option value="@c.Id" selected="@(query.RoastLevelId == c.Id ? "selected" : null)">@c.Name</option>
-                    }
-                </select>
+                <div class="shop-filters__body">
+                    <select name="roastLevelId">
+                        <option value="">Tümü</option>
+                        @foreach (var c in Model.Lookups.RoastLevels)
+                        {
+                            <option value="@c.Id" selected="@(query.RoastLevelId == c.Id ? "selected" : null)">@c.Name</option>
+                        }
+                    </select>
+                </div>
             </details>
             <details class="shop-filters__group">
                 <summary>Menşei</summary>
-                <select name="originId">
-                    <option value="">Tümü</option>
-                    @foreach (var c in Model.Lookups.Origins)
-                    {
-                        <option value="@c.Id" selected="@(query.OriginId == c.Id ? "selected" : null)">@c.Name</option>
-                    }
-                </select>
+                <div class="shop-filters__body">
+                    <select name="originId">
+                        <option value="">Tümü</option>
+                        @foreach (var c in Model.Lookups.Origins)
+                        {
+                            <option value="@c.Id" selected="@(query.OriginId == c.Id ? "selected" : null)">@c.Name</option>
+                        }
+                    </select>
+                </div>
             </details>
             <label class="shop-filters__option">
                 <input type="checkbox" name="inStockOnly" value="true" checked="@(query.InStockOnly ? "checked" : null)" />

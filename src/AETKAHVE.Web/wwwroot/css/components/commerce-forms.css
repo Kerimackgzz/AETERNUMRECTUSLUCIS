@@ -78,3 +78,59 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Adet artır/azalt steplığı — Cart ve Product Detail arasında paylaşılır (tek doğruluk
+   kaynağı). Sitenin gold/ink paleti: koyu buton yüzeyi + gold glif, hover'da gold dolgu
+   (bkz. .btn--primary aynı deseni component/button.css'te taşır). */
+.qty-stepper {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.qty-stepper button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  background: var(--color-bg-elevated);
+  border: none;
+  color: var(--color-gold-400);
+  font-size: var(--text-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--duration-base) var(--ease-standard),
+              color var(--duration-base) var(--ease-standard);
+}
+
+.qty-stepper button:hover:not(:disabled) {
+  background: var(--color-gold-500);
+  color: var(--color-ink-on-inverse);
+}
+
+.qty-stepper button:disabled {
+  color: var(--color-ink-faint);
+  cursor: not-allowed;
+}
+
+.qty-stepper input {
+  width: 3rem;
+  text-align: center;
+  background: var(--color-bg);
+  border: none;
+  border-inline: 1px solid var(--color-border-strong);
+  color: var(--color-ink);
+  font: inherit;
+  font-weight: 600;
+  padding: var(--space-2) 0;
+  -moz-appearance: textfield;
+}
+
+.qty-stepper input::-webkit-outer-spin-button,
+.qty-stepper input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

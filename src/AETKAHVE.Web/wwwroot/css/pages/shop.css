@@ -68,6 +68,22 @@
   margin-bottom: var(--space-3);
 }
 
+/* Smooth aç/kapa — yalnızca JS aktifse devreye girer (shop-filters.js .is-enhanced ekler);
+   JS hiç çalışmazsa native <details> anlık aç/kapa davranışı bozulmadan kalır
+   (navbar-motion.js'deki aynı no-JS-fallback güvencesi, bkz. navbar.css .is-enhanced). */
+.shop-filters.is-enhanced .shop-filters__group .shop-filters__body {
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height var(--duration-slow) var(--ease-emphasized),
+              opacity var(--duration-base) var(--ease-standard);
+}
+
+.shop-filters.is-enhanced .shop-filters__group.is-open .shop-filters__body {
+  max-height: 480px;
+  opacity: 1;
+}
+
 .shop-filters__option {
   display: flex;
   align-items: center;

@@ -61,33 +61,7 @@
   gap: var(--space-2);
 }
 
-.qty-stepper {
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-sm);
-}
-
-.qty-stepper button {
-  width: 2rem;
-  height: 2rem;
-  background: none;
-  border: none;
-  color: var(--color-ink);
-  cursor: pointer;
-  font-size: var(--text-base);
-}
-
-.qty-stepper input {
-  width: 2.5rem;
-  text-align: center;
-  background: none;
-  border: none;
-  border-left: 1px solid var(--color-border);
-  border-right: 1px solid var(--color-border);
-  color: var(--color-ink);
-  padding: var(--space-1) 0;
-}
+/* .qty-stepper artık components/commerce-forms.css'te (Cart + Product Detail paylaşır). */
 
 .cart-line__remove {
   background: none;
