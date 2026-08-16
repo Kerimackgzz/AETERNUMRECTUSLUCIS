@@ -39,6 +39,11 @@
   max-width: 46ch;
 }
 
+/* Ürünler/koleksiyon sayfa başlığı — kullanıcının sağladığı urunlerbg görseli. */
+.page-banner--shop {
+  background-image: linear-gradient(180deg, rgba(5, 5, 5, 0.35), rgba(5, 5, 5, 0.75)), url("/images/shop-banner.webp");
+}
+
 .shop-layout {
   display: grid;
   grid-template-columns: 1fr;
@@ -56,16 +61,112 @@
 .shop-filters {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-5);
   padding: var(--space-6);
+  border-color: var(--color-border);
+}
+
+@media (min-width: 1024px) {
+  .shop-filters {
+    position: sticky;
+    top: calc(var(--space-16) + var(--space-8));
+  }
+}
+
+/* Başlık — küçük altın filtre ikonu + "FİLTRELER". */
+.shop-filters__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.shop-filters__header-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: var(--color-gold-400);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.shop-filters__title {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--color-ink);
+}
+
+/* Accordion grupları — ince altın hairline ile ayrılır (ilk grup hariç). */
+.shop-filters__group {
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-4);
+}
+
+.shop-filters__group:first-of-type {
+  border-top: none;
+  padding-top: 0;
 }
 
 .shop-filters__group summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
   cursor: pointer;
   font-weight: 600;
   font-size: var(--text-sm);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
   color: var(--color-ink);
+  list-style: none;
+}
+
+.shop-filters__group summary::-webkit-details-marker {
+  display: none;
+}
+
+.shop-filters__group[open] summary {
   margin-bottom: var(--space-3);
+}
+
+.shop-filters__group-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.shop-filters__group-icon {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: var(--color-gold-500);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.shop-filters__chevron {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: var(--color-ink-faint);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: transform var(--duration-base) var(--ease-standard);
+}
+
+.shop-filters__group[open] .shop-filters__chevron {
+  transform: rotate(180deg);
+  stroke: var(--color-gold-400);
 }
 
 /* Smooth aç/kapa — yalnızca JS aktifse devreye girer (shop-filters.js .is-enhanced ekler);
@@ -84,13 +185,57 @@
   opacity: 1;
 }
 
+.shop-filters__checkboxes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
 .shop-filters__option {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  gap: var(--space-3);
   font-size: var(--text-sm);
+  font-weight: 500;
   color: var(--color-ink-muted);
-  padding-block: var(--space-1);
+  padding-block: var(--space-2);
+  cursor: pointer;
+}
+
+/* Özel checkbox — tarayıcı varsayılanı yerine ince altın çerçeveli, koyu zeminli kutu. */
+.shop-filters__option input[type="checkbox"] {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  margin: 0;
+  display: inline-grid;
+  place-content: center;
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: background-color var(--duration-base) var(--ease-standard),
+              border-color var(--duration-base) var(--ease-standard);
+}
+
+.shop-filters__option input[type="checkbox"]::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  transform: scale(0);
+  transition: transform var(--duration-fast) var(--ease-standard);
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+  background-color: var(--color-gold-400);
+}
+
+.shop-filters__option input[type="checkbox"]:checked {
+  background-color: var(--color-bg-elevated-2);
+  border-color: var(--color-gold-400);
+}
+
+.shop-filters__option input[type="checkbox"]:checked::before {
+  transform: scale(1);
 }
 
 .shop-filters__range {
@@ -106,6 +251,93 @@
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-sm);
   color: var(--color-ink);
+  font-size: var(--text-sm);
+}
+
+/* Fiyat aralığı — çift-tutamaçlı slider (iki üst üste binen input[type=range]). */
+.price-slider {
+  position: relative;
+  height: 20px;
+  margin-top: var(--space-4);
+}
+
+.price-slider__track {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  transform: translateY(-50%);
+  background-color: var(--color-border-strong);
+  border-radius: var(--radius-xs);
+}
+
+.price-slider__range {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background-color: var(--color-gold-500);
+  border-radius: var(--radius-xs);
+}
+
+.price-slider__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 20px;
+  margin: 0;
+  background: none;
+  appearance: none;
+  pointer-events: none;
+}
+
+.price-slider__input::-webkit-slider-runnable-track {
+  appearance: none;
+  background: transparent;
+  height: 20px;
+}
+
+.price-slider__input::-webkit-slider-thumb {
+  appearance: none;
+  pointer-events: auto;
+  width: 14px;
+  height: 14px;
+  margin-top: 3px;
+  border-radius: var(--radius-round);
+  background-color: var(--color-gold-400);
+  border: 2px solid var(--color-bg-elevated);
+  box-shadow: 0 0 0 1px var(--color-gold-500);
+  cursor: pointer;
+}
+
+.price-slider__input::-moz-range-track {
+  background: transparent;
+  height: 20px;
+  border: none;
+}
+
+.price-slider__input::-moz-range-thumb {
+  pointer-events: auto;
+  width: 14px;
+  height: 14px;
+  border-radius: var(--radius-round);
+  background-color: var(--color-gold-400);
+  border: 2px solid var(--color-bg-elevated);
+  box-shadow: 0 0 0 1px var(--color-gold-500);
+  cursor: pointer;
+}
+
+.shop-filters__submit {
+  gap: var(--space-2);
+}
+
+.shop-filters__submit-icon {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
 }
 
 .shop-toolbar {
@@ -123,12 +355,31 @@
 }
 
 .shop-toolbar__sort select,
-.shop-filters select {
-  padding: var(--space-2) var(--space-3);
+.shop-filters__select {
+  width: 100%;
+  padding: var(--space-2) var(--space-8) var(--space-2) var(--space-3);
   background-color: var(--color-bg);
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-sm);
   color: var(--color-ink);
+  font-size: var(--text-sm);
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d9bd73' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--space-3) center;
+  background-size: 13px;
+}
+
+.shop-filters__select:focus-visible,
+.shop-filters__range input:focus-visible {
+  border-color: var(--color-gold-400);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shop-filters__chevron,
+  .shop-filters__option input[type="checkbox"]::before {
+    transition: none;
+  }
 }
 
 /* Kampanya kartları */

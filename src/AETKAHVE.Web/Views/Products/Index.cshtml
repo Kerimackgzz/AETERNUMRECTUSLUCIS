@@ -2,9 +2,11 @@
 @{
     ViewData["Title"] = "Ürünler";
 }
-<header class="container shop-header">
-    <p class="text-eyebrow">Koleksiyon</p>
-    <h1>Kahve Seçkimiz</h1>
+<header class="page-banner page-banner--shop">
+    <div class="container page-banner__content">
+        <p class="text-eyebrow">Koleksiyon</p>
+        <h1>Kahve Seçkimiz</h1>
+    </div>
 </header>
 <div class="container">
     <partial name="_ProductListing" model="Model" />
@@ -17,4 +19,5 @@
 
 @section PageScripts {
     <script type="module" src="~/js/pages/shop-filters.js" asp-append-version="true"></script>
+    <script type="module" src="~/js/pages/price-range.js" asp-append-version="true"></script>
 }
