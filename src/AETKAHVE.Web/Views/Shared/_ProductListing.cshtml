@@ -2,14 +2,33 @@
 @model ProductListViewModel
 @{
     var query = Model.Query;
+    const int priceMax = 2000;
 }
 <div class="shop-layout">
     <aside class="surface shop-filters">
+        <div class="shop-filters__header">
+            <svg class="shop-filters__header-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <line x1="4" y1="6" x2="20" y2="6" /><circle cx="9" cy="6" r="2" />
+                <line x1="4" y1="12" x2="20" y2="12" /><circle cx="15" cy="12" r="2" />
+                <line x1="4" y1="18" x2="20" y2="18" /><circle cx="7" cy="18" r="2" />
+            </svg>
+            <h2 class="shop-filters__title">Filtreler</h2>
+        </div>
         <form method="get" asp-controller="Products" asp-action="Index">
             <details class="shop-filters__group" open>
-                <summary>Koleksiyon</summary>
+                <summary>
+                    <span class="shop-filters__group-heading">
+                        <svg class="shop-filters__group-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 3 3 8l9 5 9-5-9-5Z" />
+                            <path d="M3 12l9 5 9-5" />
+                            <path d="M3 16l9 5 9-5" />
+                        </svg>
+                        <span>Koleksiyon</span>
+                    </span>
+                    <svg class="shop-filters__chevron" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
+                </summary>
                 <div class="shop-filters__body">
-                    <select name="categoryId">
+                    <select class="shop-filters__select" name="categoryId">
                         <option value="">Tümü</option>
                         @foreach (var c in Model.Lookups.Categories)
                         {
@@ -19,19 +38,47 @@
                 </div>
             </details>
             <details class="shop-filters__group" open>
-                <summary>Fiyat aralığı</summary>
+                <summary>
+                    <span class="shop-filters__group-heading">
+                        <svg class="shop-filters__group-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <circle cx="12" cy="12" r="8" />
+                            <path d="M8.5 12h7" />
+                        </svg>
+                        <span>Fiyat Aralığı</span>
+                    </span>
+                    <svg class="shop-filters__chevron" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
+                </summary>
                 <div class="shop-filters__body">
                     <div class="shop-filters__range">
-                        <input type="number" name="minimumPrice" placeholder="Min" min="0" step="0.01" value="@query.MinimumPrice" />
-                        <span>—</span>
-                        <input type="number" name="maximumPrice" placeholder="Maks" min="0" step="0.01" value="@query.MaximumPrice" />
+                        <input type="number" name="minimumPrice" placeholder="Min" min="0" max="@priceMax" step="10" value="@query.MinimumPrice" data-price-input="min" />
+                        <span aria-hidden="true">—</span>
+                        <input type="number" name="maximumPrice" placeholder="Maks" min="0" max="@priceMax" step="10" value="@query.MaximumPrice" data-price-input="max" />
+                    </div>
+                    <div class="price-slider" data-price-slider data-price-max="@priceMax">
+                        <div class="price-slider__track">
+                            <div class="price-slider__range" data-price-range></div>
+                        </div>
+                        <input type="range" class="price-slider__input" min="0" max="@priceMax" step="10"
+                               value="@(query.MinimumPrice ?? 0)" data-price-slider-min aria-label="Minimum fiyat" />
+                        <input type="range" class="price-slider__input" min="0" max="@priceMax" step="10"
+                               value="@(query.MaximumPrice ?? priceMax)" data-price-slider-max aria-label="Maksimum fiyat" />
                     </div>
                 </div>
             </details>
             <details class="shop-filters__group">
-                <summary>Kahve tipi</summary>
+                <summary>
+                    <span class="shop-filters__group-heading">
+                        <svg class="shop-filters__group-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V8Z" />
+                            <path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17" />
+                            <path d="M8 2c0 1-1 1-1 2s1 1 1 2M12 2c0 1-1 1-1 2s1 1 1 2" />
+                        </svg>
+                        <span>Kahve Tipi</span>
+                    </span>
+                    <svg class="shop-filters__chevron" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
+                </summary>
                 <div class="shop-filters__body">
-                    <select name="coffeeTypeId">
+                    <select class="shop-filters__select" name="coffeeTypeId">
                         <option value="">Tümü</option>
                         @foreach (var c in Model.Lookups.CoffeeTypes)
                         {
@@ -41,9 +88,18 @@
                 </div>
             </details>
             <details class="shop-filters__group">
-                <summary>Çekirdek tipi</summary>
+                <summary>
+                    <span class="shop-filters__group-heading">
+                        <svg class="shop-filters__group-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9Z" />
+                            <path d="M8 19c2-5 2-11 8-15" />
+                        </svg>
+                        <span>Çekirdek Tipi</span>
+                    </span>
+                    <svg class="shop-filters__chevron" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
+                </summary>
                 <div class="shop-filters__body">
-                    <select name="beanTypeId">
+                    <select class="shop-filters__select" name="beanTypeId">
                         <option value="">Tümü</option>
                         @foreach (var c in Model.Lookups.BeanTypes)
                         {
@@ -53,9 +109,17 @@
                 </div>
             </details>
             <details class="shop-filters__group">
-                <summary>Kavurma</summary>
+                <summary>
+                    <span class="shop-filters__group-heading">
+                        <svg class="shop-filters__group-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 2s-6 5-6 11a6 6 0 0 0 12 0c0-2-1-3-1-3s-1 2-2 2c1-3-1-6-3-10Z" />
+                        </svg>
+                        <span>Kavurma</span>
+                    </span>
+                    <svg class="shop-filters__chevron" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
+                </summary>
                 <div class="shop-filters__body">
-                    <select name="roastLevelId">
+                    <select class="shop-filters__select" name="roastLevelId">
                         <option value="">Tümü</option>
                         @foreach (var c in Model.Lookups.RoastLevels)
                         {
@@ -65,9 +129,18 @@
                 </div>
             </details>
             <details class="shop-filters__group">
-                <summary>Menşei</summary>
+                <summary>
+                    <span class="shop-filters__group-heading">
+                        <svg class="shop-filters__group-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M12 21s7-6.5 7-12a7 7 0 1 0-14 0c0 5.5 7 12 7 12Z" />
+                            <circle cx="12" cy="9" r="2.5" />
+                        </svg>
+                        <span>Menşei</span>
+                    </span>
+                    <svg class="shop-filters__chevron" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9" /></svg>
+                </summary>
                 <div class="shop-filters__body">
-                    <select name="originId">
+                    <select class="shop-filters__select" name="originId">
                         <option value="">Tümü</option>
                         @foreach (var c in Model.Lookups.Origins)
                         {
@@ -76,16 +149,25 @@
                     </select>
                 </div>
             </details>
-            <label class="shop-filters__option">
-                <input type="checkbox" name="inStockOnly" value="true" checked="@(query.InStockOnly ? "checked" : null)" />
-                Yalnız stoktakiler
-            </label>
-            <label class="shop-filters__option">
-                <input type="checkbox" name="discountedOnly" value="true" checked="@(query.DiscountedOnly ? "checked" : null)" />
-                Yalnız indirimliler
-            </label>
+            <div class="shop-filters__checkboxes">
+                <label class="shop-filters__option">
+                    <input type="checkbox" name="inStockOnly" value="true" checked="@(query.InStockOnly ? "checked" : null)" />
+                    Yalnız stoktakiler
+                </label>
+                <label class="shop-filters__option">
+                    <input type="checkbox" name="discountedOnly" value="true" checked="@(query.DiscountedOnly ? "checked" : null)" />
+                    Yalnız indirimliler
+                </label>
+            </div>
             <input type="hidden" name="sort" value="@query.Sort" />
-            <button type="submit" class="btn btn--outline btn--block">Filtrele</button>
+            <button type="submit" class="btn btn--outline btn--block shop-filters__submit">
+                <svg class="shop-filters__submit-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <line x1="4" y1="7" x2="20" y2="7" /><circle cx="9" cy="7" r="1.75" />
+                    <line x1="4" y1="13" x2="20" y2="13" /><circle cx="15" cy="13" r="1.75" />
+                    <line x1="4" y1="19" x2="20" y2="19" /><circle cx="7" cy="19" r="1.75" />
+                </svg>
+                Filtrele
+            </button>
         </form>
     </aside>
 

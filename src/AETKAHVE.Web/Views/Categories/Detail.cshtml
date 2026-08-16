@@ -3,9 +3,11 @@
     var categoryName = Model.Lookups.Categories.FirstOrDefault(c => c.Id == Model.Query.CategoryId)?.Name ?? "Koleksiyon";
     ViewData["Title"] = categoryName;
 }
-<header class="container shop-header">
-    <p class="text-eyebrow">Koleksiyon</p>
-    <h1>@categoryName</h1>
+<header class="page-banner page-banner--shop">
+    <div class="container page-banner__content">
+        <p class="text-eyebrow">Koleksiyon</p>
+        <h1>@categoryName</h1>
+    </div>
 </header>
 <div class="container">
     <partial name="_ProductListing" model="Model" />
@@ -18,4 +20,5 @@
 
 @section PageScripts {
     <script type="module" src="~/js/pages/shop-filters.js" asp-append-version="true"></script>
+    <script type="module" src="~/js/pages/price-range.js" asp-append-version="true"></script>
 }
