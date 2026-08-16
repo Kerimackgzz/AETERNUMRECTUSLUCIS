@@ -1,0 +1,36 @@
+@using AETKAHVE.Application.Security
+@model AdminAccountDetails
+@{
+    ViewData["Title"] = "Admin Hesabını Sil";
+}
+
+<section class="admin-account-editor">
+    <a class="admin-account-editor__back" href="/superadmin/admins">← Admin listesine dön</a>
+    <div class="surface surface--padded admin-account-editor__panel admin-account-delete">
+        <span class="admin-accounts__eyebrow">Geri alınamaz işlem</span>
+        <h1 class="admin-dashboard__title">Admin hesabını kalıcı olarak sil</h1>
+        <p>Bu işlem Identity hesabını, rol ve oturum verilerini kalıcı olarak kaldırır.</p>
+
+        <dl class="admin-account-delete__summary">
+            <div><dt>Admin</dt><dd>@Model.FirstName @Model.LastName</dd></div>
+            <div><dt>E-posta</dt><dd>@Model.Email</dd></div>
+            <div><dt>Durum</dt><dd>@(Model.IsPendingInvitation ? "Davet bekliyor" : Model.IsActive ? "Aktif" : "Pasif")</dd></div>
+            <div><dt>Son giriş</dt><dd>@(Model.LastLoginAtUtc?.ToLocalTime().ToString("dd.MM.yyyy HH:mm") ?? "Henüz giriş yok")</dd></div>
+        </dl>
+
+        <div class="admin-account-delete__warning" role="alert">
+            <strong>Bu işlem geri alınamaz.</strong>
+            <span>Silinen hesap yeniden etkinleştirilemez; gerekirse yeni bir Admin daveti oluşturulmalıdır.</span>
+        </div>
+
+        <form class="admin-account-form__actions" action="/superadmin/admins/@Model.Id/delete" method="post">
+            @Html.AntiForgeryToken()
+            <button class="btn admin-account-delete__button" type="submit">Hesabı kalıcı olarak sil</button>
+            <a class="btn btn--ghost" href="/superadmin/admins">Vazgeç</a>
+        </form>
+    </div>
+</section>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin/admin-accounts.css" asp-append-version="true" />
+}

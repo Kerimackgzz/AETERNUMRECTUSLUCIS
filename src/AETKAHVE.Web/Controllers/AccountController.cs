@@ -21,6 +21,7 @@ public sealed class AccountController(
     ICustomerPasswordResetService passwordResets,
     ICustomerAccountQueryService customerAccountQueries,
     ICustomerProfileService customerProfiles,
+    IAccountCredentialService accountCredentials,
     IIdentityMessageSender messageSender,
     TimeProvider timeProvider) : CommerceControllerBase
 {
@@ -113,7 +114,7 @@ public sealed class AccountController(
     {
         if (!ModelState.IsValid)
             return View("Index", await CreateAccountPageAsync(cancellationToken, emailChange: input));
-        var result = await customerProfiles.BeginEmailChangeAsync(
+        var result = await accountCredentials.BeginEmailChangeAsync(
             RequiredUserId,
             input.CurrentPassword,
             input.NewEmail,
@@ -127,33 +128,35 @@ public sealed class AccountController(
         var callback = Url.Action(
             nameof(ConfirmEmailChange),
             "Account",
-            new { newEmail = input.NewEmail.Trim(), token = result.Token },
+            new { userId = RequiredUserId, newEmail = input.NewEmail.Trim(), token = result.Token },
             Request.Scheme)!;
-        await customerProfiles.QueueEmailChangeConfirmationAsync(
+        await accountCredentials.QueueEmailChangeConfirmationAsync(
             RequiredUserId,
             input.NewEmail,
             callback,
             cancellationToken);
-        TempData["StatusMessage"] = result.Message;
+        TempData["StatusMessage"] = "Doğrulama bağlantısı gönderildi. Yeni e-posta kutunuzu kontrol edin.";
         return RedirectToAccountFragment("email-security");
     }
 
-    [Authorize(Policy = AuthorizationPolicies.CustomerOnly)]
+    [AllowAnonymous]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     [HttpGet("profile/email-change/confirm")]
     public async Task<IActionResult> ConfirmEmailChange(
+        Guid userId,
         string newEmail,
         string token,
         CancellationToken cancellationToken)
     {
         Response.Headers["Referrer-Policy"] = "no-referrer";
-        var validation = await customerProfiles.ValidateEmailChangeAsync(
-            RequiredUserId,
+        var validation = await accountCredentials.ValidateEmailChangeAsync(
+            userId,
             newEmail,
             token,
             cancellationToken);
         return View(new CustomerEmailChangeConfirmViewModel
         {
+            UserId = userId,
             NewEmail = newEmail ?? string.Empty,
             Token = token ?? string.Empty,
             MaskedEmail = validation.MaskedEmail,
@@ -161,7 +164,8 @@ public sealed class AccountController(
         });
     }
 
-    [Authorize(Policy = AuthorizationPolicies.CustomerOnly)]
+    [AllowAnonymous]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     [ValidateAntiForgeryToken]
     [EnableRateLimiting(SecurityRateLimitPolicies.PasswordRecovery)]
     [HttpPost("profile/email-change/confirm")]
@@ -169,20 +173,22 @@ public sealed class AccountController(
         CustomerEmailChangeConfirmViewModel input,
         CancellationToken cancellationToken)
     {
-        var result = await customerProfiles.ConfirmEmailChangeAsync(
-            RequiredUserId,
+        Response.Headers["Referrer-Policy"] = "no-referrer";
+        var result = await accountCredentials.ConfirmEmailChangeAsync(
+            input.UserId,
             input.NewEmail,
             input.Token,
             cancellationToken);
         if (!result.Succeeded)
         {
-            var validation = await customerProfiles.ValidateEmailChangeAsync(
-                RequiredUserId,
+            var validation = await accountCredentials.ValidateEmailChangeAsync(
+                input.UserId,
                 input.NewEmail,
                 input.Token,
                 cancellationToken);
             return View("ConfirmEmailChange", new CustomerEmailChangeConfirmViewModel
             {
+                UserId = input.UserId,
                 NewEmail = input.NewEmail,
                 Token = input.Token,
                 MaskedEmail = validation.MaskedEmail,
@@ -191,7 +197,14 @@ public sealed class AccountController(
             });
         }
 
-        await authenticationSessions.SignOutAsync(HttpContext, AuthenticationPortal.Customer, "EmailChanged", cancellationToken);
+        if (CurrentUserId == input.UserId)
+        {
+            await authenticationSessions.SignOutAsync(
+                HttpContext,
+                AuthenticationPortal.Customer,
+                "EmailChanged",
+                cancellationToken);
+        }
         TempData["StatusMessage"] = result.Message;
         return RedirectToAction(nameof(Login));
     }
@@ -206,7 +219,7 @@ public sealed class AccountController(
     {
         if (!ModelState.IsValid)
             return View("Index", await CreateAccountPageAsync(cancellationToken, passwordChange: input));
-        var result = await customerProfiles.ChangePasswordAsync(
+        var result = await accountCredentials.ChangePasswordAsync(
             RequiredUserId,
             input.CurrentPassword,
             input.NewPassword,
@@ -271,9 +284,16 @@ public sealed class AccountController(
                 model.Password,
                 timeProvider.GetUtcNow()),
             cancellationToken);
-        if (!result.Succeeded)
+        if (result.Status == RegistrationStartStatus.InvalidInput)
         {
             ModelState.AddModelError(string.Empty, "Kayıt bilgileri doğrulanamadı.");
+            return View(model);
+        }
+
+        if (result.Status == RegistrationStartStatus.ExistingAccount)
+        {
+            ModelState.AddModelError(nameof(model.Email), "Bu e-posta adresiyle kayıtlı bir hesap zaten var.");
+            ViewData["ExistingAccount"] = true;
             return View(model);
         }
 
@@ -426,7 +446,7 @@ public sealed class AccountController(
             return View(model);
         }
 
-        TempData["StatusMessage"] = "Parolanız değiştirildi.";
+        TempData["StatusMessage"] = "Parolanız değiştirildi. Yeni parolanızla giriş yapabilirsiniz.";
         return RedirectToAction(nameof(Login));
     }
 

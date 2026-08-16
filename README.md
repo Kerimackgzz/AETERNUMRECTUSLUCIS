@@ -53,13 +53,33 @@ Roller ve isteğe bağlı development yönetim hesapları `IdentitySeed` seçene
 
 ```text
 IdentitySeed__Enabled=true
-IdentitySeed__AdminEmail=admin@example.test
+IdentitySeed__AllowInProduction=false
+IdentitySeed__AdminEmail=management@example.test
 IdentitySeed__AdminPassword=<user-secret>
-IdentitySeed__SuperAdminEmail=superadmin@example.test
+IdentitySeed__SuperAdminEmail=management@example.test
 IdentitySeed__SuperAdminPassword=<user-secret>
 ```
 
-Bu değerleri production config dosyasına yazmayın; environment variable veya user-secrets kullanın.
+Aynı normalize edilmiş e-posta iki alanda kullanıldığında tek Identity kullanıcısına `Admin` ve `SuperAdmin` rolleri atanır; iki parola birebir aynı olmalıdır. Her e-posta/parola çifti birlikte girilmelidir. Seeder, mevcut Customer-only hesabı sessizce yöneticiye yükseltmez.
+
+Sistemde en fazla bir `SuperAdmin` bulunabilir. Seeder ikinci bir SuperAdmin oluşturmayı reddeder; uygulama başlangıç kontrolü birden fazla SuperAdmin tespit ederse açılışı durdurur. Production ortamında tam olarak bir aktif, silinmemiş SuperAdmin zorunludur. Alt seviye Admin hesapları SuperAdmin panelindeki `/superadmin/admins` ekranından davetle oluşturulur ve hiçbir panel işlemi Admin hesabını SuperAdmin'e yükseltemez.
+
+Development secret kurulumu için parolayı komut geçmişine yazmak yerine PowerShell'in gizli girişini kullanın:
+
+```powershell
+$managementPassword = Read-Host "Development management password" -AsSecureString
+$managementPasswordText = [System.Net.NetworkCredential]::new('', $managementPassword).Password
+dotnet user-secrets set "IdentitySeed:Enabled" "true" --project .\src\AETKAHVE.Web
+dotnet user-secrets set "IdentitySeed:AdminEmail" "management@example.test" --project .\src\AETKAHVE.Web
+dotnet user-secrets set "IdentitySeed:AdminPassword" $managementPasswordText --project .\src\AETKAHVE.Web
+dotnet user-secrets set "IdentitySeed:SuperAdminEmail" "management@example.test" --project .\src\AETKAHVE.Web
+dotnet user-secrets set "IdentitySeed:SuperAdminPassword" $managementPasswordText --project .\src\AETKAHVE.Web
+Remove-Variable managementPasswordText, managementPassword
+```
+
+Eski yönetim hesapları ancak replacement hesap başarıyla hazırlandıktan sonra tek seferlik retirement listesiyle kaldırılır. Önce veritabanı yedeği alın; ardından `IdentitySeed:AllowDestructiveRetirement=true` ve `IdentitySeed:RetireManagementEmails:0=old-admin@example.test` değerlerini secret provider'da geçici olarak ayarlayın. Seeder replacement e-postasını, Customer rolü taşıyan hesabı veya management dışı rolü bulunan hesabı silmez. Başarılı startup sonrası retirement listesi ve yıkıcı onay kaldırılmalıdır.
+
+Bu değerleri production config dosyasına yazmayın. Production'da secret store tarafından oluşturulan ayrı ve en az 24 karakterlik parola kullanın; `IdentitySeed:AllowInProduction=true` açık opt-in'i olmadan uygulama seed etkin halde başlamaz. Ayrıntılı tek seferlik akış `docs/deployment/PRODUCTION_SETUP.md` içindedir.
 
 ## Production Proxy ve Anahtar Yönetimi
 

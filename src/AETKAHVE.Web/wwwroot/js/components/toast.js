@@ -8,8 +8,6 @@ function region() {
   if (!el) {
     el = document.createElement("div");
     el.setAttribute("data-toast-region", "");
-    el.setAttribute("role", "status");
-    el.setAttribute("aria-live", "polite");
     document.body.appendChild(el);
   }
   return el;
@@ -20,6 +18,7 @@ export function showToast(message, kind = "info") {
   const toast = document.createElement("div");
   toast.className = "toast toast--" + kind;
   if (kind === "error") toast.setAttribute("role", "alert");
+  else toast.setAttribute("role", "status");
   toast.textContent = message;
   container.appendChild(toast);
   window.requestAnimationFrame(() => toast.classList.add("is-visible"));

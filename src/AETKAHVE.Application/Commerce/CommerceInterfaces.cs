@@ -113,8 +113,18 @@ public interface ICustomerProfileService
     Task<ServiceResult> ChangePasswordAsync(Guid userId, string currentPassword, string newPassword, CancellationToken cancellationToken);
 }
 
+public interface IAccountCredentialService
+{
+    Task<CustomerEmailChangeStartResult> BeginEmailChangeAsync(Guid userId, string currentPassword, string newEmail, CancellationToken cancellationToken);
+    Task QueueEmailChangeConfirmationAsync(Guid userId, string newEmail, string confirmationUrl, CancellationToken cancellationToken);
+    Task<CustomerEmailChangeValidation> ValidateEmailChangeAsync(Guid userId, string newEmail, string token, CancellationToken cancellationToken);
+    Task<ServiceResult> ConfirmEmailChangeAsync(Guid userId, string newEmail, string token, CancellationToken cancellationToken);
+    Task<ServiceResult> ChangePasswordAsync(Guid userId, string currentPassword, string newPassword, CancellationToken cancellationToken);
+}
+
 public interface IAdminCommerceService
 {
+    Task<AdminDashboardSummary> GetDashboardAsync(CancellationToken cancellationToken);
     Task<Guid> SaveProductAsync(Guid adminUserId, AdminProductInput input, CancellationToken cancellationToken);
     Task<Guid> SaveCatalogLookupAsync(Guid adminUserId, AdminCatalogLookupInput input, CancellationToken cancellationToken);
     Task<ServiceResult> AdjustStockAsync(Guid adminUserId, Guid productId, Guid? variantId, int delta, CancellationToken cancellationToken);

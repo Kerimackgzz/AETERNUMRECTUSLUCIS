@@ -1,0 +1,126 @@
+@model ManagementSecurityViewModel
+
+<section class="management-security" aria-labelledby="management-security-title">
+    <header class="management-security__hero">
+        <p class="management-security__eyebrow">@Model.PortalName / Hesap koruması</p>
+        <h1 id="management-security-title" class="management-security__title">Güvenlik merkezi</h1>
+        <p class="management-security__intro text-muted">
+            Yönetim kimliğinizi buradan güncelleyin. Kritik bir değişiklikten sonra tüm yönetim oturumlarınız kapatılır.
+        </p>
+    </header>
+
+    <aside class="management-security__identity surface" aria-label="Oturum açılan yönetim hesabı">
+        <span class="management-security__identity-mark" aria-hidden="true">@(string.IsNullOrWhiteSpace(Model.Details.DisplayName) ? "Y" : Model.Details.DisplayName[..1].ToUpperInvariant())</span>
+        <div>
+            <strong>@Model.Details.DisplayName</strong>
+            <span>@Model.Details.Email</span>
+            <span class="management-security__roles" aria-label="Yönetim rolleri">
+                @foreach (var role in Model.Details.Roles)
+                {
+                    <span class="status-badge" data-status-kind="info">@role</span>
+                }
+            </span>
+            @if (Model.Details.LastLoginAtUtc.HasValue)
+            {
+                <span class="text-sm text-muted">
+                    Son giriş: <time datetime="@Model.Details.LastLoginAtUtc.Value.ToString("O")">@Model.Details.LastLoginAtUtc.Value.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</time>
+                </span>
+            }
+        </div>
+    </aside>
+
+    <div class="management-security__grid">
+        <article id="email-security" class="management-security__panel surface surface--padded">
+            <span class="management-security__number" aria-hidden="true">01</span>
+            <div class="management-security__panel-heading">
+                <p class="management-security__kicker">Kimlik</p>
+                <h2>E-posta adresini değiştir</h2>
+                <p class="text-muted">Yeni adrese gönderilen tek kullanımlık bağlantı ayrı bir tarayıcıda da açılabilir.</p>
+            </div>
+            <form class="management-security__form"
+                  action="@(Model.BasePath)/email-change"
+                  method="post"
+                  novalidate>
+                @Html.AntiForgeryToken()
+                @if (Model.ErrorSection == "email")
+                {
+                    <div asp-validation-summary="ModelOnly" class="management-security__form-error" role="alert"></div>
+                }
+                <div class="field">
+                    <label asp-for="EmailChange.NewEmail"></label>
+                    <input asp-for="EmailChange.NewEmail" type="email" autocomplete="email" inputmode="email" />
+                    <span asp-validation-for="EmailChange.NewEmail" class="field-validation-error"></span>
+                </div>
+                <div class="field">
+                    <label asp-for="EmailChange.CurrentPassword"></label>
+                    <div class="password-input" data-password-field>
+                        <input asp-for="EmailChange.CurrentPassword"
+                               type="password"
+                               autocomplete="current-password"
+                               data-password-input />
+                        <partial name="_PasswordVisibilityButton" />
+                    </div>
+                    <span asp-validation-for="EmailChange.CurrentPassword" class="field-validation-error"></span>
+                </div>
+                <button type="submit" class="btn btn--primary">Doğrulama bağlantısı gönder</button>
+            </form>
+        </article>
+
+        <article id="password-security" class="management-security__panel surface surface--padded">
+            <span class="management-security__number" aria-hidden="true">02</span>
+            <div class="management-security__panel-heading">
+                <p class="management-security__kicker">Erişim</p>
+                <h2>Parolayı değiştir</h2>
+                <p class="text-muted">Yeni parola Identity güvenlik politikasını karşılamalıdır. Başarıdan sonra yeniden giriş gerekir.</p>
+            </div>
+            <form class="management-security__form"
+                  action="@(Model.BasePath)/password"
+                  method="post"
+                  novalidate>
+                @Html.AntiForgeryToken()
+                @if (Model.ErrorSection == "password")
+                {
+                    <div asp-validation-summary="ModelOnly" class="management-security__form-error" role="alert"></div>
+                }
+                <div class="field">
+                    <label asp-for="PasswordChange.CurrentPassword"></label>
+                    <div class="password-input" data-password-field>
+                        <input asp-for="PasswordChange.CurrentPassword"
+                               type="password"
+                               autocomplete="current-password"
+                               data-password-input />
+                        <partial name="_PasswordVisibilityButton" />
+                    </div>
+                    <span asp-validation-for="PasswordChange.CurrentPassword" class="field-validation-error"></span>
+                </div>
+                <div class="field">
+                    <label asp-for="PasswordChange.NewPassword"></label>
+                    <div class="password-input" data-password-field>
+                        <input asp-for="PasswordChange.NewPassword"
+                               type="password"
+                               autocomplete="new-password"
+                               data-password-input />
+                        <partial name="_PasswordVisibilityButton" />
+                    </div>
+                    <span asp-validation-for="PasswordChange.NewPassword" class="field-validation-error"></span>
+                </div>
+                <div class="field">
+                    <label asp-for="PasswordChange.ConfirmPassword"></label>
+                    <div class="password-input" data-password-field>
+                        <input asp-for="PasswordChange.ConfirmPassword"
+                               type="password"
+                               autocomplete="new-password"
+                               data-password-input />
+                        <partial name="_PasswordVisibilityButton" />
+                    </div>
+                    <span asp-validation-for="PasswordChange.ConfirmPassword" class="field-validation-error"></span>
+                </div>
+                <button type="submit" class="btn btn--primary">Parolayı güncelle</button>
+            </form>
+        </article>
+    </div>
+
+    <p class="management-security__footnote text-sm text-muted">
+        E-posta veya parola değişikliği tamamlandığında Admin ve SuperAdmin oturumları birlikte sonlandırılır.
+    </p>
+</section>

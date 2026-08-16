@@ -1,0 +1,166 @@
+@using System.Globalization
+@using AETKAHVE.Domain.Commerce
+@model AdminDashboardViewModel
+@{
+    var summary = Model.Summary;
+    var currency = new CultureInfo("tr-TR");
+}
+
+<section class="admin-dashboard" data-admin-dashboard>
+    <header class="admin-dashboard__hero">
+        <div>
+            <p class="admin-dashboard__eyebrow">@Model.PortalLabel / Operasyon merkezi</p>
+            <h1 class="admin-dashboard__title">@Model.Title</h1>
+            <p class="admin-dashboard__intro text-muted">
+                Satış, katalog ve müşteri operasyonlarının güncel görünümü. Gelir göstergeleri son 30 günü kapsar.
+            </p>
+        </div>
+        <div class="admin-dashboard__hero-actions">
+            <a href="/admin/reports" class="btn btn--outline">Raporları incele</a>
+            <a href="/admin/products" class="btn btn--primary">Ürün yönetimi</a>
+        </div>
+    </header>
+
+    <div class="admin-dashboard__metrics" aria-label="Son 30 gün özeti">
+        <article class="admin-metric surface" data-metric="net-revenue">
+            <span class="admin-metric__index" aria-hidden="true">01</span>
+            <span class="admin-metric__label">Net gelir</span>
+            <strong class="admin-metric__value">@summary.Sales.NetRevenue.ToString("N2", currency) ₺</strong>
+            <span class="admin-metric__note">Refund sonrası</span>
+        </article>
+        <article class="admin-metric surface" data-metric="orders">
+            <span class="admin-metric__index" aria-hidden="true">02</span>
+            <span class="admin-metric__label">Ödenen sipariş</span>
+            <strong class="admin-metric__value">@summary.Sales.OrderCount</strong>
+            <span class="admin-metric__note">Son 30 gün</span>
+        </article>
+        <article class="admin-metric surface" data-metric="average-order">
+            <span class="admin-metric__index" aria-hidden="true">03</span>
+            <span class="admin-metric__label">Ortalama sepet</span>
+            <strong class="admin-metric__value">@summary.Sales.AverageOrderValue.ToString("N2", currency) ₺</strong>
+            <span class="admin-metric__note">Tahsil edilen tutar</span>
+        </article>
+        <article class="admin-metric surface" data-metric="critical-stock" data-alert="@(summary.CriticalStockCount > 0 ? "true" : "false")">
+            <span class="admin-metric__index" aria-hidden="true">04</span>
+            <span class="admin-metric__label">Kritik stok</span>
+            <strong class="admin-metric__value">@summary.CriticalStockCount</strong>
+            <a href="/admin/products" class="admin-metric__link">@summary.ActiveProductCount aktif ürünü aç</a>
+        </article>
+    </div>
+
+    <div class="admin-dashboard__columns">
+        <section class="admin-dashboard__section" aria-labelledby="operations-title">
+            <div class="admin-section-heading">
+                <div>
+                    <p class="admin-dashboard__eyebrow">Bugünün akışı</p>
+                    <h2 id="operations-title">Operasyon kuyruğu</h2>
+                </div>
+            </div>
+            <div class="admin-operation-list surface">
+                <a href="/admin/orders" class="admin-operation-link">
+                    <span><strong>Siparişler</strong><small>Hazırlanması gereken kayıtlar</small></span>
+                    <span class="admin-operation-link__count">@summary.OrdersAwaitingActionCount</span>
+                </a>
+                <a href="/admin/shipments" class="admin-operation-link">
+                    <span><strong>Sevkiyatlar</strong><small>Yolda veya çıkış bekleyenler</small></span>
+                    <span class="admin-operation-link__count">@summary.ShipmentsInTransitCount</span>
+                </a>
+                <a href="/admin/returns" class="admin-operation-link">
+                    <span><strong>İade talepleri</strong><small>Sonuçlandırılmamış talepler</small></span>
+                    <span class="admin-operation-link__count">@summary.OpenReturnCount</span>
+                </a>
+                <a href="/admin/reviews" class="admin-operation-link">
+                    <span><strong>Yorum moderasyonu</strong><small>Onay bekleyen müşteri yorumları</small></span>
+                    <span class="admin-operation-link__count">@summary.PendingReviewCount</span>
+                </a>
+                <a href="/admin/messages" class="admin-operation-link">
+                    <span><strong>Yeni mesajlar</strong><small>Henüz işleme alınmamış iletişimler</small></span>
+                    <span class="admin-operation-link__count">@summary.NewMessageCount</span>
+                </a>
+            </div>
+        </section>
+
+        <section class="admin-dashboard__section" aria-labelledby="recent-orders-title">
+            <div class="admin-section-heading">
+                <div>
+                    <p class="admin-dashboard__eyebrow">Canlı kayıtlar</p>
+                    <h2 id="recent-orders-title">Son siparişler</h2>
+                </div>
+                <a href="/admin/orders" class="admin-section-heading__link">Tümünü gör</a>
+            </div>
+            <div class="surface admin-recent-orders">
+                @if (summary.RecentOrders.Count == 0)
+                {
+                    <div class="admin-dashboard__empty">
+                        <p>Henüz sipariş bulunmuyor.</p>
+                        <span class="text-muted">İlk sipariş geldiğinde operasyon akışında burada görünecek.</span>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-scroll" tabindex="0" role="region" aria-label="Son siparişler tablosu">
+                        <table>
+                            <thead><tr><th>Sipariş</th><th>Durum</th><th>Tutar</th><th>Tarih</th></tr></thead>
+                            <tbody>
+                                @foreach (var order in summary.RecentOrders)
+                                {
+                                    <tr>
+                                        <td><a href="/admin/orders">@order.OrderNumber</a></td>
+                                        <td><span class="status-badge" data-status-kind="info">@OrderStatusLabel(order.Status)</span></td>
+                                        <td>@order.GrandTotal.ToString("N2", currency) ₺</td>
+                                        <td><time datetime="@order.CreatedAtUtc.ToString("O")">@order.CreatedAtUtc.ToLocalTime().ToString("dd MMM HH:mm", currency)</time></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </section>
+    </div>
+
+    <section class="admin-dashboard__section admin-dashboard__modules" aria-labelledby="modules-title">
+        <div class="admin-section-heading">
+            <div>
+                <p class="admin-dashboard__eyebrow">Tüm araçlar</p>
+                <h2 id="modules-title">Yönetim modülleri</h2>
+            </div>
+            <span class="text-sm text-muted">@summary.ActiveCampaignCount aktif kampanya</span>
+        </div>
+        <div class="admin-module-grid">
+            <a href="/admin/products" class="admin-module-card surface"><span>01</span><strong>Ürünler</strong><small>Fiyat, içerik ve stok</small></a>
+            <a href="/admin/catalog" class="admin-module-card surface"><span>02</span><strong>Katalog</strong><small>Koleksiyon ve nitelikler</small></a>
+            <a href="/admin/orders" class="admin-module-card surface"><span>03</span><strong>Siparişler</strong><small>Durum ve operasyon</small></a>
+            <a href="/admin/shipments" class="admin-module-card surface"><span>04</span><strong>Sevkiyatlar</strong><small>Kargo ve takip</small></a>
+            <a href="/admin/invoices" class="admin-module-card surface"><span>05</span><strong>Faturalar</strong><small>PDF ve arşiv</small></a>
+            <a href="/admin/returns" class="admin-module-card surface"><span>06</span><strong>İadeler</strong><small>Karar ve restock</small></a>
+            <a href="/admin/campaigns" class="admin-module-card surface"><span>07</span><strong>Kampanyalar</strong><small>Otomatik indirimler</small></a>
+            <a href="/admin/coupons" class="admin-module-card surface"><span>08</span><strong>Kuponlar</strong><small>Kod ve limitler</small></a>
+            <a href="/admin/reviews" class="admin-module-card surface"><span>09</span><strong>Yorumlar</strong><small>Müşteri geri bildirimi</small></a>
+            <a href="/admin/messages" class="admin-module-card surface"><span>10</span><strong>Mesajlar</strong><small>İletişim merkezi</small></a>
+            <a href="/admin/reports" class="admin-module-card surface"><span>11</span><strong>Raporlar</strong><small>Gelir ve CSV</small></a>
+        </div>
+    </section>
+
+    <p class="admin-dashboard__updated text-sm text-muted">
+        Son güncelleme: <time datetime="@summary.GeneratedAtUtc.ToString("O")">@summary.GeneratedAtUtc.ToLocalTime().ToString("dd.MM.yyyy HH:mm:ss")</time>
+    </p>
+</section>
+
+@functions {
+    private static string OrderStatusLabel(OrderStatus status) => status switch
+    {
+        OrderStatus.PendingPayment => "Ödeme bekliyor",
+        OrderStatus.PaymentReceived => "Ödeme alındı",
+        OrderStatus.Preparing => "Hazırlanıyor",
+        OrderStatus.Packed => "Paketlendi",
+        OrderStatus.Shipped => "Kargoda",
+        OrderStatus.OutForDelivery => "Dağıtımda",
+        OrderStatus.Delivered => "Teslim edildi",
+        OrderStatus.Cancelled => "İptal",
+        OrderStatus.ReturnRequested => "İade talebi",
+        OrderStatus.Returned => "İade edildi",
+        OrderStatus.Refunded => "Ücret iade edildi",
+        _ => status.ToString(),
+    };
+}

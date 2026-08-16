@@ -249,6 +249,19 @@ public sealed record ReviewSummary(Guid Id, string ProductName, int Rating, stri
 public sealed record ReportFilter(DateTimeOffset FromUtc, DateTimeOffset ToUtc, int Page = 1, int PageSize = 50);
 public sealed record SalesReport(decimal GrossRevenue, decimal DiscountTotal, decimal TaxTotal, decimal ShippingRevenue, decimal RefundTotal, decimal NetRevenue, int OrderCount, decimal AverageOrderValue);
 
+public sealed record AdminDashboardSummary(
+    SalesReport Sales,
+    int ActiveProductCount,
+    int CriticalStockCount,
+    int OrdersAwaitingActionCount,
+    int ShipmentsInTransitCount,
+    int OpenReturnCount,
+    int PendingReviewCount,
+    int NewMessageCount,
+    int ActiveCampaignCount,
+    IReadOnlyList<OrderSummary> RecentOrders,
+    DateTimeOffset GeneratedAtUtc);
+
 public sealed record CatalogLookupItem(Guid Id, string Name, string Slug);
 public sealed record CatalogLookupSet(
     IReadOnlyList<CatalogLookupItem> Categories,

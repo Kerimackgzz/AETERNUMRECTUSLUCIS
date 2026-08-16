@@ -1,0 +1,29 @@
+@model AdminAccountEmailChangeViewModel
+@{
+    Layout = "_ManagementAuthLayout";
+    ViewData["Title"] = "Admin E-postasını Doğrula";
+}
+
+<div class="account-card surface surface--padded">
+    <h1 class="account-card__title">Yeni e-posta adresini doğrula</h1>
+    @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+    {
+        <p role="alert" class="field-validation-error">@Model.StatusMessage</p>
+    }
+    @if (!Model.CanConfirm)
+    {
+        <p class="account-card__subtitle text-muted">Doğrulama bağlantısı geçersiz, kullanılmış veya süresi dolmuş.</p>
+        <a class="btn btn--outline btn--block" href="/admin/login">Admin girişine dön</a>
+    }
+    else
+    {
+        <p class="account-card__subtitle text-muted">Admin hesabınızın e-posta adresi @Model.MaskedEmail olarak değiştirilecek.</p>
+        <form class="account-form" action="/admin/email-change/confirm" method="post">
+            @Html.AntiForgeryToken()
+            <input asp-for="UserId" type="hidden" />
+            <input asp-for="NewEmail" type="hidden" />
+            <input asp-for="Token" type="hidden" />
+            <button class="btn btn--primary btn--block" type="submit">E-posta değişikliğini onayla</button>
+        </form>
+    }
+</div>

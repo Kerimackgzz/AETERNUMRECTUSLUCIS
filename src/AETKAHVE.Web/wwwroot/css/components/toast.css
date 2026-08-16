@@ -13,6 +13,13 @@
   max-width: min(360px, calc(100vw - var(--space-8)));
 }
 
+.account-layout [data-toast-region],
+.admin-layout [data-toast-region],
+.customer-account-layout [data-toast-region] {
+  top: clamp(76px, 9vw, 112px);
+  bottom: auto;
+}
+
 .toast {
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-sm);
@@ -33,6 +40,15 @@
   transform: translateY(0);
 }
 
+.toast[data-server-flash-message] {
+  animation: toast-enter var(--duration-base) var(--ease-standard) both;
+}
+
+@keyframes toast-enter {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .toast--success {
   border-left: 3px solid var(--color-success);
 }
@@ -48,5 +64,19 @@
 @media (prefers-reduced-motion: reduce) {
   .toast {
     transition: none;
+  }
+
+  .toast[data-server-flash-message] {
+    animation: none;
+  }
+}
+
+@media (max-width: 679px) {
+  .account-layout [data-toast-region],
+  .admin-layout [data-toast-region],
+  .customer-account-layout [data-toast-region] {
+    top: 72px;
+    right: var(--space-4);
+    max-width: calc(100vw - var(--space-8));
   }
 }

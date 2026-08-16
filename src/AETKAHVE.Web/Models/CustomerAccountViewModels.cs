@@ -50,6 +50,7 @@ public sealed class CustomerEmailChangeInput
 
 public sealed class CustomerEmailChangeConfirmViewModel
 {
+    public Guid UserId { get; init; }
     public string NewEmail { get; init; } = string.Empty;
     public string Token { get; init; } = string.Empty;
     public string MaskedEmail { get; init; } = string.Empty;

@@ -66,6 +66,24 @@ function jsonResult(response, payload) {
   };
 }
 
+export function commerceErrorMessage(payload, fallback) {
+  if (typeof payload?.message === "string" && payload.message.trim()) return payload.message.trim();
+
+  if (payload?.errors && typeof payload.errors === "object") {
+    const messages = Object.values(payload.errors)
+      .flatMap((value) => Array.isArray(value) ? value : [value])
+      .filter((value) => typeof value === "string" && value.trim())
+      .map((value) => value.trim());
+    if (messages.length) return [...new Set(messages)].join(" ");
+  }
+
+  if (typeof payload?.detail === "string" && payload.detail.trim()) return payload.detail.trim();
+  if (typeof payload?.title === "string" && payload.title.trim() && payload.title !== "One or more validation errors occurred.") {
+    return payload.title.trim();
+  }
+  return fallback;
+}
+
 export async function postCommerce(url, body) {
   const response = await fetch(url, {
     method: "POST",

@@ -16,16 +16,19 @@
     <link rel="stylesheet" href="~/css/base.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/components/button.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/toast.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/pages/account.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="account-layout">
+    <partial name="_FlashMessages" />
     <a href="#main-content" class="skip-link">İçeriğe geç</a>
     <main id="main-content" class="account-layout__main">
         <a asp-area="" asp-controller="Home" asp-action="Index" class="account-layout__brand font-display">AETERNUM RECTUS LUCIS</a>
         @RenderBody()
     </main>
     <script src="~/js/auth/password-visibility.js" asp-append-version="true" defer></script>
+    <script src="~/js/components/flash-messages.js" asp-append-version="true" defer></script>
     @await RenderSectionAsync("PageScripts", required: false)
 </body>
 </html>

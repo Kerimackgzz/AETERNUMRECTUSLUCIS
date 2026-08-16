@@ -1,0 +1,38 @@
+@model ManagementEmailChangeConfirmViewModel
+
+<section class="account-card account-card--center surface surface--padded management-confirmation"
+         data-management-email-change-state="@(Model.CanConfirm ? "ready" : "invalid")">
+    <p class="management-security__eyebrow">@Model.PortalName / Güvenli doğrulama</p>
+    @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
+    {
+        <p class="field-validation-error" role="alert">@Model.StatusMessage</p>
+    }
+    @if (Model.CanConfirm)
+    {
+        <span class="status-badge management-confirmation__status" data-status-kind="success">Bağlantı doğrulandı</span>
+        <h1 class="account-card__title">Yönetim e-postasını onaylayın</h1>
+        <p class="account-card__subtitle text-muted">
+            <strong>@Model.MaskedEmail</strong> adresini yönetim kimliğinize bağlamak üzeresiniz.
+            Onaydan sonra Admin ve SuperAdmin oturumlarınız kapatılır.
+        </p>
+        <form class="account-form management-confirmation__form"
+              action="@Model.ConfirmationPath"
+              method="post">
+            @Html.AntiForgeryToken()
+            <input asp-for="UserId" type="hidden" />
+            <input asp-for="NewEmail" type="hidden" />
+            <input asp-for="Token" type="hidden" />
+            <button type="submit" class="btn btn--primary btn--block">E-posta adresini değiştir</button>
+        </form>
+        <p class="management-confirmation__note text-sm text-muted">
+            Parolanız değişmez; yeni e-posta adresinizle yeniden giriş yapabilirsiniz.
+        </p>
+    }
+    else
+    {
+        <span class="status-badge management-confirmation__status" data-status-kind="error">Bağlantı kullanılamıyor</span>
+        <h1 class="account-card__title">Bağlantı geçersiz veya süresi dolmuş</h1>
+        <p class="account-card__subtitle text-muted">Bu bağlantı daha önce kullanılmış, değiştirilmiş veya süresi dolmuş olabilir.</p>
+        <a href="@Model.LoginPath" class="btn btn--primary btn--block">Yönetim girişine dön</a>
+    }
+</section>

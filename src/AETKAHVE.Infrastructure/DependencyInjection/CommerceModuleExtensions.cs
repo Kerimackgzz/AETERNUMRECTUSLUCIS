@@ -51,7 +51,9 @@ public static class CommerceModuleExtensions
         services.AddScoped<IContactService, ContactService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<ICustomerAccountQueryService, CustomerAccountQueryService>();
-        services.AddScoped<ICustomerProfileService, CustomerProfileService>();
+        services.AddScoped<CustomerProfileService>();
+        services.AddScoped<ICustomerProfileService>(provider => provider.GetRequiredService<CustomerProfileService>());
+        services.AddScoped<IAccountCredentialService>(provider => provider.GetRequiredService<CustomerProfileService>());
         services.AddScoped<NotificationDeliveryProcessor>();
         services.AddScoped<IAdminCommerceService, AdminCommerceService>();
         services.AddScoped<INotificationQueue, NotificationQueue>();

@@ -7,9 +7,9 @@
 }
 <h1 class="admin-dashboard__title">Ürün Yönetimi</h1>
 <div data-admin-products-page>
-    <details class="surface surface--padded mb-4">
+    <details class="surface surface--padded mb-4" data-product-create-panel>
         <summary class="text-lg">Yeni ürün ekle</summary>
-        <p class="text-muted text-sm mb-4">Koleksiyon/marka/kahve tipi vb. ID'lerini <a asp-area="Admin" asp-controller="Catalog" asp-action="Index">Katalog Yönetimi</a> sayfasındaki kayıtlara tıklayarak kopyalayabilirsiniz. Koleksiyon zorunludur, diğerleri opsiyoneldir.</p>
+        <p class="text-muted text-sm mb-4">Koleksiyon/marka/kahve tipi vb. ID'lerini <a asp-area="Admin" asp-controller="Catalog" asp-action="Index" target="_blank" rel="noopener">Katalog Yönetimi</a> sayfasındaki kayıtlara tıklayarak kopyalayabilirsiniz. Koleksiyon zorunludur, diğerleri opsiyoneldir.</p>
         <form data-product-form class="grid-auto">
             <input type="text" name="name" placeholder="Ürün adı" required maxlength="200" />
             <input type="text" name="sku" placeholder="SKU" required maxlength="80" />
@@ -29,6 +29,7 @@
             <label class="cluster"><input type="checkbox" name="isActive" checked /> Aktif</label>
             <label class="cluster"><input type="checkbox" name="isFeatured" /> Öne çıkan</label>
             <button type="submit" class="btn btn--primary">Ürünü Kaydet</button>
+            <button type="button" class="btn btn--secondary" data-product-draft-clear>Taslağı temizle</button>
         </form>
     </details>
 

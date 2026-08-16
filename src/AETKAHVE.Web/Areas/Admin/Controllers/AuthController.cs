@@ -14,7 +14,11 @@ public sealed class AuthController(AuthenticationSessionService authenticationSe
 {
     [AllowAnonymous]
     [HttpGet("login")]
-    public IActionResult Login(string? returnUrl = null) => View(new AdminLoginViewModel { ReturnUrl = returnUrl });
+    public IActionResult Login(string? returnUrl = null, string? reason = null)
+    {
+        ApplyLoginReason(reason);
+        return View(new AdminLoginViewModel { ReturnUrl = returnUrl });
+    }
 
     [AllowAnonymous]
     [EnableRateLimiting(SecurityRateLimitPolicies.AdminLogin)]
@@ -57,10 +61,31 @@ public sealed class AuthController(AuthenticationSessionService authenticationSe
             ? AuthenticationPortal.SuperAdmin
             : AuthenticationPortal.Admin;
         await authenticationSessions.SignOutAsync(HttpContext, portal, "UserLogout", cancellationToken);
+        TempData["StatusMessage"] = "Güvenli çıkış yapıldı.";
         return LocalRedirect(portal == AuthenticationPortal.SuperAdmin ? "/superadmin/login" : "/admin/login");
     }
 
     [AllowAnonymous]
     [HttpGet("access-denied")]
     public IActionResult AccessDenied() => View();
+
+    private void ApplyLoginReason(string? reason)
+    {
+        if (TempData.ContainsKey("StatusMessage") || TempData.ContainsKey("ErrorMessage"))
+        {
+            return;
+        }
+
+        var message = reason switch
+        {
+            "expired" => "Oturumunuz hareketsizlik nedeniyle sona erdi. Lütfen yeniden giriş yapın.",
+            "session-ended" => "Oturumunuz sona erdi. Lütfen yeniden giriş yapın.",
+            "credentials-changed" => "Güvenlik bilgileriniz değiştiği için tüm oturumlar kapatıldı. Lütfen yeniden giriş yapın.",
+            _ => null,
+        };
+        if (message is not null)
+        {
+            TempData["InfoMessage"] = message;
+        }
+    }
 }

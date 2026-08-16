@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 
 namespace AETKAHVE.Infrastructure.Security;
 
@@ -34,8 +35,10 @@ public abstract class ManagementCookieEvents(
     SecurityAuditWriter auditWriter,
     AuthenticationPortal portal) : CookieAuthenticationEvents
 {
+    private const string LoginReasonItemKey = "AETKAHVE.ManagementLoginReason";
+
     public override Task RedirectToLogin(RedirectContext<CookieAuthenticationOptions> context) =>
-        RedirectOrStatusCode(context, StatusCodes.Status401Unauthorized);
+        RedirectOrStatusCode(context, StatusCodes.Status401Unauthorized, GetLoginReason(context.HttpContext));
 
     public override Task RedirectToAccessDenied(RedirectContext<CookieAuthenticationOptions> context) =>
         RedirectOrStatusCode(context, StatusCodes.Status403Forbidden);
@@ -48,17 +51,22 @@ public abstract class ManagementCookieEvents(
 
         if (!Guid.TryParse(userIdValue, out var userId) || !Guid.TryParse(sessionIdValue, out var sessionId))
         {
-            await RejectAndDeleteCookieAsync(context);
+            await RejectAndDeleteCookieAsync(context, "session-ended");
             return;
         }
 
         var user = await userManager.FindByIdAsync(userId.ToString());
         var expectedRole = portal == AuthenticationPortal.Admin ? RoleNames.Admin : RoleNames.SuperAdmin;
         if (user is null || !user.IsActive || user.DeletedAtUtc.HasValue ||
-            !string.Equals(user.SecurityStamp, securityStamp, StringComparison.Ordinal) ||
             !await userManager.IsInRoleAsync(user, expectedRole))
         {
-            await RejectAndDeleteCookieAsync(context);
+            await RejectAndDeleteCookieAsync(context, "session-ended");
+            return;
+        }
+
+        if (!string.Equals(user.SecurityStamp, securityStamp, StringComparison.Ordinal))
+        {
+            await RejectAndDeleteCookieAsync(context, "credentials-changed");
             return;
         }
 
@@ -77,7 +85,14 @@ public abstract class ManagementCookieEvents(
             return;
         }
 
-        await RejectAndDeleteCookieAsync(context);
+        var loginReason = validation.IsIdleExpired
+            ? "expired"
+            : string.Equals(validation.Session?.RevocationReason, "EmailChanged", StringComparison.Ordinal) ||
+              string.Equals(validation.Session?.RevocationReason, "PasswordChanged", StringComparison.Ordinal) ||
+              string.Equals(validation.Session?.RevocationReason, "CredentialsChanged", StringComparison.Ordinal)
+                ? "credentials-changed"
+                : "session-ended";
+        await RejectAndDeleteCookieAsync(context, loginReason);
         if (validation.IsIdleExpired)
         {
             await auditWriter.WriteAsync(
@@ -92,15 +107,19 @@ public abstract class ManagementCookieEvents(
         }
     }
 
-    private static async Task RejectAndDeleteCookieAsync(CookieValidatePrincipalContext context)
+    private static async Task RejectAndDeleteCookieAsync(
+        CookieValidatePrincipalContext context,
+        string loginReason)
     {
+        context.HttpContext.Items[LoginReasonItemKey] = loginReason;
         context.RejectPrincipal();
         await context.HttpContext.SignOutAsync(context.Scheme.Name);
     }
 
     private static Task RedirectOrStatusCode(
         RedirectContext<CookieAuthenticationOptions> context,
-        int statusCode)
+        int statusCode,
+        string? loginReason = null)
     {
         if (context.Request.Path.Value?.Contains("/session/", StringComparison.OrdinalIgnoreCase) == true)
         {
@@ -108,11 +127,17 @@ public abstract class ManagementCookieEvents(
         }
         else
         {
-            context.Response.Redirect(context.RedirectUri);
+            var redirectUri = string.IsNullOrEmpty(loginReason)
+                ? context.RedirectUri
+                : QueryHelpers.AddQueryString(context.RedirectUri, "reason", loginReason);
+            context.Response.Redirect(redirectUri);
         }
 
         return Task.CompletedTask;
     }
+
+    private static string? GetLoginReason(HttpContext httpContext) =>
+        httpContext.Items.TryGetValue(LoginReasonItemKey, out var value) ? value as string : null;
 }
 
 public sealed class AdminCookieEvents(

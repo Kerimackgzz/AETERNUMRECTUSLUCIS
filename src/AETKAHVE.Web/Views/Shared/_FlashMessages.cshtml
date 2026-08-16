@@ -1,0 +1,33 @@
+@{
+    var statusMessage = TempData["StatusMessage"] as string;
+    var infoMessage = TempData["InfoMessage"] as string;
+    var errorMessage = TempData["ErrorMessage"] as string;
+}
+@if (!string.IsNullOrWhiteSpace(statusMessage) ||
+     !string.IsNullOrWhiteSpace(infoMessage) ||
+     !string.IsNullOrWhiteSpace(errorMessage))
+{
+    <div data-toast-region data-server-flash-region>
+        @if (!string.IsNullOrWhiteSpace(statusMessage))
+        {
+            <div class="toast toast--success is-visible"
+                 role="status"
+                 data-server-flash-kind="success"
+                 data-server-flash-message>@statusMessage</div>
+        }
+        @if (!string.IsNullOrWhiteSpace(infoMessage))
+        {
+            <div class="toast toast--info is-visible"
+                 role="status"
+                 data-server-flash-kind="info"
+                 data-server-flash-message>@infoMessage</div>
+        }
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <div class="toast toast--error is-visible"
+                 role="alert"
+                 data-server-flash-kind="error"
+                 data-server-flash-message>@errorMessage</div>
+        }
+    </div>
+}

@@ -11,6 +11,7 @@ namespace AETKAHVE.Infrastructure.Commerce;
 
 public sealed class AdminCommerceService(
     AppDbContext dbContext,
+    IReportingService reportingService,
     IEnumerable<IShippingProvider> shippingProviders,
     IInvoiceStorage invoiceStorage,
     IOptions<ShippingOptions> shippingOptions,
@@ -19,6 +20,70 @@ public sealed class AdminCommerceService(
     TimeProvider timeProvider) : IAdminCommerceService
 {
     private readonly ShippingOptions _shippingOptions = shippingOptions.Value;
+
+    public async Task<AdminDashboardSummary> GetDashboardAsync(CancellationToken cancellationToken)
+    {
+        var now = timeProvider.GetUtcNow();
+        var sales = await reportingService.GetSalesAsync(new ReportFilter(now.AddDays(-30), now), cancellationToken);
+        var activeProductCount = await dbContext.Products.AsNoTracking()
+            .CountAsync(product => product.IsActive, cancellationToken);
+        var criticalStockCount = await dbContext.Products.AsNoTracking()
+            .CountAsync(product => product.IsActive && product.StockQuantity <= product.CriticalStockLevel, cancellationToken);
+        var ordersAwaitingActionCount = await dbContext.Orders.AsNoTracking()
+            .CountAsync(order => order.Status == OrderStatus.PaymentReceived
+                || order.Status == OrderStatus.Preparing
+                || order.Status == OrderStatus.Packed, cancellationToken);
+        var shipmentsInTransitCount = await dbContext.Shipments.AsNoTracking()
+            .CountAsync(shipment => shipment.Status == ShipmentStatus.Created
+                || shipment.Status == ShipmentStatus.Shipped
+                || shipment.Status == ShipmentStatus.OutForDelivery, cancellationToken);
+        var openReturnCount = await dbContext.ReturnRequests.AsNoTracking()
+            .CountAsync(request => request.Status != ReturnStatus.Completed
+                && request.Status != ReturnStatus.Rejected
+                && request.Status != ReturnStatus.Cancelled, cancellationToken);
+        var pendingReviewCount = await dbContext.Reviews.AsNoTracking()
+            .CountAsync(review => review.Status == ReviewStatus.Pending, cancellationToken);
+        var newMessageCount = await dbContext.ContactMessages.AsNoTracking()
+            .CountAsync(message => message.Status == ContactMessageStatus.New, cancellationToken);
+        var activeCampaignCount = IsSqlite
+            ? (await dbContext.Campaigns.AsNoTracking()
+                .Where(campaign => campaign.IsActive)
+                .Select(campaign => new { campaign.StartDateUtc, campaign.EndDateUtc })
+                .ToListAsync(cancellationToken))
+                .Count(campaign => campaign.StartDateUtc <= now && campaign.EndDateUtc > now)
+            : await dbContext.Campaigns.AsNoTracking()
+                .CountAsync(campaign => campaign.IsActive
+                    && campaign.StartDateUtc <= now
+                    && campaign.EndDateUtc > now, cancellationToken);
+
+        var orders = dbContext.Orders.AsNoTracking();
+        var ordered = IsSqlite
+            ? orders.OrderByDescending(order => order.Id)
+            : orders.OrderByDescending(order => order.CreatedAtUtc);
+        var recentOrders = await ordered.Take(5)
+            .Select(order => new OrderSummary(
+                order.Id,
+                order.OrderNumber,
+                order.Status,
+                order.PaymentStatus,
+                order.GrandTotal,
+                order.Currency,
+                order.CreatedAtUtc))
+            .ToListAsync(cancellationToken);
+
+        return new AdminDashboardSummary(
+            sales,
+            activeProductCount,
+            criticalStockCount,
+            ordersAwaitingActionCount,
+            shipmentsInTransitCount,
+            openReturnCount,
+            pendingReviewCount,
+            newMessageCount,
+            activeCampaignCount,
+            recentOrders,
+            now);
+    }
 
     public async Task<Guid> SaveCatalogLookupAsync(Guid adminUserId, AdminCatalogLookupInput input, CancellationToken cancellationToken)
     {
@@ -335,29 +400,58 @@ public sealed class AdminCommerceService(
     public async Task<Guid> SaveCampaignAsync(Guid adminUserId, AdminCampaignInput input, CancellationToken cancellationToken)
     {
         ValidatePromotion(input.DiscountType, input.DiscountValue, input.StartDateUtc, input.EndDateUtc);
-        if (input.MinimumCartAmount < 0 || input.MaximumDiscountAmount < 0) throw new CommerceRuleException("Promotion limits are invalid.");
+        if (input.MinimumCartAmount < 0 || input.MaximumDiscountAmount < 0)
+            throw new CommerceRuleException("Kampanya tutar sınırları negatif olamaz.");
+        var name = Required(input.Name, 180);
+        var slug = Slug(input.Slug, 200);
+        if (await dbContext.Campaigns.AnyAsync(
+                x => x.Slug == slug && (input.Id == null || x.Id != input.Id.Value),
+                cancellationToken))
+            throw new CommerceRuleException("Bu kampanya adıyla oluşturulan bağlantı zaten kullanılıyor. Kampanya adını değiştirin.");
         var entity = input.Id is null ? new Campaign { CreatedAtUtc = timeProvider.GetUtcNow() } : await dbContext.Campaigns
             .Include(x => x.Products).Include(x => x.Categories).SingleAsync(x => x.Id == input.Id, cancellationToken);
         if (input.Id is null) dbContext.Campaigns.Add(entity);
-        entity.Name = Required(input.Name, 180); entity.Slug = Slug(input.Slug, 200); entity.DiscountType = input.DiscountType;
+        entity.Name = name; entity.Slug = slug; entity.DiscountType = input.DiscountType;
         entity.DiscountValue = input.DiscountValue; entity.MinimumCartAmount = input.MinimumCartAmount; entity.MaximumDiscountAmount = input.MaximumDiscountAmount;
         entity.StartDateUtc = input.StartDateUtc.ToUniversalTime(); entity.EndDateUtc = input.EndDateUtc.ToUniversalTime(); entity.IsActive = input.IsActive; entity.CanCombineWithOtherDiscounts = input.CanCombineWithOtherDiscounts; entity.UpdatedAtUtc = timeProvider.GetUtcNow();
         await SynchronizeCampaignTargetsAsync(entity, input.ProductIds ?? [], input.CategoryIds ?? [], cancellationToken);
-        await dbContext.SaveChangesAsync(cancellationToken); await AuditAsync(adminUserId, "CampaignSaved", entity.Id, cancellationToken); return entity.Id;
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception) when (IsUniqueConstraintViolation(exception, "IX_Campaigns_Slug", "Campaigns.Slug"))
+        {
+            throw new CommerceRuleException("Bu kampanya adıyla oluşturulan bağlantı zaten kullanılıyor. Kampanya adını değiştirin.");
+        }
+        await AuditAsync(adminUserId, "CampaignSaved", entity.Id, cancellationToken); return entity.Id;
     }
 
     public async Task<Guid> SaveCouponAsync(Guid adminUserId, AdminCouponInput input, CancellationToken cancellationToken)
     {
         ValidatePromotion(input.DiscountType, input.DiscountValue, input.StartDateUtc, input.EndDateUtc);
         if (input.MinimumCartAmount < 0 || input.MaximumDiscountAmount < 0 || input.TotalUsageLimit <= 0 || input.PerUserUsageLimit <= 0)
-            throw new CommerceRuleException("Coupon limits are invalid.");
+            throw new CommerceRuleException("Kupon tutar sınırları negatif, kullanım limitleri ise sıfır veya negatif olamaz.");
+        var name = Required(input.Name, 180);
+        var code = Code(input.Code, 80);
+        if (await dbContext.Coupons.AnyAsync(
+                x => x.Code == code && (input.Id == null || x.Id != input.Id.Value),
+                cancellationToken))
+            throw new CommerceRuleException("Bu kupon kodu zaten kullanılıyor. Farklı bir kod girin.");
         var entity = input.Id is null ? new Coupon { CreatedAtUtc = timeProvider.GetUtcNow() } : await dbContext.Coupons.SingleAsync(x => x.Id == input.Id, cancellationToken);
         if (input.Id is null) dbContext.Coupons.Add(entity);
-        entity.Name = Required(input.Name, 180); entity.Code = Code(input.Code, 80); entity.DiscountType = input.DiscountType;
+        entity.Name = name; entity.Code = code; entity.DiscountType = input.DiscountType;
         entity.DiscountValue = input.DiscountValue; entity.MinimumCartAmount = input.MinimumCartAmount; entity.MaximumDiscountAmount = input.MaximumDiscountAmount;
         entity.StartDateUtc = input.StartDateUtc.ToUniversalTime(); entity.EndDateUtc = input.EndDateUtc.ToUniversalTime(); entity.TotalUsageLimit = input.TotalUsageLimit; entity.PerUserUsageLimit = input.PerUserUsageLimit;
         entity.IsFirstOrderOnly = input.IsFirstOrderOnly; entity.IsActive = input.IsActive; entity.CanCombineWithOtherDiscounts = input.CanCombineWithOtherDiscounts; entity.UpdatedAtUtc = timeProvider.GetUtcNow();
-        await dbContext.SaveChangesAsync(cancellationToken); await AuditAsync(adminUserId, "CouponSaved", entity.Id, cancellationToken); return entity.Id;
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception) when (IsUniqueConstraintViolation(exception, "IX_Coupons_Code", "Coupons.Code"))
+        {
+            throw new CommerceRuleException("Bu kupon kodu zaten kullanılıyor. Farklı bir kod girin.");
+        }
+        await AuditAsync(adminUserId, "CouponSaved", entity.Id, cancellationToken); return entity.Id;
     }
 
     public async Task<ServiceResult> ModerateReviewAsync(Guid adminUserId, Guid reviewId, ReviewStatus status, string? response, CancellationToken cancellationToken)
@@ -384,8 +478,27 @@ public sealed class AdminCommerceService(
         auditWriter.WriteAsync(action, $"{action} for commerce entity {entityId}.", actor, null, null, null, Guid.NewGuid().ToString("N"), cancellationToken);
     private static void ValidatePromotion(DiscountType type, decimal value, DateTimeOffset start, DateTimeOffset end)
     {
-        if (end <= start || (type == DiscountType.FreeShipping ? value != 0 : value <= 0 || type == DiscountType.Percentage && value > 100))
-            throw new CommerceRuleException("Promotion values are invalid.");
+        if (!Enum.IsDefined(type))
+            throw new CommerceRuleException("Geçerli bir indirim türü seçin.");
+        if (end <= start)
+            throw new CommerceRuleException("Bitiş tarihi başlangıç tarihinden sonra olmalıdır.");
+        if (type == DiscountType.FreeShipping && value != 0)
+            throw new CommerceRuleException("Ücretsiz kargo indiriminin değeri 0 olmalıdır.");
+        if (type != DiscountType.FreeShipping && value <= 0)
+            throw new CommerceRuleException("İndirim değeri 0'dan büyük olmalıdır.");
+        if (type == DiscountType.Percentage && value > 100)
+            throw new CommerceRuleException("Yüzde indirimi 100'den büyük olamaz.");
+    }
+
+    private static bool IsUniqueConstraintViolation(DbUpdateException exception, params string[] markers)
+    {
+        var messages = new List<string>();
+        for (Exception? current = exception; current is not null; current = current.InnerException)
+            messages.Add(current.Message);
+        var combined = string.Join(' ', messages);
+        return (combined.Contains("unique", StringComparison.OrdinalIgnoreCase)
+                || combined.Contains("duplicate", StringComparison.OrdinalIgnoreCase))
+            && markers.Any(marker => combined.Contains(marker, StringComparison.OrdinalIgnoreCase));
     }
 
     private async Task SynchronizeCampaignTargetsAsync(Campaign campaign, IReadOnlyCollection<Guid> productIds, IReadOnlyCollection<Guid> categoryIds, CancellationToken cancellationToken)
@@ -393,9 +506,9 @@ public sealed class AdminCommerceService(
         var products = productIds.Distinct().ToHashSet();
         var categories = categoryIds.Distinct().ToHashSet();
         if (products.Count != await dbContext.Products.CountAsync(x => products.Contains(x.Id) && x.IsActive, cancellationToken))
-            throw new CommerceRuleException("One or more campaign products are invalid.");
+            throw new CommerceRuleException("Kampanya hedeflerindeki ürün ID'lerinden biri geçersiz veya pasif.");
         if (categories.Count != await dbContext.Categories.CountAsync(x => categories.Contains(x.Id) && x.IsActive, cancellationToken))
-            throw new CommerceRuleException("One or more campaign categories are invalid.");
+            throw new CommerceRuleException("Kampanya hedeflerindeki kategori ID'lerinden biri geçersiz veya pasif.");
 
         dbContext.CampaignProducts.RemoveRange(campaign.Products.Where(x => !products.Contains(x.ProductId)));
         dbContext.CampaignCategories.RemoveRange(campaign.Categories.Where(x => !categories.Contains(x.CategoryId)));

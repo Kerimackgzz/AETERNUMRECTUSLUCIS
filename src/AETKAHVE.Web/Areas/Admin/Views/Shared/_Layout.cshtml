@@ -29,20 +29,45 @@
       data-idle-timeout-seconds="@(security.AdminIdleTimeoutMinutes * 60)"
       data-idle-warning-seconds="@security.IdleWarningSeconds">
     <a href="#main-content" class="skip-link">İçeriğe geç</a>
+    <partial name="_FlashMessages" />
     <header class="admin-topbar">
-        <a asp-area="Admin" asp-controller="Home" asp-action="Index" class="admin-topbar__brand">
-            AETKAHVE<span class="admin-topbar__portal">Admin</span>
-        </a>
-        <form class="admin-topbar__logout" asp-area="Admin" asp-controller="Auth" asp-action="Logout" method="post">
-            @Html.AntiForgeryToken()
-            <button type="submit" class="btn btn--outline btn--sm">Güvenli Çıkış</button>
-        </form>
+        <div class="admin-topbar__leading">
+            <button type="button"
+                    class="admin-nav-toggle"
+                    data-admin-nav-toggle
+                    aria-controls="management-sidebar"
+                    aria-expanded="false"
+                    aria-label="Yönetim menüsünü aç">
+                <span aria-hidden="true"></span><span aria-hidden="true"></span>
+            </button>
+            <a asp-area="Admin" asp-controller="Home" asp-action="Index" class="admin-topbar__brand">
+                AETKAHVE<span class="admin-topbar__portal">Admin</span>
+            </a>
+        </div>
+        <div class="admin-topbar__actions">
+            <a class="admin-topbar__security" href="/admin/security">Güvenlik</a>
+            <form class="admin-topbar__logout" asp-area="Admin" asp-controller="Auth" asp-action="Logout" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn--outline btn--sm">Güvenli Çıkış</button>
+            </form>
+        </div>
     </header>
-    <main id="main-content" class="admin-layout__main">
-        @RenderBody()
-    </main>
+    <div class="admin-nav-overlay" data-admin-nav-overlay hidden></div>
+    <div class="admin-shell">
+        <aside id="management-sidebar" class="admin-sidebar" data-admin-sidebar aria-label="Admin yönetim menüsü">
+            <partial name="_ManagementNavigation" model="@(new ManagementNavigationViewModel("Admin", "/admin", "/admin/security"))" />
+        </aside>
+        <div class="admin-shell__content" data-admin-nav-content>
+            <main id="main-content" class="admin-layout__main">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
     <partial name="_IdleWarningDialog" />
+    <script type="module" src="~/js/components/flash-messages.js" asp-append-version="true"></script>
+    <script src="~/js/admin/admin-navigation.js" asp-append-version="true" defer></script>
     <script src="~/js/admin/idle-session.js" asp-append-version="true" defer></script>
+    <script src="~/js/auth/password-visibility.js" asp-append-version="true" defer></script>
     @await RenderSectionAsync("PageScripts", required: false)
 </body>
 </html>

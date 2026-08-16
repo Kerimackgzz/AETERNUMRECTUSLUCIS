@@ -299,7 +299,7 @@ test("local expiry posts one antiforgery logout request before redirecting", asy
   assert.equal(logoutCalls[0].options.method, "POST");
   assert.equal(logoutCalls[0].options.credentials, "same-origin");
   assert.equal(logoutCalls[0].options.headers.RequestVerificationToken, "csrf-test-token");
-  assert.deepEqual(runtime.locationReplacements, ["/admin/login"]);
+  assert.deepEqual(runtime.locationReplacements, ["/admin/login?reason=expired"]);
   assert.equal(runtime.hub.messages.at(-1).message.type, "expired");
 });
 
@@ -312,7 +312,7 @@ test("logout network timeout cannot delay the login redirect indefinitely", asyn
   assert.deepEqual(runtime.locationReplacements, []);
 
   runtime.runTimeouts(3000);
-  assert.deepEqual(runtime.locationReplacements, ["/admin/login"]);
+  assert.deepEqual(runtime.locationReplacements, ["/admin/login?reason=expired"]);
 });
 
 test("expiry and explicit logout synchronize only matching management portals", async () => {
@@ -326,7 +326,7 @@ test("expiry and explicit logout synchronize only matching management portals", 
   firstAdmin.runIntervals(1000);
   await firstAdmin.flush();
 
-  assert.deepEqual(secondAdmin.locationReplacements, ["/admin/login"]);
+  assert.deepEqual(secondAdmin.locationReplacements, ["/admin/login?reason=expired"]);
   assert.deepEqual(superAdmin.locationReplacements, []);
   assert.equal(
     secondAdmin.fetchCalls.filter((call) => call.url === "/admin/logout").length,
@@ -349,7 +349,7 @@ test("expiry and explicit logout synchronize only matching management portals", 
   assert.equal(logoutSource.triggerDocument("submit", logoutForm), false);
   assert.equal(logoutSource.triggerDocument("submit", logoutForm), true);
 
-  assert.deepEqual(logoutPeer.locationReplacements, ["/admin/login"]);
+  assert.deepEqual(logoutPeer.locationReplacements, ["/admin/login?reason=session-ended"]);
   assert.equal(isolatedHub.messages.at(-1).message.type, "logout");
 });
 
@@ -380,6 +380,6 @@ test("storage events preserve cross-tab expiry when BroadcastChannel is unavaila
   first.runIntervals(1000);
   await first.flush();
 
-  assert.deepEqual(second.locationReplacements, ["/admin/login"]);
+  assert.deepEqual(second.locationReplacements, ["/admin/login?reason=expired"]);
   assert.equal(second.fetchCalls.filter((call) => call.url === "/admin/logout").length, 0);
 });

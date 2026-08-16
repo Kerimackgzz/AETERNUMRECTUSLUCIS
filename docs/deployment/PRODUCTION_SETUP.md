@@ -1,5 +1,19 @@
 # Production Setup Runbook — SMTP ve Data Protection Key-Ring
 
+## Yönetim hesabı bootstrap ve eski hesapları emekliye ayırma
+
+Yönetim seed'i normal deployment'ta kapalı kalır. İlk kurulum veya kontrollü hesap değişikliğinde:
+
+1. Veritabanının zaman damgalı, geri yüklenebilir yedeğini alın ve bakım penceresi açın.
+2. Secret store'da `IdentitySeed:Enabled=true` ve `IdentitySeed:AllowInProduction=true` ayarlayın.
+3. Tek replacement e-postasını hem `AdminEmail` hem `SuperAdminEmail` alanına yazın. Aynı, secret store tarafından oluşturulmuş en az 24 karakterlik parolayı iki parola alanına verin.
+4. Uygulamayı bir kez başlatın; replacement hesabıyla hem `/admin/login` hem `/superadmin/login` girişini doğrulayın.
+5. Production başlangıç kontrolünün veritabanında tam olarak bir aktif, silinmemiş `SuperAdmin` bulması gerekir. İkinci bir SuperAdmin veya kullanılabilir SuperAdmin bulunmaması uygulamanın açılışını güvenlik hatasıyla durdurur.
+6. Eski hesapları kaldırmak için `IdentitySeed:AllowDestructiveRetirement=true` ve sıralı `IdentitySeed:RetireManagementEmails` secret değerlerini ekleyip uygulamayı tekrar başlatın. Silme yalnız replacement hazırlandıktan sonra `UserManager` ile yapılır; bulunmayan hesaplar idempotent olarak atlanır.
+7. Giriş ve audit doğrulamasından sonra `IdentitySeed` altındaki parolaları, retirement listesini ve iki allow bayrağını secret store'dan kaldırın; `Enabled=false` durumuna dönün.
+
+Startup; eksik e-posta/parola çiftinde, aynı e-posta için farklı parolalarda veya Production opt-in'i eksikken durur. Seeder mevcut Customer-only hesabı yöneticiye yükseltmez. Retirement; replacement e-postasını, Customer rolü bulunan hesabı ve management dışı rol taşıyan hesabı reddeder. Secret ve parolalar uygulama loglarına yazılmaz.
+
 Bu belge, `docs/project/PROJECT_STATUS.md` içindeki "Production SMTP değerleri ve kalıcı/shared Data Protection key-ring yolu deployment ortamında açıkça sağlanmalıdır" açık kapısını kapatmak için gereken adımları anlatır. Hangi config anahtarının hangi ortam değişkeninden geldiğini, bu değerlerin deployment öncesi nasıl sağlanacağını ve neden bir key-ring'in birden fazla instance arasında paylaşılması gerektiğini adım adım açıklar.
 
 ## Müşteri profil fotoğrafları

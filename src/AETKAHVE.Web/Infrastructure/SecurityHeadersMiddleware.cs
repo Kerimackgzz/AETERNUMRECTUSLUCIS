@@ -2,6 +2,16 @@ namespace AETKAHVE.Web.Infrastructure;
 
 public sealed class SecurityHeadersMiddleware(RequestDelegate next)
 {
+    private static readonly PathString[] SensitiveEmailConfirmationPaths =
+    [
+        new("/account/profile/email-change/confirm"),
+        new("/admin/invitation"),
+        new("/admin/password-reset"),
+        new("/admin/email-change/confirm"),
+        new("/admin/security/email-change/confirm"),
+        new("/superadmin/security/email-change/confirm")
+    ];
+
     public async Task InvokeAsync(HttpContext context)
     {
         context.Response.OnStarting(() =>
@@ -9,7 +19,9 @@ public sealed class SecurityHeadersMiddleware(RequestDelegate next)
             var headers = context.Response.Headers;
             headers.XContentTypeOptions = "nosniff";
             headers.XFrameOptions = "DENY";
-            headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+            headers["Referrer-Policy"] = IsSensitiveEmailConfirmationPath(context.Request.Path)
+                ? "no-referrer"
+                : "strict-origin-when-cross-origin";
             headers["Content-Security-Policy"] = "default-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'";
 
             if (context.Request.Path.StartsWithSegments("/admin") ||
@@ -24,4 +36,7 @@ public sealed class SecurityHeadersMiddleware(RequestDelegate next)
         });
         await next(context);
     }
+
+    private static bool IsSensitiveEmailConfirmationPath(PathString requestPath) =>
+        SensitiveEmailConfirmationPaths.Any(path => requestPath.Equals(path));
 }

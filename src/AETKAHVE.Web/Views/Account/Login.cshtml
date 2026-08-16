@@ -6,10 +6,6 @@
 <div class="account-card surface surface--padded">
     <h1 class="account-card__title">Giriş</h1>
     <p class="account-card__subtitle text-muted">Hesabınıza erişmek için bilgilerinizi girin.</p>
-    @if (TempData["StatusMessage"] is string statusMessage)
-    {
-        <p role="status" class="text-sm">@statusMessage</p>
-    }
     <form class="account-form" asp-action="Login" method="post" novalidate>
         <div asp-validation-summary="ModelOnly" role="alert" class="text-sm"></div>
         <input asp-for="ReturnUrl" type="hidden" />
@@ -26,14 +22,20 @@
             </div>
             <span asp-validation-for="Password" class="field-validation-error"></span>
         </div>
-        <div class="field">
-            <label><input asp-for="RememberMe" /> Beni hatırla</label>
+        <div class="account-form__options">
+            <label class="account-form__remember">
+                <input asp-for="RememberMe" />
+                <span>Beni hatırla</span>
+            </label>
+            <a asp-action="ForgotPassword">Şifremi unuttum?</a>
         </div>
         <button type="submit" class="btn btn--primary btn--block">Giriş Yap</button>
     </form>
-    <div class="account-form__footer">
-        <a asp-action="ForgotPassword">Şifremi unuttum</a>
-        <a asp-action="ResendConfirmation">Doğrulama bağlantısını yeniden gönder</a>
-        <a asp-action="Register">Kayıt ol</a>
-    </div>
+    <nav class="account-auth-links" aria-label="Hesap işlemleri">
+        <p>Henüz bir hesabınız yok mu?</p>
+        <a class="btn btn--outline btn--block" asp-action="Register">Yeni hesap oluştur</a>
+        <a class="account-auth-links__recovery" asp-action="ResendConfirmation">
+            Doğrulama e-postası gelmedi mi? <span>Yeniden gönder</span>
+        </a>
+    </nav>
 </div>

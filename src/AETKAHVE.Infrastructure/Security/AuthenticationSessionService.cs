@@ -99,6 +99,17 @@ public sealed class AuthenticationSessionService(
         await httpContext.SignOutAsync(SchemeFor(portal));
     }
 
+    public async Task SignOutAllManagementAsync(
+        HttpContext httpContext,
+        Guid userId,
+        string reason,
+        CancellationToken cancellationToken = default)
+    {
+        await managementSessions.RevokeAllAsync(userId, reason, cancellationToken);
+        await httpContext.SignOutAsync(AuthenticationSchemes.Admin);
+        await httpContext.SignOutAsync(AuthenticationSchemes.SuperAdmin);
+    }
+
     public static string SchemeFor(AuthenticationPortal portal) => portal switch
     {
         AuthenticationPortal.Customer => AuthenticationSchemes.Customer,

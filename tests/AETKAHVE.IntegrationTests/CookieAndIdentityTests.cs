@@ -77,6 +77,99 @@ public sealed class CookieAndIdentityTests(AeternumWebApplicationFactory factory
     }
 
     [Fact]
+    public async Task Registering_an_existing_identity_returns_an_explicit_message_without_sending_email()
+    {
+        var sender = factory.Services.GetRequiredService<InMemoryIdentityMessageSender>();
+        var messageCount = sender.Messages.Count(message =>
+            string.Equals(message.Destination, AeternumWebApplicationFactory.AdminEmail, StringComparison.OrdinalIgnoreCase));
+        string? originalPasswordHash;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            originalPasswordHash = (await userManager.FindByEmailAsync(AeternumWebApplicationFactory.AdminEmail))?.PasswordHash;
+        }
+
+        using var client = factory.CreateClientWithoutRedirects();
+        var response = await FormClient.PostFormAsync(
+            client,
+            "/account/register",
+            "/account/register",
+            new Dictionary<string, string>
+            {
+                ["FirstName"] = "Tekrar",
+                ["LastName"] = "Kayıt",
+                ["Email"] = AeternumWebApplicationFactory.AdminEmail,
+                ["Password"] = AeternumWebApplicationFactory.Password,
+                ["ConfirmPassword"] = AeternumWebApplicationFactory.Password,
+                ["AcceptPrivacyTerms"] = "true",
+            });
+        var html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("Bu e-posta adresiyle kayıtlı bir hesap zaten var.", html, StringComparison.Ordinal);
+        Assert.Contains("/account/login", html, StringComparison.Ordinal);
+        Assert.Contains("/account/forgot-password", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("/admin/login", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("/superadmin/login", html, StringComparison.Ordinal);
+        Assert.Equal(messageCount, sender.Messages.Count(message =>
+            string.Equals(message.Destination, AeternumWebApplicationFactory.AdminEmail, StringComparison.OrdinalIgnoreCase)));
+
+        await using var verificationScope = factory.Services.CreateAsyncScope();
+        var verificationManager = verificationScope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var unchanged = Assert.IsType<ApplicationUser>(
+            await verificationManager.FindByEmailAsync(AeternumWebApplicationFactory.AdminEmail));
+        Assert.Equal(originalPasswordHash, unchanged.PasswordHash);
+        Assert.True(await verificationManager.IsInRoleAsync(unchanged, RoleNames.Admin));
+        Assert.False(await verificationManager.IsInRoleAsync(unchanged, RoleNames.Customer));
+    }
+
+    [Fact]
+    public async Task Customer_login_hides_management_portals_and_wrong_portal_does_not_lock_management_identity()
+    {
+        var email = $"dual-{Guid.NewGuid():N}@test.local";
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var user = new ApplicationUser
+            {
+                Id = Guid.NewGuid(),
+                UserName = email,
+                Email = email,
+                EmailConfirmed = true,
+                FirstName = "Dual",
+                LastName = "Manager",
+                CreatedAtUtc = factory.Clock.GetUtcNow(),
+                IsActive = true,
+            };
+            Assert.True((await userManager.CreateAsync(user, AeternumWebApplicationFactory.Password)).Succeeded);
+            Assert.True((await userManager.AddToRolesAsync(user, [RoleNames.Admin, RoleNames.SuperAdmin])).Succeeded);
+        }
+
+        using var customerClient = factory.CreateClientWithoutRedirects();
+        for (var attempt = 0; attempt < 4; attempt++)
+        {
+            var rejected = await FormClient.LoginAsync(customerClient, "/account", email);
+            var html = WebUtility.HtmlDecode(await rejected.Content.ReadAsStringAsync());
+            Assert.Equal(HttpStatusCode.OK, rejected.StatusCode);
+            Assert.Contains("Giriş bilgileri geçersiz veya hesap kullanılamıyor", html, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("/admin/login", html, StringComparison.Ordinal);
+            Assert.DoesNotContain("/superadmin/login", html, StringComparison.Ordinal);
+        }
+
+        using var adminClient = factory.CreateClientWithoutRedirects();
+        Assert.Equal(HttpStatusCode.Redirect, (await FormClient.LoginAsync(adminClient, "/admin", email)).StatusCode);
+        using var superAdminClient = factory.CreateClientWithoutRedirects();
+        Assert.Equal(HttpStatusCode.Redirect, (await FormClient.LoginAsync(superAdminClient, "/superadmin", email)).StatusCode);
+
+        await using var verificationScope = factory.Services.CreateAsyncScope();
+        var verificationManager = verificationScope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var unchanged = Assert.IsType<ApplicationUser>(await verificationManager.FindByEmailAsync(email));
+        Assert.Equal(0, unchanged.AccessFailedCount);
+        Assert.False(await verificationManager.IsLockedOutAsync(unchanged));
+        Assert.False(await verificationManager.IsInRoleAsync(unchanged, RoleNames.Customer));
+    }
+
+    [Fact]
     public async Task Invalid_confirmation_link_renders_recovery_without_completion_form()
     {
         using var client = factory.CreateClientWithoutRedirects();
@@ -160,6 +253,13 @@ public sealed class CookieAndIdentityTests(AeternumWebApplicationFactory factory
             });
 
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        using (var loginPage = await client.GetAsync(response.Headers.Location))
+        {
+            var html = WebUtility.HtmlDecode(await loginPage.Content.ReadAsStringAsync());
+            Assert.Contains("Yeni parolanızla giriş yapabilirsiniz", html, StringComparison.Ordinal);
+            Assert.DoesNotContain("/admin/login", html, StringComparison.Ordinal);
+            Assert.DoesNotContain("/superadmin/login", html, StringComparison.Ordinal);
+        }
         using var loginClient = factory.CreateClientWithoutRedirects();
         Assert.Equal(HttpStatusCode.Redirect, (await FormClient.LoginAsync(
             loginClient,
@@ -169,7 +269,7 @@ public sealed class CookieAndIdentityTests(AeternumWebApplicationFactory factory
     }
 
     [Fact]
-    public async Task Forgot_password_uses_the_mock_message_sender()
+    public async Task Forgot_password_redirects_with_one_privacy_safe_one_shot_success_flash()
     {
         using var client = factory.CreateClientWithoutRedirects();
 
@@ -180,9 +280,25 @@ public sealed class CookieAndIdentityTests(AeternumWebApplicationFactory factory
             new Dictionary<string, string> { ["Email"] = AeternumWebApplicationFactory.CustomerEmail });
 
         Assert.Equal(HttpStatusCode.Redirect, response.StatusCode);
+        Assert.Equal("/account/login", response.Headers.Location?.OriginalString);
         Assert.Contains(
             factory.Services.GetRequiredService<InMemoryIdentityMessageSender>().Messages,
             message => message.Subject.Contains("sıfırlayın", StringComparison.Ordinal));
+
+        using var firstLoginPage = await client.GetAsync(response.Headers.Location);
+        var firstLoginHtml = await firstLoginPage.Content.ReadAsStringAsync();
+        Assert.Equal(HttpStatusCode.OK, firstLoginPage.StatusCode);
+        Assert.Equal(1, firstLoginHtml.Split("data-server-flash-message", StringSplitOptions.None).Length - 1);
+        Assert.Contains("data-server-flash-kind=\"success\"", firstLoginHtml, StringComparison.Ordinal);
+        Assert.Contains(
+            "Hesap uygunsa parola sıfırlama bağlantısı gönderildi.",
+            WebUtility.HtmlDecode(firstLoginHtml),
+            StringComparison.Ordinal);
+
+        using var secondLoginPage = await client.GetAsync("/account/login");
+        var secondLoginHtml = await secondLoginPage.Content.ReadAsStringAsync();
+        Assert.Equal(HttpStatusCode.OK, secondLoginPage.StatusCode);
+        Assert.DoesNotContain("data-server-flash-message", secondLoginHtml, StringComparison.Ordinal);
     }
 
     [Fact]

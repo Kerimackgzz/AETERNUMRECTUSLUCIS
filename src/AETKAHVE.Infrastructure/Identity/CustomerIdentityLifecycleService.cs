@@ -33,12 +33,20 @@ public sealed class CustomerRegistrationService(
         var now = timeProvider.GetUtcNow();
         var candidate = CreateCandidate(Guid.NewGuid(), request, email, now);
 
+        // Register is an explicit account-existence check. Returning before password
+        // validation also prevents an existing user from receiving a misleading
+        // password-policy error and, importantly, never queues another message.
+        if (await dbContext.Users.AnyAsync(x => x.NormalizedEmail == normalizedEmail, cancellationToken))
+        {
+            return new RegistrationStartResult(RegistrationStartStatus.ExistingAccount, null);
+        }
+
         foreach (var validator in userManager.PasswordValidators)
         {
             var validation = await validator.ValidateAsync(userManager, candidate, request.Password);
             if (!validation.Succeeded)
             {
-                return new RegistrationStartResult(false, null);
+                return new RegistrationStartResult(RegistrationStartStatus.InvalidInput, null);
             }
         }
 
@@ -51,7 +59,7 @@ public sealed class CustomerRegistrationService(
             if (await dbContext.Users.AnyAsync(x => x.NormalizedEmail == normalizedEmail, cancellationToken))
             {
                 await transaction.CommitAsync(cancellationToken);
-                return new RegistrationStartResult(true, null);
+                return new RegistrationStartResult(RegistrationStartStatus.ExistingAccount, null);
             }
 
             var pending = await dbContext.PendingCustomerRegistrations
@@ -82,7 +90,9 @@ public sealed class CustomerRegistrationService(
 
             await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
-            return new RegistrationStartResult(true, new RegistrationDispatch(pending.Id, pending.Email, token));
+            return new RegistrationStartResult(
+                RegistrationStartStatus.Started,
+                new RegistrationDispatch(pending.Id, pending.Email, token));
         });
     }
 

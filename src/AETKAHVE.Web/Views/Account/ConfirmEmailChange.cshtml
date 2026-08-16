@@ -1,27 +1,37 @@
 @model CustomerEmailChangeConfirmViewModel
 @{
-    Layout = "_CustomerAccountLayout";
+    Layout = "_AccountLayout";
     ViewData["Title"] = "E-posta değişikliğini doğrula";
 }
-<section class="customer-confirmation">
-    <p class="text-eyebrow">Güvenlik doğrulaması</p>
-    <h1>E-posta değişikliğini tamamlayın</h1>
+<section class="account-card account-card--center surface surface--padded"
+         data-email-change-state="@(Model.CanConfirm ? "ready" : "invalid")">
     @if (!string.IsNullOrWhiteSpace(Model.StatusMessage))
     {
-        <p class="customer-account__notice customer-account__notice--error" role="alert">@Model.StatusMessage</p>
+        <p class="field-validation-error" role="alert">@Model.StatusMessage</p>
     }
     @if (Model.CanConfirm)
     {
-        <p class="text-muted"><strong>@Model.MaskedEmail</strong> adresini hesabınıza bağlamak üzeresiniz. İşlemden sonra tüm oturumlarınız kapatılır.</p>
-        <form asp-action="ConfirmEmailChangePost" method="post">
+        <span class="status-badge account-confirmation__status" data-status-kind="success">Bağlantı doğrulandı</span>
+        <h1 class="account-card__title">E-posta değişikliğini tamamlayın</h1>
+        <p class="account-card__subtitle text-muted">
+            <strong>@Model.MaskedEmail</strong> adresini hesabınıza bağlamak üzeresiniz. Onaydan sonra tüm oturumlarınız kapatılır.
+        </p>
+        <form class="account-form account-confirmation__form"
+              asp-action="ConfirmEmailChangePost"
+              asp-antiforgery="true"
+              method="post">
+            <input asp-for="UserId" type="hidden" />
             <input asp-for="NewEmail" type="hidden" />
             <input asp-for="Token" type="hidden" />
-            <button type="submit" class="btn btn--primary">E-posta adresini değiştir</button>
+            <button type="submit" class="btn btn--primary btn--block">E-posta adresini değiştir</button>
         </form>
+        <p class="account-confirmation__note text-sm text-muted">Parolanız değişmez; yeni e-posta adresinizle yeniden giriş yapabilirsiniz.</p>
     }
     else
     {
-        <p class="text-muted">Bu doğrulama bağlantısı geçersiz, daha önce kullanılmış veya süresi dolmuş.</p>
-        <a asp-action="Index" asp-fragment="email-security" class="btn btn--outline">Hesabıma dön</a>
+        <span class="status-badge account-confirmation__status" data-status-kind="error">Bağlantı kullanılamıyor</span>
+        <h1 class="account-card__title">Bağlantı geçersiz veya süresi dolmuş</h1>
+        <p class="account-card__subtitle text-muted">Bu bağlantı daha önce kullanılmış, değiştirilmiş veya süresi dolmuş olabilir.</p>
+        <a asp-action="Login" class="btn btn--primary btn--block">Girişe dön</a>
     }
 </section>

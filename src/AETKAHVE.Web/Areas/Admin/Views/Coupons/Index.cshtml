@@ -20,8 +20,8 @@
             <input type="number" name="discountValue" placeholder="İndirim değeri" step="0.01" min="0" required />
             <input type="number" name="minimumCartAmount" placeholder="Min. sepet tutarı (opsiyonel)" step="0.01" min="0" />
             <input type="number" name="maximumDiscountAmount" placeholder="Maks. indirim (opsiyonel)" step="0.01" min="0" />
-            <input type="number" name="totalUsageLimit" placeholder="Toplam kullanım limiti (opsiyonel)" min="0" />
-            <input type="number" name="perUserUsageLimit" placeholder="Kullanıcı başı limit (opsiyonel)" min="0" />
+            <input type="number" name="totalUsageLimit" placeholder="Toplam kullanım limiti (opsiyonel)" min="1" step="1" />
+            <input type="number" name="perUserUsageLimit" placeholder="Kullanıcı başı limit (opsiyonel)" min="1" step="1" />
             <label>Başlangıç <input type="datetime-local" name="startDate" required /></label>
             <label>Bitiş <input type="datetime-local" name="endDate" required /></label>
             <label class="cluster"><input type="checkbox" name="isFirstOrderOnly" /> Yalnız ilk sipariş</label>

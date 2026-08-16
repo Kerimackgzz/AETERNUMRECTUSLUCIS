@@ -46,14 +46,6 @@
     </div>
 </header>
 
-@if (TempData["StatusMessage"] is string statusMessage)
-{
-    <div class="customer-account__notice" role="status">@statusMessage</div>
-}
-@if (TempData["ErrorMessage"] is string errorMessage)
-{
-    <div class="customer-account__notice customer-account__notice--error" role="alert">@errorMessage</div>
-}
 <div asp-validation-summary="ModelOnly" class="customer-account__notice customer-account__notice--error" role="alert"></div>
 
 <section class="customer-dashboard__counters" aria-label="Hesap özeti">
@@ -178,7 +170,14 @@
             <p class="text-muted">Yeni adresinize gönderilen bağlantıyla doğrulanır. Tamamlandığında tüm oturumlar kapanır.</p>
             <form asp-action="BeginEmailChange" method="post" class="account-form customer-profile__form">
                 <div class="field"><label asp-for="EmailChange.NewEmail"></label><input asp-for="EmailChange.NewEmail" type="email" autocomplete="email" /><span asp-validation-for="EmailChange.NewEmail"></span></div>
-                <div class="field"><label asp-for="EmailChange.CurrentPassword"></label><input asp-for="EmailChange.CurrentPassword" type="password" autocomplete="current-password" /><span asp-validation-for="EmailChange.CurrentPassword"></span></div>
+                <div class="field">
+                    <label asp-for="EmailChange.CurrentPassword"></label>
+                    <div class="password-input" data-password-field>
+                        <input asp-for="EmailChange.CurrentPassword" type="password" autocomplete="current-password" data-password-input />
+                        <partial name="_PasswordVisibilityButton" />
+                    </div>
+                    <span asp-validation-for="EmailChange.CurrentPassword"></span>
+                </div>
                 <button type="submit" class="btn btn--outline">Doğrulama gönder</button>
             </form>
         </section>
@@ -187,10 +186,31 @@
             <h3>Parola</h3>
             <p class="text-muted">Değişiklik sonrası bütün cihazlarda yeniden giriş gerekir.</p>
             <form asp-action="ChangePassword" method="post" class="account-form customer-profile__form">
-                <div class="field"><label asp-for="PasswordChange.CurrentPassword"></label><input asp-for="PasswordChange.CurrentPassword" type="password" autocomplete="current-password" /><span asp-validation-for="PasswordChange.CurrentPassword"></span></div>
-                <div class="field"><label asp-for="PasswordChange.NewPassword"></label><input asp-for="PasswordChange.NewPassword" type="password" autocomplete="new-password" /><span asp-validation-for="PasswordChange.NewPassword"></span></div>
+                <div class="field">
+                    <label asp-for="PasswordChange.CurrentPassword"></label>
+                    <div class="password-input" data-password-field>
+                        <input asp-for="PasswordChange.CurrentPassword" type="password" autocomplete="current-password" data-password-input />
+                        <partial name="_PasswordVisibilityButton" />
+                    </div>
+                    <span asp-validation-for="PasswordChange.CurrentPassword"></span>
+                </div>
+                <div class="field">
+                    <label asp-for="PasswordChange.NewPassword"></label>
+                    <div class="password-input" data-password-field>
+                        <input asp-for="PasswordChange.NewPassword" type="password" autocomplete="new-password" data-password-input />
+                        <partial name="_PasswordVisibilityButton" />
+                    </div>
+                    <span asp-validation-for="PasswordChange.NewPassword"></span>
+                </div>
                 <partial name="_PasswordRequirements" />
-                <div class="field"><label asp-for="PasswordChange.ConfirmPassword"></label><input asp-for="PasswordChange.ConfirmPassword" type="password" autocomplete="new-password" /><span asp-validation-for="PasswordChange.ConfirmPassword"></span></div>
+                <div class="field">
+                    <label asp-for="PasswordChange.ConfirmPassword"></label>
+                    <div class="password-input" data-password-field>
+                        <input asp-for="PasswordChange.ConfirmPassword" type="password" autocomplete="new-password" data-password-input />
+                        <partial name="_PasswordVisibilityButton" />
+                    </div>
+                    <span asp-validation-for="PasswordChange.ConfirmPassword"></span>
+                </div>
                 <button type="submit" class="btn btn--outline">Parolayı değiştir</button>
             </form>
         </section>

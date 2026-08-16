@@ -1,0 +1,48 @@
+@model AdminAccountEditViewModel
+@{
+    ViewData["Title"] = "Admin Düzenle";
+}
+
+<section class="admin-account-editor">
+    <a class="admin-account-editor__back" href="/superadmin/admins">← Admin listesine dön</a>
+    <div class="surface surface--padded admin-account-editor__panel">
+        <span class="admin-accounts__eyebrow">Admin profili</span>
+        <h1 class="admin-dashboard__title">Admin bilgilerini düzenle</h1>
+        <p>E-posta değişikliği, yeni adres doğrulama bağlantısını açtığında tamamlanır.</p>
+
+        <form class="admin-account-form" action="/superadmin/admins/@Model.Id/edit" method="post" novalidate>
+            @Html.AntiForgeryToken()
+            <input asp-for="Id" type="hidden" />
+            <div asp-validation-summary="ModelOnly" role="alert" class="field-validation-error"></div>
+            <div class="admin-account-form__grid">
+                <div class="field">
+                    <label asp-for="FirstName"></label>
+                    <input asp-for="FirstName" autocomplete="given-name" />
+                    <span asp-validation-for="FirstName" class="field-validation-error"></span>
+                </div>
+                <div class="field">
+                    <label asp-for="LastName"></label>
+                    <input asp-for="LastName" autocomplete="family-name" />
+                    <span asp-validation-for="LastName" class="field-validation-error"></span>
+                </div>
+            </div>
+            <div class="field">
+                <label asp-for="Email"></label>
+                <input asp-for="Email" type="email" autocomplete="email" />
+                <span asp-validation-for="Email" class="field-validation-error"></span>
+            </div>
+            <div class="admin-account-editor__note">
+                <strong>Rol: Admin</strong>
+                <span>Rol sabittir ve SuperAdmin’e yükseltilemez.</span>
+            </div>
+            <div class="admin-account-form__actions">
+                <button class="btn btn--primary" type="submit">Değişiklikleri kaydet</button>
+                <a class="btn btn--ghost" href="/superadmin/admins">İptal</a>
+            </div>
+        </form>
+    </div>
+</section>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/admin/admin-accounts.css" asp-append-version="true" />
+}

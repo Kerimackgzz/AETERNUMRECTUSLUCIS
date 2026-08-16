@@ -35,8 +35,9 @@
   var redirectStarted = false;
   var logoutRequestStarted = false;
 
-  function loginUrl() {
-    return "/" + sessionKind + "/login";
+  function loginUrl(reason) {
+    var url = "/" + sessionKind + "/login";
+    return reason ? url + "?reason=" + encodeURIComponent(reason) : url;
   }
 
   function isLogoutForm(form) {
@@ -86,17 +87,17 @@
     focusBeforeWarning = null;
   }
 
-  function redirectToLogin() {
+  function redirectToLogin(reason) {
     if (redirectStarted) {
       return;
     }
     redirectStarted = true;
     stopTimers();
     if (typeof window.location.replace === "function") {
-      window.location.replace(loginUrl());
+      window.location.replace(loginUrl(reason));
       return;
     }
-    window.location.href = loginUrl();
+    window.location.href = loginUrl(reason);
   }
 
   function isFreshSyncMessage(message) {
@@ -173,7 +174,7 @@
       endingSession = true;
       stopTimers();
       hideWarning();
-      redirectToLogin();
+      redirectToLogin(message.type === "expired" ? "expired" : "session-ended");
       return;
     }
 
@@ -222,17 +223,17 @@
     if (publish) {
       publishSessionEvent(reason);
     }
-    redirectToLogin();
+    redirectToLogin(reason === "expired" ? "expired" : "session-ended");
   }
 
-  function postLogoutAndRedirect() {
+  function postLogoutAndRedirect(reason) {
     if (logoutRequestStarted) {
       return;
     }
     logoutRequestStarted = true;
 
     if (!logoutUrl) {
-      redirectToLogin();
+      redirectToLogin(reason);
       return;
     }
 
@@ -253,7 +254,7 @@
       }
       completed = true;
       window.clearTimeout(timeoutHandle);
-      redirectToLogin();
+      redirectToLogin(reason);
     }
 
     var requestOptions = {
@@ -283,7 +284,7 @@
     stopTimers();
     hideWarning();
     publishSessionEvent("expired");
-    postLogoutAndRedirect();
+    postLogoutAndRedirect("expired");
   }
 
   function fetchStatus() {
@@ -293,7 +294,7 @@
     fetch(statusUrl, { credentials: "same-origin", headers: { Accept: "application/json" } })
       .then(function (response) {
         if (response.status === 401) {
-          endSessionWithoutLogout("logout", true);
+          endSessionWithoutLogout("session-ended", true);
           return null;
         }
         if (!response.ok) {
@@ -325,7 +326,7 @@
     })
       .then(function (response) {
         if (response.status === 401) {
-          endSessionWithoutLogout("logout", true);
+          endSessionWithoutLogout("session-ended", true);
           return null;
         }
         if (response.status === 403 || response.status === 429) {

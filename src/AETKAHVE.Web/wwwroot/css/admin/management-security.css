@@ -1,0 +1,294 @@
+/* AETERNUM RECTUS LUCIS — management identity and credential surface. */
+
+.admin-layout [data-toast-region] {
+  top: clamp(76px, 8vw, 104px);
+  bottom: auto;
+}
+
+.management-security {
+  max-width: 1120px;
+  margin-inline: auto;
+}
+
+.management-security__hero {
+  max-width: 760px;
+  padding-block: var(--space-4) var(--space-10);
+  animation: management-security-rise var(--duration-slow) var(--ease-emphasized) both;
+}
+
+.management-security__eyebrow,
+.management-security__kicker {
+  margin: 0 0 var(--space-3);
+  color: var(--color-gold-400);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.management-security__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(var(--text-3xl), 6vw, var(--text-5xl));
+  font-weight: 400;
+  line-height: var(--leading-tight);
+}
+
+.management-security__intro {
+  max-width: 620px;
+  margin: var(--space-4) 0 0;
+}
+
+.management-security__identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  padding: var(--space-4) var(--space-5);
+  border-left: 2px solid var(--color-gold-500);
+  background: linear-gradient(90deg, rgba(14, 42, 30, 0.62), var(--color-bg-elevated));
+}
+
+.management-security__identity-mark {
+  display: grid;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-round);
+  color: var(--color-gold-300);
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+}
+
+.management-security__identity div {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.management-security__identity span:not(.management-security__identity-mark) {
+  overflow-wrap: anywhere;
+  color: var(--color-ink-muted);
+  font-size: var(--text-sm);
+}
+
+.management-security__identity .management-security__roles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block: var(--space-1);
+}
+
+.management-security__identity .management-security__roles .status-badge {
+  color: var(--color-info);
+  font-size: var(--text-xs);
+}
+
+.management-security__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-6);
+}
+
+.management-security__panel {
+  position: relative;
+  overflow: hidden;
+  border-top: 1px solid var(--color-border-strong);
+  animation: management-security-rise var(--duration-slow) var(--ease-emphasized) both;
+}
+
+.management-security__panel:nth-child(2) {
+  animation-delay: 80ms;
+}
+
+.management-security__number {
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-5);
+  color: var(--color-border-strong);
+  font-family: var(--font-display);
+  font-size: var(--text-3xl);
+  line-height: 1;
+}
+
+.management-security__panel-heading {
+  padding-right: var(--space-10);
+}
+
+.management-security__panel-heading h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: 400;
+}
+
+.management-security__panel-heading .text-muted {
+  margin: var(--space-3) 0 0;
+}
+
+.management-security__form {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-8);
+}
+
+.management-security__form .field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.management-security__form input:not([type="checkbox"]):not([type="radio"]) {
+  width: 100%;
+  min-height: 46px;
+  background-color: rgba(10, 11, 9, 0.78);
+}
+
+.management-security__form-error,
+.management-security__form .field-validation-error {
+  color: var(--color-error);
+  font-size: var(--text-sm);
+}
+
+.management-security__form-error:empty,
+.management-security__form .field-validation-error:empty {
+  display: none;
+}
+
+.management-security__form-error ul {
+  margin: 0;
+  padding-left: var(--space-5);
+}
+
+.management-security__form .btn {
+  justify-self: start;
+  margin-top: var(--space-2);
+}
+
+.management-security .password-input {
+  position: relative;
+}
+
+.management-security .password-input input[type="password"],
+.management-security .password-input input[type="text"] {
+  padding-right: 3.5rem;
+}
+
+.management-security .password-toggle {
+  position: absolute;
+  top: 50%;
+  right: var(--space-1);
+  display: inline-grid;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  place-items: center;
+  transform: translateY(-50%);
+  border: 0;
+  background: transparent;
+  color: var(--color-ink-muted);
+  cursor: pointer;
+}
+
+.management-security .password-toggle:hover {
+  color: var(--color-gold-300);
+}
+
+.management-security .password-toggle:focus-visible {
+  border-radius: var(--radius-sm);
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -2px;
+}
+
+.management-security .password-toggle svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+.management-security .password-toggle [hidden] {
+  display: none;
+}
+
+.management-security__footnote {
+  margin: var(--space-6) 0 0;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.management-confirmation {
+  border-top: 2px solid var(--color-gold-500);
+}
+
+.management-confirmation__status {
+  margin-bottom: var(--space-4);
+}
+
+.management-confirmation__form {
+  margin-top: var(--space-6);
+}
+
+.management-confirmation__note {
+  margin: var(--space-4) 0 0;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+@keyframes management-security-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 799px) {
+  .management-security__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 679px) {
+  .admin-layout [data-toast-region] {
+    top: 72px;
+    right: var(--space-4);
+    max-width: calc(100vw - var(--space-8));
+  }
+
+  .management-security__hero {
+    padding-top: 0;
+    padding-bottom: var(--space-8);
+  }
+
+  .management-security__identity {
+    align-items: flex-start;
+    padding-inline: var(--space-4);
+  }
+
+  .management-security__panel.surface--padded {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .management-security__panel-heading {
+    padding-right: var(--space-6);
+  }
+
+  .management-security__form .btn {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .management-security__hero,
+  .management-security__panel {
+    animation: none;
+  }
+}

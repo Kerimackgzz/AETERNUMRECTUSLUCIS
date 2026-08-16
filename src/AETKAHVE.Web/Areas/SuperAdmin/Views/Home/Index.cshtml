@@ -1,26 +1,5 @@
-@model DashboardSummaryViewModel
+@model AdminDashboardViewModel
 @{
     ViewData["Title"] = Model.Title;
 }
-<h1 class="admin-dashboard__title">@Model.Title</h1>
-
-@if (Model.Statuses.Count == 0)
-{
-    <div class="surface empty-state">
-        <p class="empty-state__title">Henüz görüntülenecek durum yok</p>
-        <p class="text-muted">Ticaret modülü devreye alındığında özet göstergeler burada listelenecek.</p>
-    </div>
-}
-else
-{
-    <div class="status-grid">
-        @foreach (var status in Model.Statuses)
-        {
-            <div class="surface status-tile" data-status-kind="@status.Kind">
-                <span class="status-tile__kind-label">@status.Kind</span>
-                <span class="status-tile__label text-muted">@status.Label</span>
-                <span class="status-tile__value">@status.Value</span>
-            </div>
-        }
-    </div>
-}
+<partial name="_AdminDashboard" model="Model" />

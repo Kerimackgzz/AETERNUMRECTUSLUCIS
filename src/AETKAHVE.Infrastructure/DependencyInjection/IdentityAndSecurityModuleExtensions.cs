@@ -37,8 +37,10 @@ public static class IdentityAndSecurityModuleExtensions
         services.AddOptions<SecurityOptions>()
             .Bind(configuration.GetSection(SecurityOptions.SectionName))
             .ValidateOnStart();
+        services.AddSingleton<IValidateOptions<IdentitySeedOptions>, IdentitySeedOptionsValidator>();
         services.AddOptions<IdentitySeedOptions>()
-            .Bind(configuration.GetSection(IdentitySeedOptions.SectionName));
+            .Bind(configuration.GetSection(IdentitySeedOptions.SectionName))
+            .ValidateOnStart();
 
         var security = configuration.GetSection(SecurityOptions.SectionName).Get<SecurityOptions>() ?? new();
 
@@ -101,6 +103,8 @@ public static class IdentityAndSecurityModuleExtensions
         ConfigureCookieTimeProvider(services, AuthenticationSchemes.Customer);
         ConfigureCookieTimeProvider(services, AuthenticationSchemes.Admin);
         ConfigureCookieTimeProvider(services, AuthenticationSchemes.SuperAdmin);
+        services.Configure<DataProtectionTokenProviderOptions>(options =>
+            options.TokenLifespan = TimeSpan.FromHours(24));
 
         services.AddAuthorizationBuilder()
             .AddPolicy(AuthorizationPolicies.CustomerOnly, policy =>
@@ -130,9 +134,11 @@ public static class IdentityAndSecurityModuleExtensions
         services.AddScoped<ManagementSessionService>();
         services.AddScoped<AuthenticationSessionService>();
         services.AddScoped<IdentitySeeder>();
+        services.AddScoped<IAdminAccountManagementService, AdminAccountManagementService>();
         services.AddScoped<ICustomerRegistrationService, CustomerRegistrationService>();
         services.AddScoped<ICustomerPasswordResetService, CustomerPasswordResetService>();
         services.AddHostedService<IdentitySeedHostedService>();
+        services.AddHostedService<SingleSuperAdminInvariantHostedService>();
         services.AddHostedService<PendingRegistrationCleanupWorker>();
         return services;
     }

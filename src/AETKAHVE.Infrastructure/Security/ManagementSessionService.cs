@@ -98,6 +98,31 @@ public sealed class ManagementSessionService(
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
+    public async Task RevokeAllAsync(
+        Guid userId,
+        string reason,
+        CancellationToken cancellationToken = default)
+    {
+        var sessions = await dbContext.ManagementSessions
+            .Where(x => x.UserId == userId && !x.RevokedAtUtc.HasValue)
+            .ToListAsync(cancellationToken);
+        if (sessions.Count == 0)
+        {
+            return;
+        }
+
+        var now = timeProvider.GetUtcNow();
+        var safeReason = reason.Length <= 200 ? reason : reason[..200];
+        foreach (var session in sessions)
+        {
+            session.RevokedAtUtc = now;
+            session.RevocationReason = safeReason;
+            session.ConcurrencyToken = Guid.NewGuid();
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     public IdleSessionStatus ToStatus(ManagementSession session)
     {
         return ManagementSessionPolicy.CreateStatus(session, _securityOptions, timeProvider.GetUtcNow());

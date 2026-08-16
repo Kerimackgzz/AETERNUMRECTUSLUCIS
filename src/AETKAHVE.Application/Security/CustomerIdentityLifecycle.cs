@@ -9,7 +9,16 @@ public sealed record BeginCustomerRegistration(
 
 public sealed record RegistrationDispatch(Guid RegistrationId, string Email, string Token);
 
-public sealed record RegistrationStartResult(bool Succeeded, RegistrationDispatch? Dispatch);
+public enum RegistrationStartStatus
+{
+    Started,
+    ExistingAccount,
+    InvalidInput,
+}
+
+public sealed record RegistrationStartResult(
+    RegistrationStartStatus Status,
+    RegistrationDispatch? Dispatch);
 
 public sealed record RegistrationValidationResult(bool CanConfirm, string? MaskedEmail);
 

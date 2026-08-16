@@ -22,8 +22,8 @@ public sealed class AtomicCustomerIdentityTests(AeternumWebApplicationFactory fa
         var first = await registrations.BeginAsync(CreateRequest(email, "First"));
         var second = await registrations.BeginAsync(CreateRequest(email, "Second"));
 
-        Assert.True(first.Succeeded);
-        Assert.True(second.Succeeded);
+        Assert.Equal(RegistrationStartStatus.Started, first.Status);
+        Assert.Equal(RegistrationStartStatus.Started, second.Status);
         Assert.NotNull(first.Dispatch);
         Assert.NotNull(second.Dispatch);
         Assert.Equal(first.Dispatch.RegistrationId, second.Dispatch.RegistrationId);
@@ -36,6 +36,27 @@ public sealed class AtomicCustomerIdentityTests(AeternumWebApplicationFactory fa
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         Assert.Equal(1, await dbContext.PendingCustomerRegistrations.CountAsync(x => x.NormalizedEmail == email.ToUpperInvariant()));
         Assert.False(await dbContext.Users.AnyAsync(x => x.NormalizedEmail == email.ToUpperInvariant()));
+    }
+
+    [Fact]
+    public async Task Existing_identity_returns_explicit_status_without_creating_a_pending_registration()
+    {
+        await using var scope = factory.Services.CreateAsyncScope();
+        var registrations = scope.ServiceProvider.GetRequiredService<ICustomerRegistrationService>();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        var original = Assert.IsType<ApplicationUser>(
+            await userManager.FindByEmailAsync(AeternumWebApplicationFactory.AdminEmail));
+        var originalHash = original.PasswordHash;
+
+        var result = await registrations.BeginAsync(
+            CreateRequest(AeternumWebApplicationFactory.AdminEmail, "Başka"));
+
+        Assert.Equal(RegistrationStartStatus.ExistingAccount, result.Status);
+        Assert.Null(result.Dispatch);
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.False(await dbContext.PendingCustomerRegistrations.AnyAsync(
+            x => x.NormalizedEmail == AeternumWebApplicationFactory.AdminEmail.ToUpperInvariant()));
+        Assert.Equal(originalHash, (await userManager.FindByEmailAsync(AeternumWebApplicationFactory.AdminEmail))?.PasswordHash);
     }
 
     [Fact]

@@ -1,3 +1,4 @@
+using AETKAHVE.Application.Commerce;
 using AETKAHVE.Application.Security;
 using AETKAHVE.Web.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -8,9 +9,13 @@ namespace AETKAHVE.Web.Areas.Admin.Controllers;
 [Area("Admin")]
 [Authorize(Policy = AuthorizationPolicies.AdminArea)]
 [Route("admin")]
-public sealed class HomeController : Controller
+public sealed class HomeController(IAdminCommerceService adminCommerceService) : Controller
 {
     [HttpGet("")]
-    public IActionResult Index() => View(new DashboardSummaryViewModel { Title = "Admin Yönetimi" });
+    public async Task<IActionResult> Index(CancellationToken cancellationToken) =>
+        View(new AdminDashboardViewModel(
+            "Admin Yönetimi",
+            "Admin",
+            await adminCommerceService.GetDashboardAsync(cancellationToken)));
 }
 

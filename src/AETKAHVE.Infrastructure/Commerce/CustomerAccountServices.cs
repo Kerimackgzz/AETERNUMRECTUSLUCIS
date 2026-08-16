@@ -7,6 +7,7 @@ using AETKAHVE.Infrastructure.Identity;
 using AETKAHVE.Infrastructure.Notifications;
 using AETKAHVE.Infrastructure.Options;
 using AETKAHVE.Infrastructure.Persistence;
+using AETKAHVE.Infrastructure.Security;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -91,8 +92,9 @@ public sealed class CustomerProfileService(
     IFileStorageService fileStorage,
     IDataProtectionProvider dataProtectionProvider,
     IOptions<NotificationOptions> notificationOptions,
+    ManagementSessionService managementSessions,
     TimeProvider timeProvider,
-    ILogger<CustomerProfileService> logger) : ICustomerProfileService
+    ILogger<CustomerProfileService> logger) : ICustomerProfileService, IAccountCredentialService
 {
     public const long MaximumProfilePhotoBytes = 2 * 1024 * 1024;
     private static readonly HashSet<string> ProfilePhotoContentTypes = new(StringComparer.OrdinalIgnoreCase)
@@ -319,6 +321,7 @@ public sealed class CustomerProfileService(
             "Hesabınızın e-posta adresi değiştirildi",
             "<p>AETERNUM hesabınızın e-posta adresi değiştirildi. Bu işlemi siz yapmadıysanız destek ekibimizle iletişime geçin.</p>",
             cancellationToken);
+        await managementSessions.RevokeAllAsync(user.Id, "EmailChanged", cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return ServiceResult.Success("E-posta adresiniz değiştirildi. Lütfen yeniden giriş yapın.");
     }
@@ -333,9 +336,9 @@ public sealed class CustomerProfileService(
         var user = await FindAvailableUserAsync(userId);
         if (user is null) return ServiceResult.Failure("Hesap bulunamadı.");
         var result = await userManager.ChangePasswordAsync(user, currentPassword, newPassword);
-        return result.Succeeded
-            ? ServiceResult.Success("Parolanız değiştirildi. Lütfen yeniden giriş yapın.")
-            : ServiceResult.Failure(FirstIdentityError(result));
+        if (!result.Succeeded) return ServiceResult.Failure(FirstIdentityError(result));
+        await managementSessions.RevokeAllAsync(user.Id, "PasswordChanged", cancellationToken);
+        return ServiceResult.Success("Parolanız değiştirildi. Lütfen yeniden giriş yapın.");
     }
 
     private async Task QueueProtectedEmailAsync(

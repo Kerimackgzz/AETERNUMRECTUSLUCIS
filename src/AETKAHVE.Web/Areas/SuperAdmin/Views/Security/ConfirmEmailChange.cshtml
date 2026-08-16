@@ -1,0 +1,10 @@
+@model ManagementEmailChangeConfirmViewModel
+@{
+    Layout = "_ManagementAuthLayout";
+    ViewData["Title"] = "SuperAdmin e-postasını doğrula";
+}
+@section Styles {
+    <meta name="referrer" content="no-referrer" />
+    <link rel="stylesheet" href="~/css/admin/management-security.css" asp-append-version="true" />
+}
+<partial name="_ManagementEmailChangeConfirm" model="Model" />

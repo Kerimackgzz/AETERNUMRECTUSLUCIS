@@ -1,0 +1,61 @@
+@using AETKAHVE.Application.Security
+@model ManagementNavigationViewModel
+@{
+    var currentPath = Context.Request.Path.Value ?? string.Empty;
+    bool IsCurrent(string path, bool exact = false) => exact
+        ? string.Equals(currentPath.TrimEnd('/'), path.TrimEnd('/'), StringComparison.OrdinalIgnoreCase)
+        : currentPath.StartsWith(path, StringComparison.OrdinalIgnoreCase);
+}
+
+<div class="admin-sidebar__heading">
+    <span class="admin-sidebar__eyebrow">AETERNUM</span>
+    <strong>@Model.PortalLabel</strong>
+</div>
+
+<nav class="admin-navigation" aria-label="Yönetim modülleri" data-admin-navigation>
+    <div class="admin-navigation__group">
+        <span class="admin-navigation__group-label">Genel</span>
+        <a href="@Model.DashboardPath" class="admin-navigation__link" aria-current="@(IsCurrent(Model.DashboardPath, exact: true) ? "page" : null)">
+            <span class="admin-navigation__index" aria-hidden="true">00</span><span>Dashboard</span>
+        </a>
+    </div>
+
+    @if (User.IsInRole(RoleNames.SuperAdmin))
+    {
+        <div class="admin-navigation__group">
+            <span class="admin-navigation__group-label">Yetkilendirme</span>
+            <a href="/superadmin/admins" class="admin-navigation__link" aria-current="@(IsCurrent("/superadmin/admins") ? "page" : null)">
+                <span class="admin-navigation__index" aria-hidden="true">SA</span><span>Adminler</span>
+            </a>
+        </div>
+    }
+
+    <div class="admin-navigation__group">
+        <span class="admin-navigation__group-label">Operasyon</span>
+        <a href="/admin/orders" class="admin-navigation__link" aria-current="@(IsCurrent("/admin/orders") ? "page" : null)"><span class="admin-navigation__index" aria-hidden="true">01</span><span>Siparişler</span></a>
+        <a href="/admin/shipments" class="admin-navigation__link" aria-current="@(IsCurrent("/admin/shipments") ? "page" : null)"><span class="admin-navigation__index" aria-hidden="true">02</span><span>Sevkiyatlar</span></a>
+        <a href="/admin/returns" class="admin-navigation__link" aria-current="@(IsCurrent("/admin/returns") ? "page" : null)"><span class="admin-navigation__index" aria-hidden="true">03</span><span>İadeler</span></a>
+        <a href="/admin/invoices" class="admin-navigation__link" aria-current="@(IsCurrent("/admin/invoices") ? "page" : null)"><span class="admin-navigation__index" aria-hidden="true">04</span><span>Faturalar</span></a>
+    </div>
+
+    <div class="admin-navigation__group">
+        <span class="admin-navigation__group-label">Ticaret</span>
+        <a href="/admin/products" class="admin-navigation__link" aria-current="@(IsCurrent("/admin/products") ? "page" : null)"><span class="admin-navigation__index" aria-hidden="true">05</span><span>Ürünler</span></a>
+        <a href="/admin/catalog" class="admin-navigation__link" aria-current="@(IsCurrent("/admin/catalog") ? "page" : null)"><span class="admin-navigation__index" aria-hidden="true">06</span><span>Katalog</span></a>
+        <a href="/admin/campaigns" class="admin-navigation__link" aria-current="@(IsCurrent("/admin/campaigns") ? "page" : null)"><span class="admin-navigation__index" aria-hidden="true">07</span><span>Kampanyalar</span></a>
+        <a href="/admin/coupons" class="admin-navigation__link" aria-current="@(IsCurrent("/admin/coupons") ? "page" : null)"><span class="admin-navigation__index" aria-hidden="true">08</span><span>Kuponlar</span></a>
+    </div>
+
+    <div class="admin-navigation__group">
+        <span class="admin-navigation__group-label">İletişim ve analiz</span>
+        <a href="/admin/reviews" class="admin-navigation__link" aria-current="@(IsCurrent("/admin/reviews") ? "page" : null)"><span class="admin-navigation__index" aria-hidden="true">09</span><span>Yorumlar</span></a>
+        <a href="/admin/messages" class="admin-navigation__link" aria-current="@(IsCurrent("/admin/messages") ? "page" : null)"><span class="admin-navigation__index" aria-hidden="true">10</span><span>Mesajlar</span></a>
+        <a href="/admin/reports" class="admin-navigation__link" aria-current="@(IsCurrent("/admin/reports") ? "page" : null)"><span class="admin-navigation__index" aria-hidden="true">11</span><span>Raporlar</span></a>
+    </div>
+
+    <div class="admin-navigation__group admin-navigation__group--account">
+        <span class="admin-navigation__group-label">Hesap</span>
+        <a href="@Model.SecurityPath" class="admin-navigation__link" aria-current="@(IsCurrent(Model.SecurityPath) ? "page" : null)"><span class="admin-navigation__index" aria-hidden="true">12</span><span>Güvenlik</span></a>
+        <a href="/" class="admin-navigation__link"><span class="admin-navigation__index" aria-hidden="true">↗</span><span>Mağazaya dön</span></a>
+    </div>
+</nav>

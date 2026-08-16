@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/components/button.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/components/idle-warning.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/toast.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin/admin.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
@@ -28,20 +29,45 @@
       data-idle-timeout-seconds="@(security.SuperAdminIdleTimeoutMinutes * 60)"
       data-idle-warning-seconds="@security.IdleWarningSeconds">
     <a href="#main-content" class="skip-link">İçeriğe geç</a>
+    <partial name="_FlashMessages" />
     <header class="admin-topbar">
-        <a asp-area="SuperAdmin" asp-controller="Home" asp-action="Index" class="admin-topbar__brand">
-            AETKAHVE<span class="admin-topbar__portal">Süper Yönetim</span>
-        </a>
-        <form class="admin-topbar__logout" asp-area="SuperAdmin" asp-controller="Auth" asp-action="Logout" method="post">
-            @Html.AntiForgeryToken()
-            <button type="submit" class="btn btn--outline btn--sm">Güvenli Çıkış</button>
-        </form>
+        <div class="admin-topbar__leading">
+            <button type="button"
+                    class="admin-nav-toggle"
+                    data-admin-nav-toggle
+                    aria-controls="management-sidebar"
+                    aria-expanded="false"
+                    aria-label="Yönetim menüsünü aç">
+                <span aria-hidden="true"></span><span aria-hidden="true"></span>
+            </button>
+            <a asp-area="SuperAdmin" asp-controller="Home" asp-action="Index" class="admin-topbar__brand">
+                AETKAHVE<span class="admin-topbar__portal">Süper Yönetim</span>
+            </a>
+        </div>
+        <div class="admin-topbar__actions">
+            <a class="admin-topbar__security" href="/superadmin/security">Güvenlik</a>
+            <form class="admin-topbar__logout" asp-area="SuperAdmin" asp-controller="Auth" asp-action="Logout" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn--outline btn--sm">Güvenli Çıkış</button>
+            </form>
+        </div>
     </header>
-    <main id="main-content" class="admin-layout__main">
-        @RenderBody()
-    </main>
+    <div class="admin-nav-overlay" data-admin-nav-overlay hidden></div>
+    <div class="admin-shell">
+        <aside id="management-sidebar" class="admin-sidebar" data-admin-sidebar aria-label="Süper yönetim menüsü">
+            <partial name="_ManagementNavigation" model="@(new ManagementNavigationViewModel("Süper Yönetim", "/superadmin", "/superadmin/security"))" />
+        </aside>
+        <div class="admin-shell__content" data-admin-nav-content>
+            <main id="main-content" class="admin-layout__main">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
     <partial name="_IdleWarningDialog" />
+    <script type="module" src="~/js/components/flash-messages.js" asp-append-version="true"></script>
+    <script src="~/js/admin/admin-navigation.js" asp-append-version="true" defer></script>
     <script src="~/js/admin/idle-session.js" asp-append-version="true" defer></script>
+    <script src="~/js/auth/password-visibility.js" asp-append-version="true" defer></script>
     @await RenderSectionAsync("PageScripts", required: false)
 </body>
 </html>

@@ -1,0 +1,121 @@
+@using AETKAHVE.Application.Security
+@model AdminAccountsPageViewModel
+@{
+    ViewData["Title"] = "Admin Yönetimi";
+
+    (string Label, string Kind) StatusFor(AdminAccountSummary account) => account.IsPendingInvitation
+        ? ("Davet bekliyor", "warning")
+        : account.IsLocked
+            ? ("Kilitli", "error")
+            : account.IsActive
+                ? ("Aktif", "success")
+                : ("Pasif", "neutral");
+}
+
+<section class="admin-accounts">
+    <header class="admin-accounts__header">
+        <div>
+            <span class="admin-accounts__eyebrow">Yetkilendirme</span>
+            <h1 class="admin-dashboard__title">Admin Yönetimi</h1>
+            <p>Alt seviye Admin hesaplarını yönetin. SuperAdmin hesabı bu listede gösterilmez.</p>
+        </div>
+        <a class="btn btn--primary" href="/superadmin/admins/create">Yeni Admin</a>
+    </header>
+
+    <form class="admin-account-filters surface surface--padded" action="/superadmin/admins" method="get">
+        <div class="field">
+            <label for="admin-search">Ad veya e-posta</label>
+            <input id="admin-search" type="search" name="search" value="@Model.Search" maxlength="320" placeholder="Admin ara" />
+        </div>
+        <div class="field">
+            <label for="admin-status">Durum</label>
+            <select id="admin-status" name="status">
+                <option value="All" selected="@(Model.Status == AdminAccountStatusFilter.All ? "selected" : null)">Tümü</option>
+                <option value="Active" selected="@(Model.Status == AdminAccountStatusFilter.Active ? "selected" : null)">Aktif</option>
+                <option value="Inactive" selected="@(Model.Status == AdminAccountStatusFilter.Inactive ? "selected" : null)">Pasif</option>
+                <option value="PendingInvitation" selected="@(Model.Status == AdminAccountStatusFilter.PendingInvitation ? "selected" : null)">Davet bekliyor</option>
+                <option value="Locked" selected="@(Model.Status == AdminAccountStatusFilter.Locked ? "selected" : null)">Kilitli</option>
+            </select>
+        </div>
+        <div class="admin-account-filters__actions">
+            <button class="btn btn--secondary" type="submit">Filtrele</button>
+            <a class="btn btn--ghost" href="/superadmin/admins">Temizle</a>
+        </div>
+    </form>
+
+    @if (Model.Accounts.Items.Count == 0)
+    {
+        <div class="surface admin-account-empty">
+            <strong>Admin bulunamadı</strong>
+            <p>Filtreleri temizleyin veya yeni bir Admin daveti oluşturun.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-scroll admin-account-table" tabindex="0" role="region" aria-label="Admin hesapları tablosu">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Admin</th>
+                        <th>Durum</th>
+                        <th>Son giriş</th>
+                        <th>Oluşturulma</th>
+                        <th><span class="sr-only">İşlemler</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var account in Model.Accounts.Items)
+                    {
+                        var state = StatusFor(account);
+                        <tr>
+                            <td>
+                                <strong>@account.FirstName @account.LastName</strong>
+                                <small>@account.Email</small>
+                            </td>
+                            <td><span class="status-badge" data-status-kind="@state.Kind">@state.Label</span></td>
+                            <td>@(account.LastLoginAtUtc?.ToLocalTime().ToString("dd.MM.yyyy HH:mm") ?? "Henüz giriş yok")</td>
+                            <td>@account.CreatedAtUtc.ToLocalTime().ToString("dd.MM.yyyy")</td>
+                            <td>
+                                <div class="admin-account-actions">
+                                    <a class="btn btn--outline btn--sm" href="/superadmin/admins/@account.Id/edit">Düzenle</a>
+                                    @if (account.IsPendingInvitation)
+                                    {
+                                        <form action="/superadmin/admins/@account.Id/resend-invitation" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn--ghost btn--sm" type="submit">Daveti yenile</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form action="/superadmin/admins/@account.Id/@(account.IsActive ? "deactivate" : "activate")" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn--ghost btn--sm" type="submit">@(account.IsActive ? "Pasifleştir" : "Aktifleştir")</button>
+                                        </form>
+                                        <form action="/superadmin/admins/@account.Id/password-reset" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn--ghost btn--sm" type="submit">Parola sıfırla</button>
+                                        </form>
+                                    }
+                                    @if (account.IsLocked)
+                                    {
+                                        <form action="/superadmin/admins/@account.Id/unlock" method="post">
+                                            @Html.AntiForgeryToken()
+                                            <button class="btn btn--ghost btn--sm" type="submit">Kilidi aç</button>
+                                        </form>
+                                    }
+                                    <a class="admin-account-actions__danger" href="/superadmin/admins/@account.Id/delete">Sil</a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <partial name="_Pagination" model="(Model.Accounts.Page, Model.Accounts.TotalPages)" />
+    }
+</section>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/components/pagination.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin/admin-accounts.css" asp-append-version="true" />
+}
