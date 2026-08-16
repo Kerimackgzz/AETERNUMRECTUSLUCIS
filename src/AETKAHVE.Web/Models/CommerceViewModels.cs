@@ -7,7 +7,18 @@ namespace AETKAHVE.Web.Models;
 public sealed record ProductListViewModel(PagedResult<ProductSummary> Products, CatalogLookupSet Lookups, ProductQuery Query);
 public sealed record ProductDetailPageViewModel(ProductDetails Product);
 public sealed record CampaignListViewModel(IReadOnlyList<CampaignSummary> Campaigns);
-public sealed record CategoryListViewModel(IReadOnlyList<CatalogLookupItem> Categories);
+public sealed record CategoryListViewModel(IReadOnlyList<CollectionCardViewModel> Categories);
+
+// CatalogLookupItem'ın (Id/Name/Slug) sunum katmanı sarmalayıcısı — ImageUrl/Description/
+// ProductCount bugün backend'de yok (bkz. docs/contracts/requests/claude-design-collections-image.md);
+// null bırakılıyor, uydurulmuyor. Alanlar gerçek veriyle dolduğunda view otomatik devreye girer.
+public sealed record CollectionCardViewModel(
+    Guid Id,
+    string Name,
+    string Slug,
+    string? ImageUrl = null,
+    string? Description = null,
+    int? ProductCount = null);
 public sealed record CartPageViewModel(CartSummary Cart);
 public sealed record FavoritePageViewModel(PagedResult<ProductSummary> Products);
 public sealed record CheckoutPageViewModel(CartSummary Cart, IReadOnlyList<AddressDetails> Addresses, string IdempotencyKey);

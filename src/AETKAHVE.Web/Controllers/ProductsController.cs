@@ -44,8 +44,13 @@ public sealed class CampaignsController(ICatalogQueryService catalogQueryService
 public sealed class CategoriesController(ICatalogQueryService catalogQueryService) : CommerceControllerBase
 {
     [HttpGet("")]
-    public async Task<IActionResult> Index(CancellationToken cancellationToken) =>
-        View(new CategoryListViewModel(await catalogQueryService.GetCategoriesAsync(cancellationToken)));
+    public async Task<IActionResult> Index(CancellationToken cancellationToken)
+    {
+        var categories = await catalogQueryService.GetCategoriesAsync(cancellationToken);
+        return View(new CategoryListViewModel(categories
+            .Select(c => new CollectionCardViewModel(c.Id, c.Name, c.Slug))
+            .ToList()));
+    }
 
     [HttpGet("{slug}")]
     public async Task<IActionResult> Detail(string slug, [FromQuery] int page, CancellationToken cancellationToken)

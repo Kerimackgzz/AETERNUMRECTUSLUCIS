@@ -2,12 +2,23 @@
 @{
     ViewData["Title"] = "Koleksiyonlar";
 }
-<header class="container shop-header">
-    <p class="text-eyebrow">Kahve Atlası</p>
-    <h1>Koleksiyonlar</h1>
-    <p class="text-muted">Karakterine, kökenine ve kavrum yaklaşımına göre seçilmiş kahveleri keşfedin.</p>
+<header class="page-banner page-banner--collections">
+    <div class="container page-banner__content">
+        <p class="text-eyebrow">Kahve Atlası</p>
+        <h1>Koleksiyonlar</h1>
+        <p class="text-muted">Karakterine, kökenine ve kavrum yaklaşımına göre seçilmiş kahveleri keşfedin.</p>
+        <div class="section-divider" aria-hidden="true">
+            <span></span>
+            <svg viewBox="0 0 24 24" width="18" height="18">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M12 3v3M12 18v3M3 12h3M18 12h3" />
+                <path d="M8.5 15.5 12 12l1-4.5-3.5 3.5L12 12l4.5-1-3.5 3.5L12 12l1 4.5-3.5-3.5Z" />
+            </svg>
+            <span></span>
+        </div>
+    </div>
 </header>
-<div class="container section--tight">
+<div class="container section--tight" data-collections-grid>
     @if (Model.Categories.Count == 0)
     {
         <div class="surface empty-state">
@@ -17,14 +28,42 @@
     }
     else
     {
-        <div class="grid-auto">
+        <div class="collections-grid container--wide" data-product-card-list>
             @foreach (var category in Model.Categories)
             {
-                <article class="surface surface--padded campaign-card">
-                    <p class="text-eyebrow">Koleksiyon</p>
-                    <h2 class="product-name">@category.Name</h2>
-                    <a class="btn btn--outline btn--block" asp-controller="Categories" asp-action="Detail" asp-route-slug="@category.Slug">Ürünleri incele</a>
-                </article>
+                <a class="collection-card"
+                   data-product-card
+                   data-product-id="@category.Id"
+                   aria-label="@($"{category.Name} koleksiyonunu incele")"
+                   asp-controller="Categories" asp-action="Detail" asp-route-slug="@category.Slug">
+                    <div class="collection-card__cover" data-product-card-surface>
+                        @if (!string.IsNullOrWhiteSpace(category.ImageUrl))
+                        {
+                            <img class="collection-card__image" src="@category.ImageUrl" alt="@category.Name koleksiyonu" loading="lazy" />
+                        }
+                        else
+                        {
+                            <div class="collection-card__cover--fallback">
+                                <span>@category.Name</span>
+                            </div>
+                        }
+                    </div>
+                    <div class="collection-card__body">
+                        <div>
+                            <p class="text-eyebrow">Koleksiyon</p>
+                            <h2 class="collection-card__title">@category.Name</h2>
+                            @if (!string.IsNullOrWhiteSpace(category.Description))
+                            {
+                                <p class="collection-card__description">@category.Description</p>
+                            }
+                            @if (category.ProductCount is not null)
+                            {
+                                <p class="collection-card__meta">@category.ProductCount ürün</p>
+                            }
+                        </div>
+                        <span class="btn btn--outline btn--block collection-card__cta" aria-hidden="true">Ürünleri İncele</span>
+                    </div>
+                </a>
             }
         </div>
     }
@@ -32,4 +71,9 @@
 
 @section Styles {
     <link rel="stylesheet" href="~/css/pages/shop.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/product-card-motion.css" asp-append-version="true" />
+}
+
+@section PageScripts {
+    <script type="module" src="~/js/pages/collections.js" asp-append-version="true"></script>
 }
