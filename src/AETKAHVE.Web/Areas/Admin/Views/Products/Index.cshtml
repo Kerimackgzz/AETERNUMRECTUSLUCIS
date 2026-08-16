@@ -53,9 +53,25 @@
                         <td>@product.DisplayPrice.ToString("N2", currency) ₺</td>
                         <td><span class="status-badge" data-status-kind="@(product.IsInStock ? "success" : "error")">@(product.IsInStock ? "Stokta" : "Tükendi")</span></td>
                         <td>
-                            <div class="qty-stepper">
-                                <button type="button" data-stock-adjust="-1" aria-label="Azalt">−</button>
-                                <button type="button" data-stock-adjust="1" aria-label="Artır">+</button>
+                            <div class="stock-actions" role="group" aria-label="@product.Name stok işlemleri">
+                                <button type="button"
+                                        class="stock-action stock-action--decrease"
+                                        data-stock-adjust="-1"
+                                        aria-label="@product.Name stok miktarını 1 azalt">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                        <path d="M5 12h14" />
+                                    </svg>
+                                    <span>1 azalt</span>
+                                </button>
+                                <button type="button"
+                                        class="stock-action stock-action--increase"
+                                        data-stock-adjust="1"
+                                        aria-label="@product.Name stok miktarını 1 artır">
+                                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                        <path d="M12 5v14M5 12h14" />
+                                    </svg>
+                                    <span>1 artır</span>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -69,6 +85,7 @@
 
 @section Styles {
     <link rel="stylesheet" href="~/css/components/pagination.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin/products.css" asp-append-version="true" />
 }
 
 @section PageScripts {

@@ -94,13 +94,17 @@ function init() {
     button.addEventListener("click", async () => {
       const delta = Number(button.getAttribute("data-stock-adjust"));
       const productId = button.closest("[data-product-row]").getAttribute("data-product-id");
-      button.disabled = true;
+      const actions = button.closest(".stock-actions");
+      const actionButtons = actions ? [...actions.querySelectorAll("[data-stock-adjust]")] : [button];
+      actionButtons.forEach((actionButton) => { actionButton.disabled = true; });
+      actions?.setAttribute("aria-busy", "true");
       const { ok, data } = await postCommerce(`/admin/products/${productId}/stock?delta=${delta}`);
       if (ok) {
         window.location.reload();
       } else {
         showToast(commerceErrorMessage(data, "Stok güncellenemedi."), "error");
-        button.disabled = false;
+        actionButtons.forEach((actionButton) => { actionButton.disabled = false; });
+        actions?.removeAttribute("aria-busy");
       }
     });
   });

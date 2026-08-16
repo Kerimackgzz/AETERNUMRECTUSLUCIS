@@ -1,0 +1,92 @@
+/* Ürün yönetimi: stok işlemleri */
+.stock-actions {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(7.25rem, 1fr));
+  gap: var(--space-2);
+  min-width: 15rem;
+}
+
+.stock-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 42px;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--color-ink);
+  font-size: var(--text-xs);
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition:
+    color var(--duration-base) var(--ease-standard),
+    background-color var(--duration-base) var(--ease-standard),
+    border-color var(--duration-base) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+}
+
+.stock-action svg {
+  flex: 0 0 20px;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-width: 2.25;
+}
+
+.stock-action--decrease {
+  border-color: color-mix(in srgb, var(--color-error) 58%, var(--color-border));
+  background: color-mix(in srgb, var(--color-error) 10%, var(--color-bg-elevated));
+  color: color-mix(in srgb, var(--color-error) 76%, var(--color-ink));
+}
+
+.stock-action--increase {
+  border-color: color-mix(in srgb, var(--color-success) 66%, var(--color-border));
+  background: color-mix(in srgb, var(--color-success) 20%, var(--color-bg-elevated));
+  color: color-mix(in srgb, var(--color-success) 60%, var(--color-ink));
+}
+
+.stock-action:hover:not(:disabled) {
+  border-color: currentColor;
+  color: var(--color-ink);
+  transform: translateY(-1px);
+}
+
+.stock-action--decrease:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-error) 24%, var(--color-bg-elevated));
+}
+
+.stock-action--increase:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-success) 38%, var(--color-bg-elevated));
+}
+
+.stock-action:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 3px;
+}
+
+.stock-action:disabled {
+  cursor: wait;
+  opacity: 0.48;
+  transform: none;
+}
+
+.stock-actions[aria-busy="true"] {
+  opacity: 0.76;
+}
+
+@media (max-width: 639px) {
+  .stock-actions {
+    grid-template-columns: 1fr;
+    min-width: 7.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stock-action {
+    transition: none;
+  }
+}
