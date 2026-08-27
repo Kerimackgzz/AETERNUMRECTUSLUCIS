@@ -28,6 +28,7 @@ internal sealed class CartConfiguration : CommerceEntityConfiguration<Cart>
     protected override void ConfigureEntity(EntityTypeBuilder<Cart> builder)
     {
         builder.Property(x => x.CouponCode).HasMaxLength(80);
+        builder.Property(x => x.ConcurrencyToken).IsConcurrencyToken();
         builder.HasIndex(x => x.UserId).IsUnique().HasFilter("[UserId] IS NOT NULL");
         builder.HasIndex(x => x.GuestToken).IsUnique().HasFilter("[GuestToken] IS NOT NULL");
     }

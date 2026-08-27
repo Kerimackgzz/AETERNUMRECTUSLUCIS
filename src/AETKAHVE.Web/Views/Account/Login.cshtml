@@ -33,8 +33,8 @@
     </form>
     <nav class="account-auth-links" aria-label="Hesap işlemleri">
         <p>Henüz bir hesabınız yok mu?</p>
-        <a class="btn btn--outline btn--block" asp-action="Register">Yeni hesap oluştur</a>
-        <a class="account-auth-links__recovery" asp-action="ResendConfirmation">
+        <a class="btn btn--outline btn--block" asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl">Yeni hesap oluştur</a>
+        <a class="account-auth-links__recovery" asp-action="ResendConfirmation" asp-route-returnUrl="@Model.ReturnUrl">
             Doğrulama e-postası gelmedi mi? <span>Yeniden gönder</span>
         </a>
     </nav>

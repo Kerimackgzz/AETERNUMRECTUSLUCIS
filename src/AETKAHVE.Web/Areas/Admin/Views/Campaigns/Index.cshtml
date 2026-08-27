@@ -47,7 +47,13 @@
                         <td>@campaign.Name</td>
                         <td>@campaign.DiscountType</td>
                         <td>@campaign.DiscountValue.ToString("N2", currency)</td>
-                        <td><span class="status-badge" data-status-kind="@(campaign.IsActive ? "success" : "error")">@(campaign.IsActive ? "Aktif" : "Pasif")</span></td>
+                        <td>
+                            <button type="button" class="status-badge" data-status-kind="@(campaign.IsActive ? "success" : "error")"
+                                    data-toggle-campaign-active="@campaign.Id" data-active="@campaign.IsActive.ToString().ToLowerInvariant()"
+                                    aria-label="@(campaign.IsActive ? "Kampanyayı pasif et" : "Kampanyayı aktif et")">
+                                @(campaign.IsActive ? "Aktif" : "Pasif")
+                            </button>
+                        </td>
                         <td>@campaign.EndDateUtc.ToLocalTime().ToString("d MMM yyyy", currency)</td>
                     </tr>
                 }

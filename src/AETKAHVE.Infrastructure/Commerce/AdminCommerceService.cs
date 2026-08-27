@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using AETKAHVE.Application.Commerce;
 using AETKAHVE.Domain.Common;
 using AETKAHVE.Domain.Commerce;
@@ -19,6 +20,7 @@ public sealed class AdminCommerceService(
     INotificationQueue notificationQueue,
     TimeProvider timeProvider) : IAdminCommerceService
 {
+    private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> ShipmentCreationLocks = new();
     private readonly ShippingOptions _shippingOptions = shippingOptions.Value;
 
     public async Task<AdminDashboardSummary> GetDashboardAsync(CancellationToken cancellationToken)
@@ -126,22 +128,62 @@ public sealed class AdminCommerceService(
     public async Task<ServiceResult> AdjustStockAsync(Guid adminUserId, Guid productId, Guid? variantId, int delta, CancellationToken cancellationToken)
     {
         if (delta == 0) return ServiceResult.Failure("Stock delta cannot be zero.");
-        var product = await dbContext.Products.IgnoreQueryFilters().SingleOrDefaultAsync(x => x.Id == productId, cancellationToken);
+        var product = await dbContext.Products.IgnoreQueryFilters()
+            .Include(x => x.Variants)
+            .SingleOrDefaultAsync(x => x.Id == productId, cancellationToken);
         if (product is null) return ServiceResult.Failure("Product was not found.");
-        int previous;
-        int next;
+
+        ProductVariant? stockVariant = null;
         if (variantId is not null)
         {
-            var variant = await dbContext.ProductVariants.IgnoreQueryFilters().SingleOrDefaultAsync(x => x.Id == variantId && x.ProductId == productId, cancellationToken);
-            if (variant is null) return ServiceResult.Failure("Variant was not found.");
-            previous = variant.StockQuantity; variant.AdjustStock(delta); next = variant.StockQuantity;
+            stockVariant = product.Variants.SingleOrDefault(x => x.Id == variantId && x.DeletedAtUtc is null);
+            if (stockVariant is null) return ServiceResult.Failure("Variant was not found.");
         }
-        else { previous = product.StockQuantity; product.AdjustStock(delta); next = product.StockQuantity; }
+        else
+        {
+            var activeVariants = product.Variants
+                .Where(x => x.DeletedAtUtc is null && x.IsActive)
+                .OrderBy(x => x.Weight)
+                .ThenBy(x => x.Id)
+                .Take(2)
+                .ToList();
+            if (activeVariants.Count > 1)
+            {
+                return ServiceResult.Failure("Bu ürünün birden fazla varyantı var. Stok işlemi için varyant seçilmelidir.");
+            }
+
+            stockVariant = activeVariants.SingleOrDefault();
+        }
+
+        int previous;
+        int next;
+        try
+        {
+            if (stockVariant is not null)
+            {
+                previous = stockVariant.StockQuantity;
+                stockVariant.AdjustStock(delta);
+                next = stockVariant.StockQuantity;
+            }
+            else
+            {
+                previous = product.StockQuantity;
+                product.AdjustStock(delta);
+                next = product.StockQuantity;
+            }
+        }
+        catch (CommerceRuleException)
+        {
+            return ServiceResult.Failure("Stok miktarı sıfırın altına düşemez.");
+        }
+
         var now = timeProvider.GetUtcNow();
+        if (stockVariant is not null) stockVariant.UpdatedAtUtc = now;
+        else product.UpdatedAtUtc = now;
         dbContext.StockMovements.Add(new StockMovement
         {
             ProductId = productId,
-            ProductVariantId = variantId,
+            ProductVariantId = stockVariant?.Id,
             MovementType = delta > 0 ? StockMovementType.ManualIncrease : StockMovementType.ManualDecrease,
             Quantity = delta,
             PreviousStock = previous,
@@ -153,22 +195,97 @@ public sealed class AdminCommerceService(
             CreatedAtUtc = now,
             UpdatedAtUtc = now,
         });
-        await dbContext.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            return ServiceResult.Failure("Stok başka bir işlem tarafından değiştirildi. Sayfayı yenileyip tekrar deneyin.");
+        }
         await AuditAsync(adminUserId, "StockAdjusted", productId, cancellationToken);
         return ServiceResult.Success("Stock was updated.");
+    }
+
+    public async Task<PagedResult<AdminProductSummary>> GetProductsAsync(int page, int pageSize, CancellationToken cancellationToken)
+    {
+        page = Math.Max(1, page); pageSize = Math.Clamp(pageSize, 1, 100);
+        var source = dbContext.Products.AsNoTracking();
+        var query = IsSqlite ? source.OrderByDescending(x => x.Id) : source.OrderByDescending(x => x.CreatedAtUtc);
+        var total = await query.CountAsync(cancellationToken);
+        var items = await query.Skip((page - 1) * pageSize).Take(pageSize)
+            .Select(x => new AdminProductSummary(
+                x.Id, x.Name, x.Slug, x.Sku, x.Category.Name, x.DiscountedPrice ?? x.BasePrice,
+                x.Variants.Any(v => v.IsActive) ? x.Variants.Where(v => v.IsActive).Sum(v => v.StockQuantity) : x.StockQuantity,
+                x.IsActive))
+            .ToListAsync(cancellationToken);
+        return new PagedResult<AdminProductSummary>(items, page, pageSize, total);
+    }
+
+    public async Task<ServiceResult> SetProductActiveAsync(Guid adminUserId, Guid productId, bool isActive, CancellationToken cancellationToken)
+    {
+        var product = await dbContext.Products.IgnoreQueryFilters().SingleOrDefaultAsync(x => x.Id == productId, cancellationToken);
+        if (product is null) return ServiceResult.Failure("Product was not found.");
+        product.IsActive = isActive; product.UpdatedAtUtc = timeProvider.GetUtcNow();
+        await dbContext.SaveChangesAsync(cancellationToken);
+        await AuditAsync(adminUserId, "ProductActiveStatusChanged", productId, cancellationToken);
+        return ServiceResult.Success(isActive ? "Product activated." : "Product deactivated.");
     }
 
     public async Task<PagedResult<OrderSummary>> GetOrdersAsync(int page, int pageSize, CancellationToken cancellationToken)
     {
         page = Math.Max(1, page); pageSize = Math.Clamp(pageSize, 1, 100);
-        var source = dbContext.Orders.AsNoTracking();
-        var query = dbContext.Database.ProviderName?.Contains("Sqlite", StringComparison.OrdinalIgnoreCase) == true
-            ? source.OrderByDescending(x => x.Id)
-            : source.OrderByDescending(x => x.CreatedAtUtc);
+        var projected = dbContext.Orders.AsNoTracking()
+            .Select(x => new OrderSummary(x.Id, x.OrderNumber, x.Status, x.PaymentStatus, x.GrandTotal, x.Currency, x.CreatedAtUtc));
+
+        if (IsSqlite)
+        {
+            // Microsoft.Data.Sqlite cannot translate ORDER BY on DateTimeOffset at all (throws
+            // NotSupportedException) — order client-side so the list is still genuinely newest-first
+            // and stable, instead of falling back to a meaningless random-GUID Id sort. The admin
+            // order volume in Development is small, so materializing before ordering is cheap.
+            var all = await projected.ToListAsync(cancellationToken);
+            var ordered = all.OrderByDescending(x => x.CreatedAtUtc).ToList();
+            var page2 = ordered.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            return new PagedResult<OrderSummary>(page2, page, pageSize, ordered.Count);
+        }
+
+        var query = projected.OrderByDescending(x => x.CreatedAtUtc);
         var total = await query.CountAsync(cancellationToken);
-        var items = await query.Skip((page - 1) * pageSize).Take(pageSize)
-            .Select(x => new OrderSummary(x.Id, x.OrderNumber, x.Status, x.PaymentStatus, x.GrandTotal, x.Currency, x.CreatedAtUtc)).ToListAsync(cancellationToken);
+        var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
         return new PagedResult<OrderSummary>(items, page, pageSize, total);
+    }
+
+    public async Task<AdminOrderDetail?> GetOrderDetailAsync(Guid orderId, CancellationToken cancellationToken)
+    {
+        var order = await dbContext.Orders.AsNoTracking()
+            .Include(x => x.Items)
+            .Include(x => x.StatusHistory)
+            .Include(x => x.Shipment).ThenInclude(s => s!.StatusHistory)
+            .SingleOrDefaultAsync(x => x.Id == orderId, cancellationToken);
+        if (order is null) return null;
+
+        var shipment = order.Shipment is null ? null : new AdminShipmentDetail(
+            order.Shipment.ShippingCompany,
+            order.Shipment.TrackingNumber,
+            order.Shipment.TrackingUrl,
+            order.Shipment.Status,
+            order.Shipment.EstimatedDeliveryDateUtc,
+            order.Shipment.ShippedAtUtc,
+            order.Shipment.DeliveredAtUtc,
+            order.Shipment.ShippingNote,
+            order.Shipment.StatusHistory.OrderBy(x => x.CreatedAtUtc)
+                .Select(x => new AdminShipmentStatusHistoryEntry(x.PreviousStatus, x.NewStatus, x.CreatedAtUtc, x.Description)).ToList());
+
+        return new AdminOrderDetail(
+            new OrderSummary(order.Id, order.OrderNumber, order.Status, order.PaymentStatus, order.GrandTotal, order.Currency, order.CreatedAtUtc),
+            order.Items.Select(i => new OrderLineDetails(i.Id, i.ProductName, i.Sku, i.Quantity, i.UnitPrice, i.DiscountAmount, i.TaxAmount, i.LineTotal)).ToList(),
+            order.ShippingAddressSnapshot,
+            order.BillingAddressSnapshot,
+            order.CustomerNote,
+            order.StatusHistory.OrderBy(x => x.ChangedAtUtc)
+                .Select(x => new AdminOrderStatusHistoryEntry(x.PreviousStatus, x.NewStatus, x.ChangedAtUtc, x.Description)).ToList(),
+            shipment);
     }
 
     public async Task<PagedResult<AdminInvoiceSummary>> GetInvoicesAsync(int page, int pageSize, CancellationToken cancellationToken)
@@ -268,8 +385,111 @@ public sealed class AdminCommerceService(
             return ServiceResult.Failure("Shipment must be created before applying this order status.");
         if (status == OrderStatus.Cancelled && order.PaymentStatus == PaymentStatus.Succeeded)
             return ServiceResult.Failure("Paid orders must use the refund-aware cancellation workflow.");
-        try { dbContext.OrderStatusHistory.Add(order.TransitionTo(status, adminUserId, timeProvider.GetUtcNow(), Required(description, 500))); }
+        if (status == OrderStatus.ReturnRequested)
+            return ServiceResult.Failure("Return-requested status is only set automatically when the customer submits a real return request; it cannot be applied manually.");
+        string trimmedDescription;
+        try
+        {
+            trimmedDescription = Required(description, 500);
+            dbContext.OrderStatusHistory.Add(order.TransitionTo(status, adminUserId, timeProvider.GetUtcNow(), trimmedDescription));
+        }
         catch (CommerceRuleException exception) { return ServiceResult.Failure(exception.Message); }
+        SyncShipmentForOrderStatus(order, status, adminUserId, trimmedDescription, timeProvider.GetUtcNow());
+        await notificationQueue.EnqueueOrderAsync(order, $"Order{status}", cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        await AuditAsync(adminUserId, "OrderStatusChanged", orderId, cancellationToken);
+        return ServiceResult.Success("Order status was updated.");
+    }
+
+    /// <summary>
+    /// İstisnai bir düzeltme yolu: normal <see cref="OrderStatusRules"/> akışını (ve kargo/ödeme
+    /// ön koşullarını) atlayarak durumu doğrudan uygular. Sadece admin panelinde ayrı, sebep
+    /// zorunlu bir "manuel düzelt" formundan çağrılmalı — günlük durum değişikliği bu metottan
+    /// geçmemeli, <see cref="ChangeOrderStatusAsync"/> kullanılmalı.
+    /// </summary>
+    public async Task<ServiceResult> ForceSetOrderStatusAsync(Guid adminUserId, Guid orderId, OrderStatus status, string reason, CancellationToken cancellationToken)
+    {
+        var order = await dbContext.Orders.Include(x => x.StatusHistory).Include(x => x.Shipment).SingleOrDefaultAsync(x => x.Id == orderId, cancellationToken);
+        if (order is null) return ServiceResult.Failure("Order was not found.");
+        if (order.Status == status) return ServiceResult.Failure("Order is already in this status.");
+        string trimmedReason;
+        try { trimmedReason = Required(reason, 500); }
+        catch (CommerceRuleException exception) { return ServiceResult.Failure(exception.Message); }
+
+        var now = timeProvider.GetUtcNow();
+        dbContext.OrderStatusHistory.Add(new OrderStatusHistory
+        {
+            OrderId = order.Id,
+            PreviousStatus = order.Status,
+            NewStatus = status,
+            Description = $"[Manuel düzeltme] {trimmedReason}",
+            ChangedByUserId = adminUserId,
+            ChangedAtUtc = now,
+            CreatedAtUtc = now,
+            UpdatedAtUtc = now,
+        });
+        order.Status = status;
+        order.UpdatedAtUtc = now;
+        order.ConcurrencyToken = Guid.NewGuid();
+        SyncShipmentForOrderStatus(order, status, adminUserId, trimmedReason, now);
+
+        await notificationQueue.EnqueueOrderAsync(order, $"Order{status}", cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        await AuditAsync(adminUserId, "OrderStatusForceChanged", orderId, cancellationToken);
+        return ServiceResult.Success("Order status was force-corrected.");
+    }
+
+    /// <summary>
+    /// Bir siparişi ve ona bağlı her şeyi (kalemler, durum geçmişi, ödemeler/iadeler, kargo,
+    /// fatura, iade talepleri, yorumlar, kupon kullanımları) kalıcı olarak siler. Geri alınamaz —
+    /// yalnızca admin panelindeki, güçlü onay gerektiren "Siparişi Kalıcı Olarak Sil" eyleminden
+    /// çağrılmalı. Stok hareketleri (StockMovement) kasıtlı olarak dokunulmadan bırakılır; onlar
+    /// envanter denetim kaydıdır, siparişin bir parçası değildir.
+    /// </summary>
+    public async Task<ServiceResult> DeleteOrderAsync(Guid adminUserId, Guid orderId, CancellationToken cancellationToken)
+    {
+        var order = await dbContext.Orders
+            .Include(x => x.Items)
+            .Include(x => x.StatusHistory)
+            .Include(x => x.Payments).ThenInclude(p => p.Refunds)
+            .Include(x => x.Shipment).ThenInclude(s => s!.StatusHistory)
+            .Include(x => x.Invoice)
+            .SingleOrDefaultAsync(x => x.Id == orderId, cancellationToken);
+        if (order is null) return ServiceResult.Failure("Order was not found.");
+
+        var orderItemIds = order.Items.Select(x => x.Id).ToList();
+        var reviews = await dbContext.Reviews.IgnoreQueryFilters()
+            .Where(x => orderItemIds.Contains(x.OrderItemId)).ToListAsync(cancellationToken);
+        var returnRequests = await dbContext.ReturnRequests.Include(x => x.Items)
+            .Where(x => x.OrderId == orderId).ToListAsync(cancellationToken);
+        var couponUsages = await dbContext.CouponUsages.Where(x => x.OrderId == orderId).ToListAsync(cancellationToken);
+
+        if (reviews.Count > 0) dbContext.Reviews.RemoveRange(reviews);
+        foreach (var request in returnRequests) dbContext.ReturnItems.RemoveRange(request.Items);
+        if (returnRequests.Count > 0) dbContext.ReturnRequests.RemoveRange(returnRequests);
+        if (couponUsages.Count > 0) dbContext.CouponUsages.RemoveRange(couponUsages);
+        if (order.Invoice is not null) dbContext.Invoices.Remove(order.Invoice);
+        if (order.Shipment is not null)
+        {
+            dbContext.ShipmentStatusHistory.RemoveRange(order.Shipment.StatusHistory);
+            dbContext.Shipments.Remove(order.Shipment);
+        }
+        foreach (var payment in order.Payments)
+        {
+            if (payment.Refunds.Count > 0) dbContext.Refunds.RemoveRange(payment.Refunds);
+        }
+        if (order.Payments.Count > 0) dbContext.Payments.RemoveRange(order.Payments);
+        dbContext.OrderStatusHistory.RemoveRange(order.StatusHistory);
+        dbContext.OrderItems.RemoveRange(order.Items);
+        dbContext.Orders.Remove(order);
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        await AuditAsync(adminUserId, "OrderDeleted", orderId, cancellationToken);
+        return ServiceResult.Success("Order was permanently deleted.");
+    }
+
+    private void SyncShipmentForOrderStatus(Order order, OrderStatus status, Guid adminUserId, string description, DateTimeOffset now)
+    {
         var shipmentStatus = status switch
         {
             OrderStatus.Shipped => ShipmentStatus.Shipped,
@@ -278,50 +498,83 @@ public sealed class AdminCommerceService(
             OrderStatus.Cancelled => ShipmentStatus.Cancelled,
             _ => (ShipmentStatus?)null,
         };
-        if (shipmentStatus is not null)
+        if (shipmentStatus is null) return;
+
+        if (order.Shipment is not null && order.Shipment.Status != shipmentStatus)
         {
-            var now = timeProvider.GetUtcNow();
-            if (order.Shipment is not null && order.Shipment.Status != shipmentStatus)
+            dbContext.ShipmentStatusHistory.Add(new ShipmentStatusHistory
             {
-                dbContext.ShipmentStatusHistory.Add(new ShipmentStatusHistory
-                {
-                    ShipmentId = order.Shipment.Id,
-                    Shipment = order.Shipment,
-                    PreviousStatus = order.Shipment.Status,
-                    NewStatus = shipmentStatus.Value,
-                    Description = description,
-                    ChangedByUserId = adminUserId,
-                    CreatedAtUtc = now,
-                    UpdatedAtUtc = now,
-                });
-                order.Shipment.Status = shipmentStatus.Value;
-                order.Shipment.UpdatedAtUtc = now;
-            }
-            order.ShippingStatus = shipmentStatus.Value;
-            if (status == OrderStatus.Shipped) { order.ShippedAtUtc = now; if (order.Shipment is not null) order.Shipment.ShippedAtUtc = now; }
-            if (status == OrderStatus.Delivered) { order.DeliveredAtUtc = now; if (order.Shipment is not null) order.Shipment.DeliveredAtUtc = now; }
+                ShipmentId = order.Shipment.Id,
+                Shipment = order.Shipment,
+                PreviousStatus = order.Shipment.Status,
+                NewStatus = shipmentStatus.Value,
+                Description = description,
+                ChangedByUserId = adminUserId,
+                CreatedAtUtc = now,
+                UpdatedAtUtc = now,
+            });
+            order.Shipment.Status = shipmentStatus.Value;
+            order.Shipment.UpdatedAtUtc = now;
         }
-        await notificationQueue.EnqueueOrderAsync(order, $"Order{status}", cancellationToken);
-        await dbContext.SaveChangesAsync(cancellationToken);
-        await AuditAsync(adminUserId, "OrderStatusChanged", orderId, cancellationToken);
-        return ServiceResult.Success("Order status was updated.");
+        order.ShippingStatus = shipmentStatus.Value;
+        if (status == OrderStatus.Shipped) { order.ShippedAtUtc = now; if (order.Shipment is not null) order.Shipment.ShippedAtUtc = now; }
+        if (status == OrderStatus.Delivered) { order.DeliveredAtUtc = now; if (order.Shipment is not null) order.Shipment.DeliveredAtUtc = now; }
     }
 
     public async Task<ServiceResult> CreateShipmentAsync(Guid adminUserId, AdminShipmentInput input, CancellationToken cancellationToken)
     {
+        var creationLock = ShipmentCreationLocks.GetOrAdd(input.OrderId, static _ => new SemaphoreSlim(1, 1));
+        await creationLock.WaitAsync(cancellationToken);
+        try
+        {
+            return await CreateShipmentCoreAsync(adminUserId, input, cancellationToken);
+        }
+        finally
+        {
+            creationLock.Release();
+        }
+    }
+
+    private async Task<ServiceResult> CreateShipmentCoreAsync(Guid adminUserId, AdminShipmentInput input, CancellationToken cancellationToken)
+    {
         var order = await dbContext.Orders.Include(x => x.Shipment).SingleOrDefaultAsync(x => x.Id == input.OrderId, cancellationToken);
-        if (order is null) return ServiceResult.Failure("Order was not found.");
-        if (order.PaymentStatus != PaymentStatus.Succeeded || order.Status is OrderStatus.PendingPayment or OrderStatus.Cancelled) return ServiceResult.Failure("Order is not ready for shipment.");
+        if (order is null) return ServiceResult.Failure("Sipariş bulunamadı.");
+        if (order.PaymentStatus != PaymentStatus.Succeeded || order.Status is OrderStatus.PendingPayment or OrderStatus.Cancelled)
+            return ServiceResult.Failure("Sipariş kargo oluşturmaya uygun değil.");
+        if (!string.IsNullOrWhiteSpace(order.Shipment?.TrackingNumber))
+            return ServiceResult.Success("Kargo zaten oluşturulmuş.");
+        if (order.Shipment?.Status == ShipmentStatus.Cancelled)
+            return ServiceResult.Failure("İptal edilmiş kargo yeniden oluşturulamaz.");
+
         var provider = shippingProviders.SingleOrDefault(x => x.ProviderName.Equals(_shippingOptions.Provider, StringComparison.OrdinalIgnoreCase));
-        if (provider is null) return ServiceResult.Failure("Shipping provider is not configured.");
-        var result = await provider.CreateShipmentAsync(new ShipmentCreateRequest(order.Id, order.OrderNumber, order.ShippingAddressSnapshot), cancellationToken);
-        if (!result.Succeeded) return ServiceResult.Failure(result.FailureReason ?? "Shipment could not be created.");
+        if (provider is null) return ServiceResult.Failure("Kargo sağlayıcısı yapılandırılmamış.");
+
+        ShipmentCreateResult result;
+        try
+        {
+            result = await provider.CreateShipmentAsync(
+                new ShipmentCreateRequest(order.Id, order.OrderNumber, order.ShippingAddressSnapshot),
+                cancellationToken);
+        }
+        catch (Exception exception) when (exception is HttpRequestException or TimeoutException)
+        {
+            return ServiceResult.Failure("Kargo sağlayıcısına ulaşılamadı. Lütfen yeniden deneyin.");
+        }
+        if (!result.Succeeded || string.IsNullOrWhiteSpace(result.TrackingNumber))
+            return ServiceResult.Failure(result.FailureReason ?? "Kargo sağlayıcısı takip numarası üretmedi.");
+
         var now = timeProvider.GetUtcNow();
         var shipment = order.Shipment ?? new Shipment { Order = order, CreatedAtUtc = now };
         if (order.Shipment is null) dbContext.Shipments.Add(shipment);
         var previousStatus = shipment.Status;
-        shipment.ShippingCompany = _shippingOptions.CompanyName; shipment.TrackingNumber = result.TrackingNumber; shipment.TrackingUrl = result.TrackingUrl;
-        shipment.Status = ShipmentStatus.Created; shipment.EstimatedDeliveryDateUtc = input.EstimatedDeliveryDateUtc?.ToUniversalTime(); shipment.ShippingNote = Truncate(input.Note, 1000); shipment.UpdatedAtUtc = now;
+        shipment.ShippingCompany = _shippingOptions.CompanyName;
+        shipment.TrackingNumber = result.TrackingNumber;
+        shipment.TrackingUrl = result.TrackingUrl;
+        shipment.Status = ShipmentStatus.Created;
+        shipment.EstimatedDeliveryDateUtc = input.EstimatedDeliveryDateUtc?.ToUniversalTime();
+        shipment.ShippingNote = Truncate(input.Note, 1000);
+        shipment.UpdatedAtUtc = now;
+        order.ShippingStatus = ShipmentStatus.Created;
         dbContext.ShipmentStatusHistory.Add(new ShipmentStatusHistory
         {
             Shipment = shipment,
@@ -332,16 +585,31 @@ public sealed class AdminCommerceService(
             CreatedAtUtc = now,
             UpdatedAtUtc = now,
         });
-        order.ShippingStatus = ShipmentStatus.Created;
-        await dbContext.SaveChangesAsync(cancellationToken);
+
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            dbContext.ChangeTracker.Clear();
+            var concurrent = await dbContext.Shipments.AsNoTracking()
+                .SingleOrDefaultAsync(x => x.OrderId == input.OrderId, cancellationToken);
+            return !string.IsNullOrWhiteSpace(concurrent?.TrackingNumber)
+                ? ServiceResult.Success("Kargo zaten oluşturulmuş.")
+                : ServiceResult.Failure("Kargo aynı anda başka bir işlem tarafından güncellendi. Lütfen yeniden deneyin.");
+        }
+
         await AuditAsync(adminUserId, "ShipmentCreated", order.Id, cancellationToken);
-        return ServiceResult.Success("Shipment was created.");
+        return ServiceResult.Success("Kargo oluşturuldu.");
     }
 
     public async Task<ServiceResult> TrackShipmentAsync(Guid adminUserId, Guid orderId, CancellationToken cancellationToken)
     {
         var shipment = await dbContext.Shipments.Include(x => x.Order).SingleOrDefaultAsync(x => x.OrderId == orderId, cancellationToken);
-        if (shipment?.TrackingNumber is null) return ServiceResult.Failure("Shipment was not found.");
+        if (shipment is null) return ServiceResult.Failure("Kargo kaydı bulunamadı.");
+        if (string.IsNullOrWhiteSpace(shipment.TrackingNumber))
+            return ServiceResult.Failure("Kargo henüz oluşturulmadı; önce Kargo oluştur işlemini tamamlayın.");
         var provider = ResolveShippingProvider();
         var result = await provider.TrackAsync(shipment.TrackingNumber, cancellationToken);
         if (!result.Succeeded) return ServiceResult.Failure(result.Description ?? "Shipment could not be tracked.");
@@ -368,13 +636,15 @@ public sealed class AdminCommerceService(
         }
         await dbContext.SaveChangesAsync(cancellationToken);
         await AuditAsync(adminUserId, "ShipmentTracked", orderId, cancellationToken);
-        return ServiceResult.Success(result.Description ?? "Shipment status was updated.");
+        return ServiceResult.Success(!string.IsNullOrWhiteSpace(result.Description) ? result.Description : "Kargo takip durumu güncellendi.");
     }
 
     public async Task<ServiceResult> CancelShipmentAsync(Guid adminUserId, Guid orderId, CancellationToken cancellationToken)
     {
         var shipment = await dbContext.Shipments.Include(x => x.Order).SingleOrDefaultAsync(x => x.OrderId == orderId, cancellationToken);
-        if (shipment?.TrackingNumber is null) return ServiceResult.Failure("Shipment was not found.");
+        if (shipment is null) return ServiceResult.Failure("Kargo kaydı bulunamadı.");
+        if (string.IsNullOrWhiteSpace(shipment.TrackingNumber))
+            return ServiceResult.Failure("Kargo henüz oluşturulmadı; önce Kargo oluştur işlemini tamamlayın.");
         if (shipment.Status is ShipmentStatus.Shipped or ShipmentStatus.OutForDelivery or ShipmentStatus.Delivered or ShipmentStatus.Cancelled)
             return ServiceResult.Failure("Shipment can no longer be cancelled.");
         var result = await ResolveShippingProvider().CancelAsync(shipment.TrackingNumber, cancellationToken);
@@ -452,6 +722,26 @@ public sealed class AdminCommerceService(
             throw new CommerceRuleException("Bu kupon kodu zaten kullanılıyor. Farklı bir kod girin.");
         }
         await AuditAsync(adminUserId, "CouponSaved", entity.Id, cancellationToken); return entity.Id;
+    }
+
+    public async Task<ServiceResult> SetCampaignActiveAsync(Guid adminUserId, Guid campaignId, bool isActive, CancellationToken cancellationToken)
+    {
+        var campaign = await dbContext.Campaigns.SingleOrDefaultAsync(x => x.Id == campaignId, cancellationToken);
+        if (campaign is null) return ServiceResult.Failure("Campaign was not found.");
+        campaign.IsActive = isActive; campaign.UpdatedAtUtc = timeProvider.GetUtcNow();
+        await dbContext.SaveChangesAsync(cancellationToken);
+        await AuditAsync(adminUserId, "CampaignActiveStatusChanged", campaignId, cancellationToken);
+        return ServiceResult.Success(isActive ? "Campaign activated." : "Campaign deactivated.");
+    }
+
+    public async Task<ServiceResult> SetCouponActiveAsync(Guid adminUserId, Guid couponId, bool isActive, CancellationToken cancellationToken)
+    {
+        var coupon = await dbContext.Coupons.SingleOrDefaultAsync(x => x.Id == couponId, cancellationToken);
+        if (coupon is null) return ServiceResult.Failure("Coupon was not found.");
+        coupon.IsActive = isActive; coupon.UpdatedAtUtc = timeProvider.GetUtcNow();
+        await dbContext.SaveChangesAsync(cancellationToken);
+        await AuditAsync(adminUserId, "CouponActiveStatusChanged", couponId, cancellationToken);
+        return ServiceResult.Success(isActive ? "Coupon activated." : "Coupon deactivated.");
     }
 
     public async Task<ServiceResult> ModerateReviewAsync(Guid adminUserId, Guid reviewId, ReviewStatus status, string? response, CancellationToken cancellationToken)

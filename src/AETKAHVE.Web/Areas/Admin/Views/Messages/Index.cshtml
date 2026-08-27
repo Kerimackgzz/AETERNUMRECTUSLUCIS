@@ -31,7 +31,7 @@
                             <select data-message-status data-message-id="@message.Id">
                                 @foreach (var status in statuses)
                                 {
-                                    <option value="@status" selected="@(status == message.Status ? "selected" : null)">@status</option>
+                                    <option value="@status" selected="@(status == message.Status ? "selected" : null)">@CommerceStatusDisplay.ContactMessageStatusInfo(status).Label</option>
                                 }
                             </select>
                         </td>

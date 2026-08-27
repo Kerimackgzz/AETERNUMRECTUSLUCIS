@@ -10,6 +10,7 @@
     </p>
     <form class="account-form" asp-action="Register" method="post" novalidate>
         <div asp-validation-summary="ModelOnly" role="alert" class="text-sm"></div>
+        <input asp-for="ReturnUrl" type="hidden" />
         <div class="field">
             <label asp-for="FirstName">Ad</label>
             <input asp-for="FirstName" autocomplete="given-name" placeholder="Adınız" />
@@ -56,13 +57,13 @@
         <aside class="account-existing" aria-label="Mevcut hesap seçenekleri">
             <p>Bu hesap için yeni doğrulama e-postası gönderilmedi. Hesabınıza uygun işlemi seçin.</p>
             <div class="account-existing__links">
-                <a asp-action="Login">Müşteri girişi</a>
+                <a asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl">Müşteri girişi</a>
                 <a asp-action="ForgotPassword">Parolayı sıfırla</a>
             </div>
         </aside>
     }
     <div class="account-form__footer">
-        <a asp-action="Login">Zaten hesabınız var mı? Giriş yapın</a>
-        <a asp-action="ResendConfirmation">Bağlantı gelmedi mi?</a>
+        <a asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl">Zaten hesabınız var mı? Giriş yapın</a>
+        <a asp-action="ResendConfirmation" asp-route-returnUrl="@Model.ReturnUrl">Bağlantı gelmedi mi?</a>
     </div>
 </div>

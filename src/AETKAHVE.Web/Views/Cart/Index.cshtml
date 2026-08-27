@@ -1,4 +1,7 @@
 @using System.Globalization
+@using AETKAHVE.Infrastructure.Options
+@using Microsoft.Extensions.Options
+@inject IOptions<CommerceOptions> CommerceConfiguration
 @model CartPageViewModel
 @{
     ViewData["Title"] = "Sepetim";
@@ -34,6 +37,7 @@
             <div class="cart-lines">
                 @foreach (var line in cart.Items)
                 {
+                    var maximumQuantity = Math.Min(line.AvailableQuantity, CommerceConfiguration.Value.MaximumCartItemQuantity);
                     <article class="surface cart-line" data-cart-line data-item-id="@line.ItemId">
                         <div class="cart-line__image">
                             <img src="@line.ImageUrl" alt="@line.ProductName" />
@@ -49,7 +53,7 @@
                         <div class="cart-line__controls">
                             <div class="qty-stepper">
                                 <button type="button" data-quantity-decrease aria-label="Azalt">−</button>
-                                <input type="number" data-quantity-input min="0" max="@line.AvailableQuantity" value="@line.Quantity" aria-label="Adet" />
+                                <input type="number" data-quantity-input min="0" max="@maximumQuantity" value="@line.Quantity" aria-label="Adet" />
                                 <button type="button" data-quantity-increase aria-label="Artır">+</button>
                             </div>
                             <strong>@line.LineTotal.ToString("N2", currency) ₺</strong>

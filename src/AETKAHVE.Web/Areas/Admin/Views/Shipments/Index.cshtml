@@ -1,4 +1,5 @@
 @using System.Globalization
+@using AETKAHVE.Domain.Commerce
 @model AdminShipmentListViewModel
 @{
     ViewData["Title"] = "Kargo Yönetimi";
@@ -6,15 +7,6 @@
 }
 <h1 class="admin-dashboard__title">Kargo Yönetimi</h1>
 <div data-admin-shipments-page>
-    <div class="surface surface--padded mb-4">
-        <h2 class="text-lg mb-4">Yeni kargo oluştur</h2>
-        <form data-shipment-create-form class="cluster">
-            <input type="text" name="orderId" placeholder="Sipariş ID (GUID)" required class="input-wide" />
-            <input type="text" name="note" placeholder="Not (opsiyonel)" />
-            <button type="submit" class="btn btn--primary btn--sm">Oluştur</button>
-        </form>
-    </div>
-
     @if (Model.Shipments.Items.Count == 0)
     {
         <div class="surface empty-state">
@@ -29,14 +21,38 @@
             <tbody>
                 @foreach (var shipment in Model.Shipments.Items)
                 {
-                    <tr>
+                    var isDraft = shipment.Status == ShipmentStatus.Pending && string.IsNullOrWhiteSpace(shipment.TrackingNumber);
+                    var canTrack = !string.IsNullOrWhiteSpace(shipment.TrackingNumber) &&
+                        shipment.Status is ShipmentStatus.Created or ShipmentStatus.Shipped or ShipmentStatus.OutForDelivery;
+                    var canCancel = !string.IsNullOrWhiteSpace(shipment.TrackingNumber) &&
+                        shipment.Status is ShipmentStatus.Pending or ShipmentStatus.Created;
+                    var shipmentStatusInfo = CommerceStatusDisplay.ShipmentStatusInfo(shipment.Status);
+                    <tr data-shipment-row data-order-id="@shipment.OrderId">
                         <td>@shipment.OrderNumber</td>
-                        <td>@shipment.Status</td>
+                        <td><span class="status-badge" data-status-kind="@shipmentStatusInfo.Kind">@shipmentStatusInfo.Label</span></td>
                         <td>@(shipment.TrackingNumber ?? "—")</td>
                         <td>@shipment.UpdatedAtUtc.ToLocalTime().ToString("d MMM yyyy HH:mm", currency)</td>
                         <td class="cluster">
-                            <button type="button" class="btn btn--ghost btn--sm" data-shipment-track data-order-id="@shipment.OrderId">Takip et</button>
-                            <button type="button" class="btn btn--ghost btn--sm" data-shipment-cancel data-order-id="@shipment.OrderId">İptal</button>
+                            @if (isDraft)
+                            {
+                                <input type="text" data-shipment-note placeholder="Not (opsiyonel)" aria-label="Kargo notu" />
+                                <button type="button" class="btn btn--primary btn--sm" data-shipment-create>Kargo oluştur</button>
+                            }
+                            else
+                            {
+                                @if (canTrack)
+                                {
+                                    <button type="button" class="btn btn--ghost btn--sm" data-shipment-track>Takip et</button>
+                                }
+                                @if (canCancel)
+                                {
+                                    <button type="button" class="btn btn--ghost btn--sm" data-shipment-cancel>İptal</button>
+                                }
+                                @if (!canTrack && !canCancel)
+                                {
+                                    <span class="text-muted">Tamamlandı</span>
+                                }
+                            }
                         </td>
                     </tr>
                 }

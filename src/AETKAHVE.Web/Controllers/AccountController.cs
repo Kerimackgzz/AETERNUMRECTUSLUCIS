@@ -237,13 +237,16 @@ public sealed class AccountController(
 
     [AllowAnonymous]
     [HttpGet("login")]
-    public IActionResult Login(string? returnUrl = null) => View(new LoginViewModel { ReturnUrl = returnUrl });
+    public IActionResult Login(string? returnUrl = null) =>
+        View(new LoginViewModel { ReturnUrl = NormalizeLocalReturnUrl(returnUrl) });
 
     [AllowAnonymous]
     [EnableRateLimiting(SecurityRateLimitPolicies.CustomerLogin)]
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginViewModel model, CancellationToken cancellationToken)
     {
+        model.ReturnUrl = NormalizeLocalReturnUrl(model.ReturnUrl);
+        ModelState.Remove(nameof(model.ReturnUrl));
         if (!ModelState.IsValid)
         {
             return View(model);
@@ -264,13 +267,16 @@ public sealed class AccountController(
 
     [AllowAnonymous]
     [HttpGet("register")]
-    public IActionResult Register() => View(new RegisterViewModel());
+    public IActionResult Register(string? returnUrl = null) =>
+        View(new RegisterViewModel { ReturnUrl = NormalizeLocalReturnUrl(returnUrl) });
 
     [AllowAnonymous]
     [EnableRateLimiting(SecurityRateLimitPolicies.CustomerRegistration)]
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterViewModel model, CancellationToken cancellationToken)
     {
+        model.ReturnUrl = NormalizeLocalReturnUrl(model.ReturnUrl);
+        ModelState.Remove(nameof(model.ReturnUrl));
         if (!ModelState.IsValid)
         {
             return View(model);
@@ -299,11 +305,11 @@ public sealed class AccountController(
 
         if (result.Dispatch is not null)
         {
-            await SendConfirmationAsync(result.Dispatch, cancellationToken);
+            await SendConfirmationAsync(result.Dispatch, model.ReturnUrl, cancellationToken);
         }
 
         TempData["StatusMessage"] = "Bilgileriniz alındı. Üyeliği tamamlamak için e-posta doğrulama bağlantınızı açın.";
-        return RedirectToAction(nameof(Login));
+        return RedirectToAction(nameof(Login), new { returnUrl = model.ReturnUrl });
     }
 
     [AllowAnonymous]
@@ -311,6 +317,7 @@ public sealed class AccountController(
     public async Task<IActionResult> ConfirmEmail(
         Guid registrationId,
         string token,
+        string? returnUrl,
         CancellationToken cancellationToken)
     {
         var validation = await customerRegistrations.ValidateConfirmationAsync(registrationId, token, cancellationToken);
@@ -320,6 +327,7 @@ public sealed class AccountController(
             Token = token ?? string.Empty,
             CanConfirm = validation.CanConfirm,
             MaskedEmail = validation.MaskedEmail,
+            ReturnUrl = NormalizeLocalReturnUrl(returnUrl),
         });
     }
 
@@ -329,6 +337,8 @@ public sealed class AccountController(
         ConfirmEmailViewModel model,
         CancellationToken cancellationToken)
     {
+        var returnUrl = NormalizeLocalReturnUrl(model.ReturnUrl);
+        ModelState.Remove(nameof(model.ReturnUrl));
         var status = await customerRegistrations.CompleteAsync(
             model.RegistrationId,
             model.Token,
@@ -337,7 +347,7 @@ public sealed class AccountController(
         if (status is RegistrationCompletionStatus.Completed or RegistrationCompletionStatus.AlreadyCompleted)
         {
             TempData["StatusMessage"] = "E-posta adresiniz doğrulandı ve üyeliğiniz oluşturuldu.";
-            return RedirectToAction(nameof(Login));
+            return RedirectToAction(nameof(Login), new { returnUrl });
         }
 
         var validation = await customerRegistrations.ValidateConfirmationAsync(
@@ -350,6 +360,7 @@ public sealed class AccountController(
             Token = model.Token,
             CanConfirm = validation.CanConfirm,
             MaskedEmail = validation.MaskedEmail,
+            ReturnUrl = returnUrl,
             StatusMessage = status == RegistrationCompletionStatus.Unavailable
                 ? "Üyelik şu anda tamamlanamıyor. Lütfen daha sonra yeniden deneyin."
                 : "Doğrulama bağlantısı geçersiz, kullanılmış veya süresi dolmuş.",
@@ -358,7 +369,8 @@ public sealed class AccountController(
 
     [AllowAnonymous]
     [HttpGet("resend-confirmation")]
-    public IActionResult ResendConfirmation() => View(new ResendConfirmationViewModel());
+    public IActionResult ResendConfirmation(string? returnUrl = null) =>
+        View(new ResendConfirmationViewModel { ReturnUrl = NormalizeLocalReturnUrl(returnUrl) });
 
     [AllowAnonymous]
     [EnableRateLimiting(SecurityRateLimitPolicies.PasswordRecovery)]
@@ -367,6 +379,8 @@ public sealed class AccountController(
         ResendConfirmationViewModel model,
         CancellationToken cancellationToken)
     {
+        model.ReturnUrl = NormalizeLocalReturnUrl(model.ReturnUrl);
+        ModelState.Remove(nameof(model.ReturnUrl));
         if (!ModelState.IsValid)
         {
             return View(model);
@@ -375,11 +389,11 @@ public sealed class AccountController(
         var dispatch = await customerRegistrations.ResendAsync(model.Email, cancellationToken);
         if (dispatch is not null)
         {
-            await SendConfirmationAsync(dispatch, cancellationToken);
+            await SendConfirmationAsync(dispatch, model.ReturnUrl, cancellationToken);
         }
 
         TempData["StatusMessage"] = "Hesap uygunsa yeni doğrulama bağlantısı gönderildi.";
-        return RedirectToAction(nameof(Login));
+        return RedirectToAction(nameof(Login), new { returnUrl = model.ReturnUrl });
     }
 
     [AllowAnonymous]
@@ -481,12 +495,14 @@ public sealed class AccountController(
 
     private async Task SendConfirmationAsync(
         RegistrationDispatch dispatch,
+        string? returnUrl,
         CancellationToken cancellationToken)
     {
+        returnUrl = NormalizeLocalReturnUrl(returnUrl);
         var callback = Url.Action(
             nameof(ConfirmEmail),
             "Account",
-            new { registrationId = dispatch.RegistrationId, token = dispatch.Token },
+            new { registrationId = dispatch.RegistrationId, token = dispatch.Token, returnUrl },
             Request.Scheme)!;
         await messageSender.SendAsync(
             new IdentityMessage(
@@ -500,6 +516,11 @@ public sealed class AccountController(
         !string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl)
             ? LocalRedirect(returnUrl)
             : LocalRedirect(fallback);
+
+    private string? NormalizeLocalReturnUrl(string? returnUrl) =>
+        !string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl)
+            ? returnUrl
+            : null;
 
     private IActionResult RedirectToAccountFragment(string fragment) =>
         Redirect($"{Url.Action(nameof(Index), "Account")}#{fragment}");

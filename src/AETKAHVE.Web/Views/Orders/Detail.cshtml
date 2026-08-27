@@ -49,7 +49,7 @@
 
     @if (order.Summary.Status is OrderStatus.Delivered or OrderStatus.ReturnRequested)
     {
-        <section class="order-actions" data-order-actions aria-labelledby="order-actions-title">
+        <section id="return-request" class="order-actions" data-order-actions aria-labelledby="order-actions-title">
             <h2 id="order-actions-title" class="text-lg">Ürün işlemleri</h2>
             @foreach (var item in order.Items)
             {

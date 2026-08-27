@@ -219,6 +219,23 @@ th {
   color: var(--color-info);
 }
 
+/* Aktif/pasif rozeti tıklanabilir bir <button> olarak kullanıldığında (ör. admin
+   kampanya/kupon listeleri) tarayıcı varsayılan buton görünümünü sıfırlar. */
+button.status-badge {
+  background: none;
+  cursor: pointer;
+  transition: opacity var(--duration-fast) var(--ease-standard);
+}
+
+button.status-badge:hover:not(:disabled) {
+  opacity: 0.75;
+}
+
+button.status-badge:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
 /* Boş durum — tüm alanlarda (public/account/admin) ortak. */
 .empty-state {
   padding: var(--space-16) var(--space-6);

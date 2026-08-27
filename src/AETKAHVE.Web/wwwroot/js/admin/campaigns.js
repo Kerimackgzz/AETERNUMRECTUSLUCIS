@@ -61,9 +61,27 @@ function buildPayload(form) {
   };
 }
 
+function initActiveToggle(root) {
+  root.querySelectorAll("[data-toggle-campaign-active]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const id = button.getAttribute("data-toggle-campaign-active");
+      const nextActive = button.getAttribute("data-active") !== "true";
+      button.disabled = true;
+      const { ok, data } = await postCommerce(`/admin/campaigns/${id}/active?isActive=${nextActive}`);
+      if (ok) {
+        window.location.reload();
+        return;
+      }
+      showToast(commerceErrorMessage(data, "Kampanya durumu güncellenemedi."), "error");
+      button.disabled = false;
+    });
+  });
+}
+
 function init() {
   const root = document.querySelector("[data-admin-campaigns-page]");
   if (!root) return;
+  initActiveToggle(root);
   const form = root.querySelector("[data-campaign-form]");
   if (!form) return;
 

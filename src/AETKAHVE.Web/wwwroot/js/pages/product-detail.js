@@ -3,6 +3,21 @@
 
 import { addToCart, toggleFavorite } from "/js/components/product-card-actions.js";
 
+function updateQuantityLimit(root, availableQuantity) {
+  const input = root.querySelector("[data-quantity-stepper] input");
+  if (!input) return 0;
+
+  const configuredMaximum = Number(root.getAttribute("data-maximum-cart-quantity") || "1");
+  const available = Number.isFinite(availableQuantity) ? Math.max(0, availableQuantity) : 0;
+  const maximum = Math.max(0, Math.min(available, configuredMaximum));
+  input.max = String(maximum);
+  input.disabled = maximum <= 0;
+  input.value = maximum <= 0
+    ? "0"
+    : String(Math.max(1, Math.min(maximum, Number(input.value || "1"))));
+  return maximum;
+}
+
 function initGallery(root) {
   const main = root.querySelector("[data-detail-main-image]");
   const thumbs = root.querySelectorAll("[data-detail-thumb]");
@@ -41,7 +56,8 @@ function initVariants(root) {
         }
       }
       const available = Number(chip.getAttribute("data-available-quantity") || "0");
-      if (addBtn) addBtn.disabled = available <= 0;
+      const maximum = updateQuantityLimit(root, available);
+      if (addBtn) addBtn.disabled = maximum <= 0;
     });
   });
 }
@@ -50,11 +66,17 @@ function initQuantity(root) {
   const stepper = root.querySelector("[data-quantity-stepper]");
   if (!stepper) return;
   const input = stepper.querySelector("input");
+  if (!input) return;
   stepper.querySelector("[data-quantity-decrease]")?.addEventListener("click", () => {
     input.value = String(Math.max(1, Number(input.value || "1") - 1));
   });
   stepper.querySelector("[data-quantity-increase]")?.addEventListener("click", () => {
-    input.value = String(Math.min(99, Number(input.value || "1") + 1));
+    const maximum = Number(input.max || "1");
+    input.value = String(Math.min(maximum, Number(input.value || "1") + 1));
+  });
+  input.addEventListener("change", () => {
+    const maximum = Number(input.max || "1");
+    input.value = String(Math.max(1, Math.min(maximum, Number(input.value || "1"))));
   });
 }
 

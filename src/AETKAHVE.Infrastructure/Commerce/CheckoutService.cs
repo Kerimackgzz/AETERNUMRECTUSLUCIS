@@ -19,10 +19,12 @@ public sealed class CheckoutService(
     INotificationQueue notificationQueue,
     IOptions<PaymentOptions> paymentOptions,
     IOptions<InvoiceOptions> invoiceOptions,
+    IOptions<CommerceOptions> commerceOptions,
     TimeProvider timeProvider) : ICheckoutService
 {
     private readonly PaymentOptions _paymentOptions = paymentOptions.Value;
     private readonly InvoiceOptions _invoiceOptions = invoiceOptions.Value;
+    private readonly CommerceOptions _commerceOptions = commerceOptions.Value;
 
     public async Task<CheckoutInitializationResult> InitializeAsync(CheckoutRequest request, string callbackUrl, CancellationToken cancellationToken)
     {
@@ -40,6 +42,22 @@ public sealed class CheckoutService(
             .Include(x => x.Items).ThenInclude(x => x.ProductVariant)
             .SingleOrDefaultAsync(x => x.Id == request.CartId && x.UserId == request.UserId, cancellationToken)
             ?? throw new CommerceRuleException("Cart was not found.");
+        var invalidLine = cart.Items.FirstOrDefault(item =>
+            !item.Product.IsActive ||
+            item.Product.DeletedAtUtc is not null ||
+            (item.ProductVariantId is not null &&
+             (item.ProductVariant is null ||
+              !item.ProductVariant.IsActive ||
+              item.ProductVariant.DeletedAtUtc is not null ||
+              item.ProductVariant.ProductId != item.ProductId)) ||
+            item.Quantity <= 0 ||
+            item.Quantity > _commerceOptions.MaximumCartItemQuantity ||
+            item.Quantity > (item.ProductVariant?.StockQuantity ?? item.Product.StockQuantity));
+        if (invalidLine is not null)
+        {
+            throw new CommerceRuleException("Sepetinizde stok veya satış durumu değişen bir ürün var. Lütfen sepetinizi yeniden gözden geçirin.");
+        }
+
         var summary = await discountEngine.PriceAsync(cart, request.UserId, cancellationToken);
         if (summary.Items.Count == 0) throw new CommerceRuleException("Cart is empty.");
         if (summary.Warnings.Count > 0) throw new CommerceRuleException(summary.Warnings[0]);

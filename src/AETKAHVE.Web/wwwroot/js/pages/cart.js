@@ -5,16 +5,59 @@
 import { postCommerce } from "/js/core/commerce-api.js";
 import { showToast } from "/js/components/toast.js";
 
+const inFlightLines = new WeakSet();
+const previousControlStates = new WeakMap();
+
 async function mutate(url, body, button) {
   if (button) button.disabled = true;
-  const { ok, data } = await postCommerce(url, body);
-  if (!ok) {
-    showToast(data?.message || "İşlem başarısız.", "error");
+  try {
+    const { ok, data } = await postCommerce(url, body);
+    if (!ok) {
+      showToast(data?.message || "İşlem başarısız.", "error");
+      if (button) button.disabled = false;
+      return false;
+    }
+    window.location.reload();
+    return true;
+  } catch (error) {
+    if (error?.message !== "unauthenticated") {
+      showToast("İşlem sırasında bağlantı hatası oluştu.", "error");
+    }
     if (button) button.disabled = false;
     return false;
   }
-  window.location.reload();
-  return true;
+}
+
+function setLineLocked(line, locked) {
+  if (locked) {
+    const states = new Map();
+    line.querySelectorAll("button, input, select, textarea").forEach((control) => {
+      states.set(control, control.disabled);
+      control.disabled = true;
+    });
+    previousControlStates.set(line, states);
+    line.setAttribute("aria-busy", "true");
+    return;
+  }
+
+  previousControlStates.get(line)?.forEach((wasDisabled, control) => {
+    control.disabled = wasDisabled;
+  });
+  previousControlStates.delete(line);
+  line.removeAttribute("aria-busy");
+}
+
+async function mutateLine(line, url, body) {
+  if (inFlightLines.has(line)) return false;
+
+  inFlightLines.add(line);
+  setLineLocked(line, true);
+  const succeeded = await mutate(url, body);
+  if (!succeeded) {
+    inFlightLines.delete(line);
+    setLineLocked(line, false);
+  }
+  return succeeded;
 }
 
 function initQuantitySteppers(root) {
@@ -23,9 +66,10 @@ function initQuantitySteppers(root) {
     const input = line.querySelector("[data-quantity-input]");
     const decrease = line.querySelector("[data-quantity-decrease]");
     const increase = line.querySelector("[data-quantity-increase]");
+    const remove = line.querySelector("[data-cart-remove]");
     const available = Number(input?.getAttribute("max") || "99");
 
-    const apply = (quantity) => mutate(`/cart/items/${itemId}/quantity`, { quantity }, increase);
+    const apply = (quantity) => mutateLine(line, `/cart/items/${itemId}/quantity`, { quantity });
 
     decrease?.addEventListener("click", () => {
       const next = Math.max(0, Number(input.value || "1") - 1);
@@ -39,10 +83,9 @@ function initQuantitySteppers(root) {
       const next = Math.max(0, Math.min(available, Number(input.value || "1")));
       apply(next);
     });
-  });
-
-  root.querySelectorAll("[data-cart-remove]").forEach((button) => {
-    button.addEventListener("click", () => mutate(button.getAttribute("data-cart-remove"), undefined, button));
+    remove?.addEventListener("click", () => {
+      mutateLine(line, remove.getAttribute("data-cart-remove"));
+    });
   });
 }
 

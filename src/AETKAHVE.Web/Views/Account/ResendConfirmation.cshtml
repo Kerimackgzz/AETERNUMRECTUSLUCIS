@@ -10,6 +10,7 @@
     </p>
     <form class="account-form" asp-action="ResendConfirmation" method="post" novalidate>
         <div asp-validation-summary="ModelOnly" role="alert" class="text-sm"></div>
+        <input asp-for="ReturnUrl" type="hidden" />
         <div class="field">
             <label asp-for="Email">E-posta</label>
             <input asp-for="Email" type="email" autocomplete="email" placeholder="ornek@eposta.com" />
@@ -21,6 +22,6 @@
         Gönderilen bağlantı üyeliği otomatik olarak etkinleştirmez; son onayı güvenli doğrulama ekranında siz verirsiniz.
     </p>
     <div class="account-form__footer">
-        <a asp-action="Login">Girişe dön</a>
+        <a asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl">Girişe dön</a>
     </div>
 </div>

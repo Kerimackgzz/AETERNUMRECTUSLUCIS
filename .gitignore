@@ -11,5 +11,9 @@ TestResults/
 *.db-wal
 *.nupkg
 artifacts/
+.artifacts/
 **/App_Data/
+
+# Local-only login credentials; never commit this file.
+/Prompts/LOCAL_LOGIN_CREDENTIALS.txt
 

@@ -19,7 +19,14 @@ public sealed class CheckoutController(ICartService cartService, IAddressService
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
         var userId = RequiredUserId;
-        return View(new CheckoutPageViewModel(await cartService.GetAsync(new CartOwner(userId, null), cancellationToken),
+        var cart = await cartService.GetAsync(new CartOwner(userId, null), cancellationToken);
+        if (cart.Warnings.Count > 0)
+        {
+            TempData["InfoMessage"] = string.Join(" ", cart.Warnings);
+            return RedirectToAction(nameof(CartController.Index), "Cart");
+        }
+
+        return View(new CheckoutPageViewModel(cart,
             await addressService.GetAsync(userId, cancellationToken), Guid.NewGuid().ToString("N")));
     }
 
@@ -29,13 +36,34 @@ public sealed class CheckoutController(ICartService cartService, IAddressService
         if (!ModelState.IsValid) return BadRequest(new CommerceMutationResponse(false, "Ödeme bilgileri doğrulanamadı."));
         try
         {
+            var cart = await cartService.GetAsync(new CartOwner(RequiredUserId, null), cancellationToken);
+            if (cart.Warnings.Count > 0)
+            {
+                return Conflict(new CommerceMutationResponse(
+                    false,
+                    string.Join(" ", cart.Warnings),
+                    Data: new { cartReviewRequired = true, redirectUrl = Url.Action(nameof(CartController.Index), "Cart") }));
+            }
+
             var callback = Url.Action(nameof(PaymentsController.Callback), "Payments", new { provider = paymentOptions.Value.Provider }, Request.Scheme)
                 ?? throw new InvalidOperationException("Payment callback URL could not be generated.");
             var result = await checkoutService.InitializeAsync(new CheckoutRequest(RequiredUserId, input.CartId, input.ShippingAddressId,
                 input.BillingAddressId, input.IdempotencyKey, input.CustomerNote, input.PaymentScenario), callback, cancellationToken);
             return Ok(new CommerceMutationResponse(true, "Ödeme başlatıldı.", Data: result));
         }
-        catch (CommerceRuleException exception) { return Conflict(new CommerceMutationResponse(false, exception.Message)); }
+        catch (CommerceRuleException exception)
+        {
+            var refreshedCart = await cartService.GetAsync(new CartOwner(RequiredUserId, null), cancellationToken);
+            if (refreshedCart.Warnings.Count > 0)
+            {
+                return Conflict(new CommerceMutationResponse(
+                    false,
+                    string.Join(" ", refreshedCart.Warnings),
+                    Data: new { cartReviewRequired = true, redirectUrl = Url.Action(nameof(CartController.Index), "Cart") }));
+            }
+
+            return Conflict(new CommerceMutationResponse(false, exception.Message));
+        }
     }
 }
 

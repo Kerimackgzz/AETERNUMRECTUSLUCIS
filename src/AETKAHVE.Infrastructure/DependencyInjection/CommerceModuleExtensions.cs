@@ -38,6 +38,7 @@ public static class CommerceModuleExtensions
         services.AddOptions<SmtpOptions>().Bind(configuration.GetSection(SmtpOptions.SectionName)).ValidateDataAnnotations().ValidateOnStart();
 
         services.AddScoped<ICatalogQueryService, CatalogQueryService>();
+        services.AddSingleton<DevelopmentDemoReviewProvider>();
         services.AddScoped<IDiscountEngine, DiscountEngine>();
         services.AddScoped<ICartService, CartService>();
         services.AddScoped<IFavoriteService, FavoriteService>();

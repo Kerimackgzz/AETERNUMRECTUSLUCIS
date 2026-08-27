@@ -47,6 +47,8 @@ public sealed class RegisterViewModel
 
     [Range(typeof(bool), "true", "true", ErrorMessage = "Gizlilik koşullarını kabul etmelisiniz.")]
     public bool AcceptPrivacyTerms { get; set; }
+
+    public string? ReturnUrl { get; set; }
 }
 
 public sealed class ForgotPasswordViewModel
@@ -61,6 +63,8 @@ public sealed class ResendConfirmationViewModel
     [Required(ErrorMessage = "E-posta zorunludur.")]
     [EmailAddress(ErrorMessage = "Geçerli bir e-posta girin.")]
     public string Email { get; set; } = string.Empty;
+
+    public string? ReturnUrl { get; set; }
 }
 
 public sealed class ResetPasswordViewModel

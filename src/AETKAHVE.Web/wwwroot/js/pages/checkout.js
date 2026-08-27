@@ -32,6 +32,10 @@ function init() {
 
     if (!ok || !data?.data) {
       showToast(data?.message || "Ödeme başlatılamadı.", "error");
+      if (data?.data?.cartReviewRequired && data.data.redirectUrl) {
+        window.location.assign(data.data.redirectUrl);
+        return;
+      }
       submitBtn.disabled = false;
       return;
     }

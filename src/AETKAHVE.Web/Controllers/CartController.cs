@@ -1,19 +1,19 @@
 using AETKAHVE.Application.Commerce;
+using AETKAHVE.Application.Security;
 using AETKAHVE.Domain.Common;
 using AETKAHVE.Web.Infrastructure;
-using AETKAHVE.Infrastructure.Options;
 using AETKAHVE.Web.Models;
-using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 
 namespace AETKAHVE.Web.Controllers;
 
+[AllowAnonymous]
 [Route("cart")]
-public sealed class CartController(ICartService cartService, IDataProtectionProvider dataProtectionProvider, IOptions<CommerceOptions> commerceOptions) : CommerceControllerBase
+public sealed class CartController(
+    ICartService cartService,
+    GuestCartCookieManager guestCartCookieManager) : CommerceControllerBase
 {
-    private readonly IDataProtector _protector = dataProtectionProvider.CreateProtector(GuestCartMergeFilter.ProtectorPurpose);
-
     [HttpGet]
     public async Task<IActionResult> Index(CancellationToken cancellationToken) => View(new CartPageViewModel(await cartService.GetAsync(await ResolveOwnerAsync(cancellationToken), cancellationToken)));
 
@@ -51,35 +51,26 @@ public sealed class CartController(ICartService cartService, IDataProtectionProv
 
     private async Task<CartOwner> ResolveOwnerAsync(CancellationToken cancellationToken)
     {
-        Guid? guestToken = null;
-        if (!HttpContext.Items.ContainsKey(GuestCartMergeFilter.MergedItemKey) && Request.Cookies.TryGetValue(GuestCartMergeFilter.CookieName, out var protectedToken))
+        if (User.TryGetCustomerId(out var userId))
         {
-            if (protectedToken.Length <= 2048)
+            if (!HttpContext.Items.ContainsKey(GuestCartMergeFilter.MergedItemKey) &&
+                guestCartCookieManager.HasCookie(Request))
             {
-                try { guestToken = Guid.Parse(_protector.Unprotect(protectedToken)); }
-                catch (Exception) { guestToken = null; }
-            }
-        }
+                if (guestCartCookieManager.TryRead(Request, out var token))
+                {
+                    await cartService.MergeGuestCartAsync(userId, token, cancellationToken);
+                }
 
-        if (CurrentUserId is Guid userId)
-        {
-            if (guestToken is not null)
-            {
-                await cartService.MergeGuestCartAsync(userId, guestToken.Value, cancellationToken);
-                Response.Cookies.Delete(GuestCartMergeFilter.CookieName);
+                guestCartCookieManager.Delete(HttpContext);
             }
+
             return new CartOwner(userId, null);
         }
 
-        guestToken ??= Guid.NewGuid();
-        Response.Cookies.Append(GuestCartMergeFilter.CookieName, _protector.Protect(guestToken.Value.ToString("D")), new CookieOptions
-        {
-            HttpOnly = true,
-            IsEssential = true,
-            SameSite = SameSiteMode.Lax,
-            Secure = Request.IsHttps,
-            MaxAge = TimeSpan.FromDays(commerceOptions.Value.GuestCartLifetimeDays),
-        });
+        var guestToken = guestCartCookieManager.TryRead(Request, out var existingToken)
+            ? existingToken
+            : Guid.NewGuid();
+        guestCartCookieManager.Issue(HttpContext, guestToken);
         return new CartOwner(null, guestToken);
     }
 }

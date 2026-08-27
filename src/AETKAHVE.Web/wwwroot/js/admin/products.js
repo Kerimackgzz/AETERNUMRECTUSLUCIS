@@ -86,10 +86,31 @@ function initCreateForm(root) {
   });
 }
 
+function initActiveToggle(root) {
+  root.querySelectorAll("[data-toggle-product-active]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const id = button.getAttribute("data-toggle-product-active");
+      const nextActive = button.getAttribute("data-active") !== "true";
+      if (!nextActive && !window.confirm("Bu ürünü mağazadan kaldırmak (pasif etmek) istediğinize emin misiniz? İstediğiniz zaman tekrar aktif edebilirsiniz.")) {
+        return;
+      }
+      button.disabled = true;
+      const { ok, data } = await postCommerce(`/admin/products/${id}/active?isActive=${nextActive}`);
+      if (ok) {
+        window.location.reload();
+        return;
+      }
+      showToast(commerceErrorMessage(data, "Ürün durumu güncellenemedi."), "error");
+      button.disabled = false;
+    });
+  });
+}
+
 function init() {
   const root = document.querySelector("[data-admin-products-page]");
   if (!root) return;
   initCreateForm(root);
+  initActiveToggle(root);
   root.querySelectorAll("[data-stock-adjust]").forEach((button) => {
     button.addEventListener("click", async () => {
       const delta = Number(button.getAttribute("data-stock-adjust"));
@@ -98,11 +119,18 @@ function init() {
       const actionButtons = actions ? [...actions.querySelectorAll("[data-stock-adjust]")] : [button];
       actionButtons.forEach((actionButton) => { actionButton.disabled = true; });
       actions?.setAttribute("aria-busy", "true");
-      const { ok, data } = await postCommerce(`/admin/products/${productId}/stock?delta=${delta}`);
-      if (ok) {
-        window.location.reload();
-      } else {
+      try {
+        const { ok, data } = await postCommerce(`/admin/products/${productId}/stock?delta=${delta}`);
+        if (ok) {
+          window.location.reload();
+          return;
+        }
         showToast(commerceErrorMessage(data, "Stok güncellenemedi."), "error");
+      } catch (error) {
+        if (error?.message !== "unauthenticated") {
+          showToast(error instanceof Error ? error.message : "Stok güncellenemedi.", "error");
+        }
+      } finally {
         actionButtons.forEach((actionButton) => { actionButton.disabled = false; });
         actions?.removeAttribute("aria-busy");
       }

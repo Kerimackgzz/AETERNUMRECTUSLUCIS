@@ -46,6 +46,13 @@ public sealed record ProductVariantDetails(
     decimal? OriginalPrice,
     int AvailableQuantity);
 
+public sealed record ProductReviewDetails(
+    string ReviewerName,
+    int Rating,
+    string Comment,
+    DateTimeOffset CreatedAtUtc,
+    bool IsDemo);
+
 public sealed record ProductDetails(
     Guid Id,
     string Name,
@@ -67,6 +74,7 @@ public sealed record ProductDetails(
     IReadOnlyList<ProductVariantDetails> Variants,
     decimal AverageRating,
     int ReviewCount,
+    IReadOnlyList<ProductReviewDetails> Reviews,
     bool IsFavorite);
 
 public readonly record struct CartOwner(Guid? UserId, Guid? GuestToken)
@@ -364,6 +372,27 @@ public sealed record AdminCouponInput(Guid? Id, string Name, string Code, Discou
 public sealed record AdminShipmentInput(Guid OrderId, string? Note, DateTimeOffset? EstimatedDeliveryDateUtc);
 public sealed record AdminInvoiceSummary(Guid Id, string InvoiceNumber, string OrderNumber, decimal GrandTotal, string Currency, DateTimeOffset InvoiceDateUtc);
 public sealed record AdminShipmentSummary(Guid Id, Guid OrderId, string OrderNumber, ShipmentStatus Status, string? TrackingNumber, DateTimeOffset UpdatedAtUtc);
+public sealed record AdminOrderStatusHistoryEntry(OrderStatus PreviousStatus, OrderStatus NewStatus, DateTimeOffset ChangedAtUtc, string Description);
+public sealed record AdminShipmentStatusHistoryEntry(ShipmentStatus PreviousStatus, ShipmentStatus NewStatus, DateTimeOffset ChangedAtUtc, string? Description);
+public sealed record AdminShipmentDetail(
+    string ShippingCompany,
+    string? TrackingNumber,
+    string? TrackingUrl,
+    ShipmentStatus Status,
+    DateTimeOffset? EstimatedDeliveryDateUtc,
+    DateTimeOffset? ShippedAtUtc,
+    DateTimeOffset? DeliveredAtUtc,
+    string? ShippingNote,
+    IReadOnlyList<AdminShipmentStatusHistoryEntry> StatusHistory);
+public sealed record AdminOrderDetail(
+    OrderSummary Summary,
+    IReadOnlyList<OrderLineDetails> Items,
+    string ShippingAddress,
+    string BillingAddress,
+    string? CustomerNote,
+    IReadOnlyList<AdminOrderStatusHistoryEntry> StatusHistory,
+    AdminShipmentDetail? Shipment);
+public sealed record AdminProductSummary(Guid Id, string Name, string Slug, string Sku, string CategoryName, decimal DisplayPrice, int StockQuantity, bool IsActive);
 public sealed record AdminCampaignSummary(Guid Id, string Name, string Slug, DiscountType DiscountType, decimal DiscountValue, bool IsActive, DateTimeOffset StartDateUtc, DateTimeOffset EndDateUtc);
 public sealed record AdminCouponSummary(Guid Id, string Name, string Code, DiscountType DiscountType, decimal DiscountValue, bool IsActive, int ConsumedCount, int? TotalUsageLimit);
 public sealed record AdminReturnSummary(Guid Id, string OrderNumber, Guid UserId, ReturnStatus Status, decimal RefundAmount, DateTimeOffset RequestedAtUtc);

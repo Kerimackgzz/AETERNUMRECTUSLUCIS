@@ -6,8 +6,8 @@ using Microsoft.Extensions.Hosting;
 namespace AETKAHVE.Infrastructure.Persistence;
 
 /// <summary>
-/// Keeps an existing developer database created by EnsureCreated usable when a nullable,
-/// backwards-compatible profile column is introduced. Production schema changes remain
+/// Keeps an existing developer database created by EnsureCreated usable when
+/// backwards-compatible columns are introduced. Production schema changes remain
 /// exclusively migration-driven.
 /// </summary>
 public sealed class DevelopmentSqliteSchemaUpgradeService(
@@ -29,6 +29,12 @@ public sealed class DevelopmentSqliteSchemaUpgradeService(
         {
             await dbContext.Database.ExecuteSqlRawAsync(
                 "ALTER TABLE \"AspNetUsers\" ADD COLUMN \"ProfileImageStorageKey\" TEXT NULL;",
+                cancellationToken);
+        }
+        if (!await HasColumnAsync(connection, "Carts", "ConcurrencyToken", cancellationToken))
+        {
+            await dbContext.Database.ExecuteSqlRawAsync(
+                "ALTER TABLE \"Carts\" ADD COLUMN \"ConcurrencyToken\" TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000';",
                 cancellationToken);
         }
     }

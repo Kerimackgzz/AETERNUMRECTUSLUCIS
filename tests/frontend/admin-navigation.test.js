@@ -32,6 +32,7 @@ test("management navigation covers every commerce module and exposes current pag
   assert.match(navigation, /aria-current=/);
   assert.match(navigation, /User\.IsInRole\(RoleNames\.SuperAdmin\)/);
   assert.match(navigation, /href="\/superadmin\/admins"/);
+  assert.match(navigation, /Model\.ShowCommerce/);
 });
 
 test("mobile management drawer restores focus and isolates background content", () => {

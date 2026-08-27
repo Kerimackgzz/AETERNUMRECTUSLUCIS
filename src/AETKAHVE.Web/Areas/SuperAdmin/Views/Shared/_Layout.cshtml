@@ -55,7 +55,7 @@
     <div class="admin-nav-overlay" data-admin-nav-overlay hidden></div>
     <div class="admin-shell">
         <aside id="management-sidebar" class="admin-sidebar" data-admin-sidebar aria-label="Süper yönetim menüsü">
-            <partial name="_ManagementNavigation" model="@(new ManagementNavigationViewModel("Süper Yönetim", "/superadmin", "/superadmin/security"))" />
+            <partial name="_ManagementNavigation" model="@(new ManagementNavigationViewModel("Süper Yönetim", "/superadmin", "/superadmin/security", ShowAuthorization: true, ShowCommerce: false))" />
         </aside>
         <div class="admin-shell__content" data-admin-nav-content>
             <main id="main-content" class="admin-layout__main">

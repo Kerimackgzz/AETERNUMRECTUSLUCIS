@@ -48,7 +48,20 @@
                         <td>@order.CreatedAtUtc.ToLocalTime().ToString("d MMM yyyy", currency)</td>
                         <td><span class="status-badge" data-status-kind="@status.Kind">@status.Label</span></td>
                         <td>@order.GrandTotal.ToString("N2", currency) ₺</td>
-                        <td><a asp-controller="Orders" asp-action="Detail" asp-route-id="@order.Id" class="btn btn--ghost btn--sm">Detay</a></td>
+                        <td>
+                            <div class="cluster">
+                                <a asp-controller="Orders" asp-action="Detail" asp-route-id="@order.Id" class="btn btn--ghost btn--sm">Detay</a>
+                                @if (order.Status == OrderStatus.Delivered)
+                                {
+                                    <a asp-controller="Orders"
+                                       asp-action="Detail"
+                                       asp-route-id="@order.Id"
+                                       asp-fragment="return-request"
+                                       class="btn btn--outline btn--sm"
+                                       data-order-return-link>İade Et</a>
+                                }
+                            </div>
+                        </td>
                     </tr>
                 }
             </tbody>

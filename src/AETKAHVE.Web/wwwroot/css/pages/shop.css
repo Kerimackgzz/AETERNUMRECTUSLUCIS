@@ -703,3 +703,46 @@
     transition: none;
   }
 }
+
+/* Ürün detayı — yorum kartları (gerçek onaylı + Development demo yorumları). */
+.product-detail__reviews {
+  margin: var(--space-16) 0;
+  padding-top: var(--space-12);
+  border-top: 1px solid var(--color-border);
+}
+
+.product-detail__reviews h2 {
+  margin-bottom: var(--space-6);
+}
+
+.review-card {
+  padding: var(--space-5) 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.review-card:last-child {
+  border-bottom: none;
+}
+
+.review-card__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.review-card__name {
+  font-weight: 650;
+  color: var(--color-ink);
+}
+
+.review-card__stars {
+  color: var(--color-gold-500);
+  letter-spacing: 0.05em;
+}
+
+.review-card__comment {
+  color: var(--color-ink-muted);
+  max-width: 65ch;
+}

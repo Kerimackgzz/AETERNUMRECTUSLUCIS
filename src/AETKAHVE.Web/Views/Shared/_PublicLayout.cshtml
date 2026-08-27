@@ -24,12 +24,14 @@
 <body class="public-layout @(isHomePage ? "public-layout--home" : "public-layout--inner")">
     <a href="#main-content" class="skip-link">İçeriğe geç</a>
     <partial name="_Navbar" />
+    <partial name="_FlashMessages" />
     <partial name="_PageTransitionOverlay" />
     <main id="main-content">
         @RenderBody()
     </main>
     <script type="module" src="~/js/components/navbar-motion.js" asp-append-version="true"></script>
     <script type="module" src="~/js/components/product-card-actions.js" asp-append-version="true"></script>
+    <script type="module" src="~/js/components/flash-messages.js" asp-append-version="true"></script>
     <script type="module" src="~/js/core/page-transition.js" asp-append-version="true"></script>
     @await RenderSectionAsync("PageScripts", required: false)
 </body>

@@ -19,12 +19,13 @@ public sealed class Address : SoftDeletableCommerceEntity
     public bool IsDefaultBilling { get; set; }
 }
 
-public sealed class Cart : CommerceEntity
+public sealed class Cart : CommerceEntity, IConcurrencyTracked
 {
     public Guid? UserId { get; set; }
     public Guid? GuestToken { get; set; }
     public string? CouponCode { get; set; }
     public DateTimeOffset ExpiresAtUtc { get; set; }
+    public Guid ConcurrencyToken { get; set; } = Guid.NewGuid();
     public List<CartItem> Items { get; set; } = [];
 }
 

@@ -33,11 +33,11 @@ public sealed class CatalogController(ICatalogQueryService catalogQueryService) 
 }
 
 [Route("admin/products")]
-public sealed class ProductsController(ICatalogQueryService catalogQueryService, IAdminCommerceService adminService) : AdminCommerceControllerBase
+public sealed class ProductsController(IAdminCommerceService adminService) : AdminCommerceControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> Index([FromQuery] ProductQuery query, CancellationToken cancellationToken) =>
-        View(await catalogQueryService.SearchAsync(query, null, cancellationToken));
+    public async Task<IActionResult> Index([FromQuery] int page, CancellationToken cancellationToken) =>
+        View(await adminService.GetProductsAsync(Math.Max(1, page), 50, cancellationToken));
 
     [HttpPost]
     public async Task<IActionResult> Save([FromBody] AdminProductInput input, CancellationToken cancellationToken)
@@ -56,6 +56,13 @@ public sealed class ProductsController(ICatalogQueryService catalogQueryService,
         var result = await adminService.AdjustStockAsync(AdminUserId, productId, variantId, delta, cancellationToken);
         return result.Succeeded ? Ok(new CommerceMutationResponse(true, result.Message)) : Conflict(new CommerceMutationResponse(false, result.Message));
     }
+
+    [HttpPost("{id:guid}/active")]
+    public async Task<IActionResult> SetActive(Guid id, [FromQuery] bool isActive, CancellationToken cancellationToken)
+    {
+        var result = await adminService.SetProductActiveAsync(AdminUserId, id, isActive, cancellationToken);
+        return result.Succeeded ? Ok(new CommerceMutationResponse(true, result.Message)) : Conflict(new CommerceMutationResponse(false, result.Message));
+    }
 }
 
 [Route("admin/orders")]
@@ -64,10 +71,31 @@ public sealed class OrdersController(IAdminCommerceService adminService) : Admin
     [HttpGet]
     public async Task<IActionResult> Index([FromQuery] int page, CancellationToken cancellationToken) => View(await adminService.GetOrdersAsync(Math.Max(1, page), 50, cancellationToken));
 
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> Detail(Guid id, CancellationToken cancellationToken)
+    {
+        var detail = await adminService.GetOrderDetailAsync(id, cancellationToken);
+        return detail is null ? NotFound() : View(detail);
+    }
+
     [HttpPost("{id:guid}/status")]
     public async Task<IActionResult> Status(Guid id, [FromQuery] OrderStatus status, [FromForm] string description, CancellationToken cancellationToken)
     {
         var result = await adminService.ChangeOrderStatusAsync(AdminUserId, id, status, description, cancellationToken);
+        return result.Succeeded ? Ok(new CommerceMutationResponse(true, result.Message)) : Conflict(new CommerceMutationResponse(false, result.Message));
+    }
+
+    [HttpPost("{id:guid}/force-status")]
+    public async Task<IActionResult> ForceStatus(Guid id, [FromQuery] OrderStatus status, [FromForm] string reason, CancellationToken cancellationToken)
+    {
+        var result = await adminService.ForceSetOrderStatusAsync(AdminUserId, id, status, reason, cancellationToken);
+        return result.Succeeded ? Ok(new CommerceMutationResponse(true, result.Message)) : Conflict(new CommerceMutationResponse(false, result.Message));
+    }
+
+    [HttpPost("{id:guid}/delete")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await adminService.DeleteOrderAsync(AdminUserId, id, cancellationToken);
         return result.Succeeded ? Ok(new CommerceMutationResponse(true, result.Message)) : Conflict(new CommerceMutationResponse(false, result.Message));
     }
 }
@@ -129,6 +157,13 @@ public sealed class CampaignsController(IAdminCommerceService adminService) : Ad
         try { return Ok(new CommerceMutationResponse(true, "Kampanya kaydedildi.", Data: new { id = await adminService.SaveCampaignAsync(AdminUserId, input, cancellationToken) })); }
         catch (CommerceRuleException exception) { return Conflict(new CommerceMutationResponse(false, exception.Message)); }
     }
+
+    [HttpPost("{id:guid}/active")]
+    public async Task<IActionResult> SetActive(Guid id, [FromQuery] bool isActive, CancellationToken cancellationToken)
+    {
+        var result = await adminService.SetCampaignActiveAsync(AdminUserId, id, isActive, cancellationToken);
+        return result.Succeeded ? Ok(new CommerceMutationResponse(true, result.Message)) : Conflict(new CommerceMutationResponse(false, result.Message));
+    }
 }
 
 [Route("admin/coupons")]
@@ -143,6 +178,13 @@ public sealed class CouponsController(IAdminCommerceService adminService) : Admi
     {
         try { return Ok(new CommerceMutationResponse(true, "Kupon kaydedildi.", Data: new { id = await adminService.SaveCouponAsync(AdminUserId, input, cancellationToken) })); }
         catch (CommerceRuleException exception) { return Conflict(new CommerceMutationResponse(false, exception.Message)); }
+    }
+
+    [HttpPost("{id:guid}/active")]
+    public async Task<IActionResult> SetActive(Guid id, [FromQuery] bool isActive, CancellationToken cancellationToken)
+    {
+        var result = await adminService.SetCouponActiveAsync(AdminUserId, id, isActive, cancellationToken);
+        return result.Succeeded ? Ok(new CommerceMutationResponse(true, result.Message)) : Conflict(new CommerceMutationResponse(false, result.Message));
     }
 }
 

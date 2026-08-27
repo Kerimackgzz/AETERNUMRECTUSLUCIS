@@ -5,6 +5,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading.RateLimiting;
 using AETKAHVE.Infrastructure.DependencyInjection;
 using AETKAHVE.Infrastructure.Options;
+using AETKAHVE.Web.Infrastructure;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
@@ -53,6 +54,7 @@ public static class WebSecurityModuleExtensions
 
         ConfigureForwardedHeaders(services, forwardedHeaders);
         ConfigureDataProtection(services, dataProtection, environment);
+        services.AddScoped<GuestCartCookieManager>();
 
         services.AddRateLimiter(options =>
         {

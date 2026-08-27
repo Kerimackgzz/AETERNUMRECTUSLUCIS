@@ -1,14 +1,37 @@
 import { postCommerce } from "/js/core/commerce-api.js";
 import { showToast } from "/js/components/toast.js";
 
+const RETURN_TOAST_KEY = "aetkahve.returns.toast";
+
+function redirectToReturns(url, message) {
+  try {
+    window.sessionStorage.setItem(RETURN_TOAST_KEY, JSON.stringify({ message, kind: "success" }));
+  } catch {
+    // Storage may be unavailable in privacy modes; the redirect must still continue.
+  }
+  window.location.assign(url);
+}
+
 async function submit(form, payload) {
   const button = form.querySelector("[type=submit]");
   button.disabled = true;
-  const { ok, data } = await postCommerce(form.dataset.submitUrl, payload);
-  const message = data?.message || (ok ? "Talebiniz alındı." : "İşlem tamamlanamadı.");
-  showToast(message, ok ? "success" : "error");
-  if (ok) window.location.assign(form.dataset.successUrl);
-  else button.disabled = false;
+  try {
+    const { ok, data } = await postCommerce(form.dataset.submitUrl, payload);
+    const message = data?.message || (ok ? "Talebiniz alındı." : "İşlem tamamlanamadı.");
+    if (ok && form.matches("[data-return-create]")) {
+      redirectToReturns(form.dataset.successUrl, message);
+      return;
+    }
+
+    showToast(message, ok ? "success" : "error");
+    if (ok) window.location.assign(form.dataset.successUrl);
+    else button.disabled = false;
+  } catch (error) {
+    if (error?.message !== "unauthenticated") {
+      showToast("İşlem tamamlanamadı. Lütfen tekrar deneyin.", "error");
+      button.disabled = false;
+    }
+  }
 }
 
 function init() {

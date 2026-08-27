@@ -92,7 +92,7 @@ public static class IdentityAndSecurityModuleExtensions
             .AddPolicyScheme(AuthenticationSchemes.Management, AuthenticationSchemes.Management, options =>
             {
                 options.ForwardDefaultSelector = context =>
-                    context.Request.Cookies.ContainsKey(CookieNames.SuperAdmin)
+                    context.Request.Path.StartsWithSegments($"/{security.SuperAdminRoute}", StringComparison.OrdinalIgnoreCase)
                         ? AuthenticationSchemes.SuperAdmin
                         : AuthenticationSchemes.Admin;
             });
@@ -112,18 +112,21 @@ public static class IdentityAndSecurityModuleExtensions
                 policy.AddAuthenticationSchemes(AuthenticationSchemes.Customer);
                 policy.RequireAuthenticatedUser();
                 policy.RequireRole(RoleNames.Customer);
+                policy.RequireClaim(SecurityClaimTypes.Portal, AuthenticationPortal.Customer.ToString());
             })
             .AddPolicy(AuthorizationPolicies.AdminArea, policy =>
             {
-                policy.AddAuthenticationSchemes(AuthenticationSchemes.Management);
+                policy.AddAuthenticationSchemes(AuthenticationSchemes.Admin);
                 policy.RequireAuthenticatedUser();
-                policy.RequireRole(RoleNames.Admin, RoleNames.SuperAdmin);
+                policy.RequireRole(RoleNames.Admin);
+                policy.RequireClaim(SecurityClaimTypes.Portal, AuthenticationPortal.Admin.ToString());
             })
             .AddPolicy(AuthorizationPolicies.SuperAdminArea, policy =>
             {
                 policy.AddAuthenticationSchemes(AuthenticationSchemes.SuperAdmin);
                 policy.RequireAuthenticatedUser();
                 policy.RequireRole(RoleNames.SuperAdmin);
+                policy.RequireClaim(SecurityClaimTypes.Portal, AuthenticationPortal.SuperAdmin.ToString());
             });
 
         services.AddHttpContextAccessor();

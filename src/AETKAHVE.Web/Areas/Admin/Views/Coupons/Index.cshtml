@@ -50,7 +50,13 @@
                         <td>@coupon.DiscountType</td>
                         <td>@coupon.DiscountValue.ToString("N2", currency)</td>
                         <td>@coupon.ConsumedCount@(coupon.TotalUsageLimit is not null ? $" / {coupon.TotalUsageLimit}" : "")</td>
-                        <td><span class="status-badge" data-status-kind="@(coupon.IsActive ? "success" : "error")">@(coupon.IsActive ? "Aktif" : "Pasif")</span></td>
+                        <td>
+                            <button type="button" class="status-badge" data-status-kind="@(coupon.IsActive ? "success" : "error")"
+                                    data-toggle-coupon-active="@coupon.Id" data-active="@coupon.IsActive.ToString().ToLowerInvariant()"
+                                    aria-label="@(coupon.IsActive ? "Kuponu pasif et" : "Kuponu aktif et")">
+                                @(coupon.IsActive ? "Aktif" : "Pasif")
+                            </button>
+                        </td>
                     </tr>
                 }
             </tbody>

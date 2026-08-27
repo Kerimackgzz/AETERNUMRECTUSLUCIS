@@ -2,6 +2,6 @@
   "name": "aetkahve-frontend-contract-tests",
   "private": true,
   "scripts": {
-    "test:frontend": "node --test tests/frontend/admin-account-management.test.js tests/frontend/admin-commerce-forms.test.js tests/frontend/admin-navigation.test.js tests/frontend/confirm-email-view.test.js tests/frontend/flash-messages.test.js tests/frontend/idle-session.test.js tests/frontend/password-visibility.test.js"
+    "test:frontend": "node --test tests/frontend/admin-account-management.test.js tests/frontend/admin-commerce-forms.test.js tests/frontend/admin-navigation.test.js tests/frontend/confirm-email-view.test.js tests/frontend/flash-messages.test.js tests/frontend/idle-session.test.js tests/frontend/password-visibility.test.js tests/frontend/storefront-cart.test.js"
   }
 }

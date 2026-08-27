@@ -37,7 +37,12 @@ public sealed record AdminReturnListViewModel(PagedResult<AdminReturnSummary> Re
 public sealed record AdminReviewListViewModel(PagedResult<AdminReviewSummary> Reviews);
 public sealed record AdminMessageListViewModel(PagedResult<AdminContactMessageSummary> Messages);
 public sealed record AdminDashboardViewModel(string Title, string PortalLabel, AdminDashboardSummary Summary);
-public sealed record ManagementNavigationViewModel(string PortalLabel, string DashboardPath, string SecurityPath);
+public sealed record ManagementNavigationViewModel(
+    string PortalLabel,
+    string DashboardPath,
+    string SecurityPath,
+    bool ShowAuthorization = false,
+    bool ShowCommerce = true);
 public sealed record CommerceMutationResponse(bool Success, string Message, int? CartItemCount = null, decimal? Subtotal = null, decimal? GrandTotal = null, object? Data = null);
 
 public sealed class AddCartItemInput

@@ -57,9 +57,27 @@ function buildPayload(form) {
   };
 }
 
+function initActiveToggle(root) {
+  root.querySelectorAll("[data-toggle-coupon-active]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const id = button.getAttribute("data-toggle-coupon-active");
+      const nextActive = button.getAttribute("data-active") !== "true";
+      button.disabled = true;
+      const { ok, data } = await postCommerce(`/admin/coupons/${id}/active?isActive=${nextActive}`);
+      if (ok) {
+        window.location.reload();
+        return;
+      }
+      showToast(commerceErrorMessage(data, "Kupon durumu güncellenemedi."), "error");
+      button.disabled = false;
+    });
+  });
+}
+
 function init() {
   const root = document.querySelector("[data-admin-coupons-page]");
   if (!root) return;
+  initActiveToggle(root);
   const form = root.querySelector("[data-coupon-form]");
   if (!form) return;
 

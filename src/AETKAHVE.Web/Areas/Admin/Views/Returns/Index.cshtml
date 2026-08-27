@@ -22,17 +22,18 @@
             <tbody>
                 @foreach (var item in Model.Returns.Items)
                 {
+                    var returnStatusInfo = CommerceStatusDisplay.ReturnStatusInfo(item.Status);
                     <tr>
                         <td>@item.OrderNumber</td>
                         <td>@item.RequestedAtUtc.ToLocalTime().ToString("d MMM yyyy", currency)</td>
-                        <td>@item.Status</td>
+                        <td><span class="status-badge" data-status-kind="@returnStatusInfo.Kind">@returnStatusInfo.Label</span></td>
                         <td>@item.RefundAmount.ToString("N2", currency) ₺</td>
                         <td>
                             <form data-return-status-form data-return-id="@item.Id" class="cluster">
                                 <select name="status">
                                     @foreach (var status in statuses)
                                     {
-                                        <option value="@status" selected="@(status == item.Status ? "selected" : null)">@status</option>
+                                        <option value="@status" selected="@(status == item.Status ? "selected" : null)">@CommerceStatusDisplay.ReturnStatusInfo(status).Label</option>
                                     }
                                 </select>
                                 <label class="text-sm"><input type="checkbox" name="restock" /> Stoğa ekle</label>

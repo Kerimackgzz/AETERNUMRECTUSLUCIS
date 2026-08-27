@@ -30,9 +30,6 @@ public sealed class SessionController(
         }
 
         var user = await userManager.FindByIdAsync(userId.ToString());
-        var portal = User.HasClaim(SecurityClaimTypes.Portal, AuthenticationPortal.SuperAdmin.ToString())
-            ? AuthenticationPortal.SuperAdmin
-            : AuthenticationPortal.Admin;
         if (user is null)
         {
             return Unauthorized();
@@ -41,7 +38,7 @@ public sealed class SessionController(
         var validation = await managementSessions.ValidateAsync(
             sessionId,
             user,
-            portal,
+            AuthenticationPortal.Admin,
             touchActivity,
             cancellationToken);
         return validation.IsValid && validation.Session is not null

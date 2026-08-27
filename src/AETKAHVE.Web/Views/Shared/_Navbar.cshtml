@@ -1,6 +1,12 @@
+@using AETKAHVE.Application.Security
 @{
     var path = Context.Request.Path;
-    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var isCustomer = User.Identity?.IsAuthenticated == true
+        && User.IsInRole(RoleNames.Customer)
+        && string.Equals(
+            User.FindFirst(SecurityClaimTypes.Portal)?.Value,
+            AuthenticationPortal.Customer.ToString(),
+            StringComparison.Ordinal);
 
     string? CurrentWhen(PathString prefix, bool exact = false)
     {
@@ -31,13 +37,14 @@
         <a href="/about" data-navbar-link aria-current="@CurrentWhen(new PathString("/about"), exact: true)">Hikâyemiz</a>
         <a href="/campaigns" data-navbar-link aria-current="@CurrentWhen(new PathString("/campaigns"))">Kampanyalar</a>
         <a href="/contact" data-navbar-link aria-current="@CurrentWhen(new PathString("/contact"), exact: true)">İletişim</a>
-        @if (isAuthenticated)
+        <a asp-controller="Cart" asp-action="Index" data-navbar-link aria-current="@CurrentWhen(new PathString("/cart"))">Sepetim</a>
+        @if (isCustomer)
         {
             <a asp-controller="Account" asp-action="Index" data-navbar-link aria-current="@CurrentWhen(new PathString("/account"))">Hesabım</a>
         }
         else
         {
-            <a asp-controller="Account" asp-action="Login" data-navbar-link aria-current="@CurrentWhen(new PathString("/account"))">Hesap</a>
+            <a asp-controller="Account" asp-action="Login" data-navbar-link aria-current="@CurrentWhen(new PathString("/account"))">Giriş Yap / Hesap Oluştur</a>
         }
     </div>
 </nav>

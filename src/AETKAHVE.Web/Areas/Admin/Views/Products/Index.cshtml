@@ -1,6 +1,6 @@
 @using System.Globalization
 @using AETKAHVE.Application.Commerce
-@model PagedResult<ProductSummary>
+@model PagedResult<AdminProductSummary>
 @{
     ViewData["Title"] = "Ürün Yönetimi";
     var currency = new CultureInfo("tr-TR");
@@ -43,15 +43,26 @@
     {
         <div class="table-scroll" tabindex="0" role="region" aria-label="Ürün yönetimi tablosu">
         <table>
-            <thead><tr><th>Ürün</th><th>Koleksiyon</th><th>Fiyat</th><th>Stokta</th><th>Stok İşlemi</th></tr></thead>
+            <thead><tr><th>Ürün</th><th>Koleksiyon</th><th>Fiyat</th><th>Stok</th><th>Durum</th><th>Stok İşlemi</th></tr></thead>
             <tbody>
                 @foreach (var product in Model.Items)
                 {
                     <tr data-product-row data-product-id="@product.Id">
-                        <td>@product.Name<br /><span class="text-sm text-muted">@product.Slug</span></td>
+                        <td>@product.Name<br /><span class="text-sm text-muted">@product.Slug</span><br /><span class="text-sm text-muted">@product.Id</span></td>
                         <td>@product.CategoryName</td>
                         <td>@product.DisplayPrice.ToString("N2", currency) ₺</td>
-                        <td><span class="status-badge" data-status-kind="@(product.IsInStock ? "success" : "error")">@(product.IsInStock ? "Stokta" : "Tükendi")</span></td>
+                        <td>
+                            <span data-stock-quantity>@product.StockQuantity</span> adet
+                            <br />
+                            <span class="status-badge" data-status-kind="@(product.StockQuantity > 0 ? "success" : "error")">@(product.StockQuantity > 0 ? "Stokta" : "Tükendi")</span>
+                        </td>
+                        <td>
+                            <button type="button" class="status-badge" data-status-kind="@(product.IsActive ? "success" : "error")"
+                                    data-toggle-product-active="@product.Id" data-active="@product.IsActive.ToString().ToLowerInvariant()"
+                                    aria-label="@(product.IsActive ? "Ürünü kaldır (pasif et)" : "Ürünü tekrar yayına al")">
+                                @(product.IsActive ? "Aktif" : "Kaldırıldı")
+                            </button>
+                        </td>
                         <td>
                             <div class="stock-actions" role="group" aria-label="@product.Name stok işlemleri">
                                 <button type="button"

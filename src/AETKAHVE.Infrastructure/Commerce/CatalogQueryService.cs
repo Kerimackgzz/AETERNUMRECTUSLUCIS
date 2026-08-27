@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AETKAHVE.Infrastructure.Commerce;
 
-public sealed class CatalogQueryService(AppDbContext dbContext, TimeProvider timeProvider) : ICatalogQueryService
+public sealed class CatalogQueryService(AppDbContext dbContext, TimeProvider timeProvider, DevelopmentDemoReviewProvider demoReviewProvider) : ICatalogQueryService
 {
     public async Task<PagedResult<ProductSummary>> SearchAsync(ProductQuery query, Guid? userId, CancellationToken cancellationToken)
     {
@@ -65,9 +65,16 @@ public sealed class CatalogQueryService(AppDbContext dbContext, TimeProvider tim
             .SingleOrDefaultAsync(x => x.IsActive && x.Slug == slug, cancellationToken);
         if (product is null) return null;
 
-        var reviews = await dbContext.Reviews.AsNoTracking()
+        var realReviewRows = await dbContext.Reviews.AsNoTracking()
             .Where(x => x.ProductId == product.Id && x.Status == ReviewStatus.Approved)
-            .Select(x => x.Rating).ToListAsync(cancellationToken);
+            .Join(dbContext.Users.AsNoTracking(), r => r.UserId, u => u.Id,
+                (r, u) => new { r.Rating, r.Comment, r.CreatedAtUtc, u.FirstName, u.LastName })
+            .ToListAsync(cancellationToken);
+        var allReviews = realReviewRows
+            .Select(x => new ProductReviewDetails(FormatReviewerName(x.FirstName, x.LastName), x.Rating, x.Comment, x.CreatedAtUtc, false))
+            .Concat(demoReviewProvider.GetForProduct(product.Id, product.Name))
+            .OrderByDescending(x => x.CreatedAtUtc)
+            .ToList();
         var favorite = userId is not null && await dbContext.Favorites.AsNoTracking()
             .AnyAsync(x => x.UserId == userId && x.ProductId == product.Id, cancellationToken);
 
@@ -80,7 +87,7 @@ public sealed class CatalogQueryService(AppDbContext dbContext, TimeProvider tim
             product.Images.OrderBy(x => x.DisplayOrder).Select(x => (ToUrl(x.StorageKey), x.AltText, x.IsPrimary)).ToList(),
             product.Variants.Where(x => x.IsActive).OrderBy(x => x.Weight)
                 .Select(x => new ProductVariantDetails(x.Id, x.Weight, x.Unit, x.Sku, x.CurrentPrice, x.DiscountedPrice is null ? null : x.Price, x.StockQuantity)).ToList(),
-            reviews.Count == 0 ? 0 : Math.Round((decimal)reviews.Average(), 2), reviews.Count, favorite);
+            allReviews.Count == 0 ? 0 : Math.Round((decimal)allReviews.Average(x => x.Rating), 2), allReviews.Count, allReviews.Take(6).ToList(), favorite);
     }
 
     public async Task<IReadOnlyList<ProductSummary>> GetFeaturedAsync(int count, Guid? userId, CancellationToken cancellationToken)
@@ -144,6 +151,13 @@ public sealed class CatalogQueryService(AppDbContext dbContext, TimeProvider tim
             false));
 
     private static string ToUrl(string storageKey) => "/" + storageKey.TrimStart('/');
+
+    private static string FormatReviewerName(string firstName, string lastName)
+    {
+        var first = firstName.Trim();
+        var lastInitial = lastName.Trim();
+        return lastInitial.Length == 0 ? first : $"{first} {lastInitial[0]}.";
+    }
     private static Task<List<CatalogLookupItem>> LookupAsync<T>(DbSet<T> set, CancellationToken cancellationToken) where T : CatalogLookup =>
         set.AsNoTracking().Where(x => x.IsActive).OrderBy(x => x.Name)
             .Select(x => new CatalogLookupItem(x.Id, x.Name, x.Slug)).ToListAsync(cancellationToken);

@@ -57,12 +57,9 @@ public sealed class AuthController(AuthenticationSessionService authenticationSe
     [HttpPost("logout")]
     public async Task<IActionResult> Logout(CancellationToken cancellationToken)
     {
-        var portal = User.HasClaim(SecurityClaimTypes.Portal, AuthenticationPortal.SuperAdmin.ToString())
-            ? AuthenticationPortal.SuperAdmin
-            : AuthenticationPortal.Admin;
-        await authenticationSessions.SignOutAsync(HttpContext, portal, "UserLogout", cancellationToken);
+        await authenticationSessions.SignOutAsync(HttpContext, AuthenticationPortal.Admin, "UserLogout", cancellationToken);
         TempData["StatusMessage"] = "Güvenli çıkış yapıldı.";
-        return LocalRedirect(portal == AuthenticationPortal.SuperAdmin ? "/superadmin/login" : "/admin/login");
+        return LocalRedirect("/admin/login");
     }
 
     [AllowAnonymous]

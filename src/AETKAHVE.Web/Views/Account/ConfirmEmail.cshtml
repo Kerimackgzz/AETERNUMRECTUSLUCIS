@@ -28,6 +28,7 @@
               data-confirm-email-form>
             <input asp-for="RegistrationId" type="hidden" />
             <input asp-for="Token" type="hidden" />
+            <input asp-for="ReturnUrl" type="hidden" />
             <button type="submit" class="btn btn--primary btn--block">Üyeliği tamamla</button>
         </form>
         <p class="account-confirmation__note text-sm text-muted">
@@ -41,11 +42,11 @@
         <p class="account-card__subtitle text-muted">
             Güvenliğiniz için bu bağlantıyla üyelik tamamlanamadı. Yeni bir doğrulama bağlantısı isteyebilirsiniz.
         </p>
-        <a class="btn btn--primary btn--block" asp-action="ResendConfirmation">
+        <a class="btn btn--primary btn--block" asp-action="ResendConfirmation" asp-route-returnUrl="@Model.ReturnUrl">
             Yeni doğrulama bağlantısı iste
         </a>
         <div class="account-form__footer">
-            <a asp-action="Login">Girişe dön</a>
+            <a asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl">Girişe dön</a>
         </div>
     }
 </div>

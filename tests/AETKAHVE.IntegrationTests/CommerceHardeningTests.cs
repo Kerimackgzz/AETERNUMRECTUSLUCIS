@@ -137,6 +137,157 @@ public sealed class CommerceHardeningTests(AeternumWebApplicationFactory factory
     }
 
     [Fact]
+    public async Task Delivered_order_exposes_return_action_and_created_request_is_visible_to_customer_and_admin()
+    {
+        (Guid OrderId, Guid OrderItemId, string OrderNumber) purchase;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var services = scope.ServiceProvider;
+            var user = await GetUserAsync(services, AeternumWebApplicationFactory.CustomerEmail);
+            var created = await CreateDeliveredPurchaseAsync(services, user.Id, 1, includeInvoice: false);
+            var orderNumber = await services.GetRequiredService<AppDbContext>().Orders
+                .Where(x => x.Id == created.OrderId)
+                .Select(x => x.OrderNumber)
+                .SingleAsync();
+            purchase = (created.OrderId, created.OrderItemId, orderNumber);
+        }
+
+        using var customer = factory.CreateClientWithoutRedirects();
+        await LoginAsync(customer, AeternumWebApplicationFactory.CustomerEmail);
+        using (var orders = await customer.GetAsync("/account/orders"))
+        {
+            orders.EnsureSuccessStatusCode();
+            var html = await orders.Content.ReadAsStringAsync();
+            var row = Regex.Matches(html, "<tr>.*?</tr>", RegexOptions.IgnoreCase | RegexOptions.Singleline)
+                .Select(match => match.Value)
+                .Single(value => value.Contains(purchase.OrderNumber, StringComparison.Ordinal));
+            Assert.NotEmpty(row);
+            Assert.Contains("data-order-return-link", row, StringComparison.Ordinal);
+            Assert.Contains($"/account/orders/{purchase.OrderId}#return-request", row, StringComparison.Ordinal);
+        }
+
+        using (var detail = await customer.GetAsync($"/account/orders/{purchase.OrderId}"))
+        {
+            detail.EnsureSuccessStatusCode();
+            var html = await detail.Content.ReadAsStringAsync();
+            Assert.Contains("id=\"return-request\"", html, StringComparison.Ordinal);
+            Assert.Contains("data-return-create", html, StringComparison.Ordinal);
+        }
+
+        var token = await GetAntiforgeryTokenAsync(customer, $"/account/orders/{purchase.OrderId}");
+        var body = new
+        {
+            orderId = purchase.OrderId,
+            reason = "Simple customer return",
+            description = (string?)null,
+            items = new[]
+            {
+                new
+                {
+                    orderItemId = purchase.OrderItemId,
+                    quantity = 1,
+                    reason = "Simple customer return",
+                    condition = 0,
+                    imageStorageKey = (string?)null,
+                },
+            },
+        };
+
+        using (var created = await PostJsonAsync(customer, "/account/returns", token, body))
+            Assert.Equal(HttpStatusCode.OK, created.StatusCode);
+        using (var duplicate = await PostJsonAsync(customer, "/account/returns", token, body))
+            Assert.Equal(HttpStatusCode.Conflict, duplicate.StatusCode);
+
+        using (var returns = await customer.GetAsync("/account/returns"))
+        {
+            returns.EnsureSuccessStatusCode();
+            Assert.Contains(purchase.OrderNumber, await returns.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        }
+
+        using var admin = factory.CreateClientWithoutRedirects();
+        using (var login = await FormClient.LoginAsync(admin, "/admin", AeternumWebApplicationFactory.AdminEmail))
+            Assert.Equal(HttpStatusCode.Redirect, login.StatusCode);
+        using (var returns = await admin.GetAsync("/admin/returns"))
+        {
+            returns.EnsureSuccessStatusCode();
+            Assert.Contains(purchase.OrderNumber, await returns.Content.ReadAsStringAsync(), StringComparison.Ordinal);
+        }
+
+        await using var assertionScope = factory.Services.CreateAsyncScope();
+        var requests = await assertionScope.ServiceProvider.GetRequiredService<AppDbContext>().ReturnRequests
+            .Include(x => x.Items)
+            .Where(x => x.OrderId == purchase.OrderId)
+            .ToListAsync();
+        Assert.Single(requests);
+        Assert.Equal(1, Assert.Single(requests[0].Items).Quantity);
+    }
+
+    [Fact]
+    public async Task Undelivered_and_expired_orders_do_not_allow_customer_returns()
+    {
+        (Guid OrderId, Guid OrderItemId, string OrderNumber) undelivered;
+        (Guid OrderId, Guid OrderItemId) expired;
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            var services = scope.ServiceProvider;
+            var user = await GetUserAsync(services, AeternumWebApplicationFactory.CustomerEmail);
+            var first = await CreateDeliveredPurchaseAsync(services, user.Id, 1, includeInvoice: false);
+            var second = await CreateDeliveredPurchaseAsync(services, user.Id, 1, includeInvoice: false);
+            var db = services.GetRequiredService<AppDbContext>();
+            var undeliveredOrder = await db.Orders.SingleAsync(x => x.Id == first.OrderId);
+            undeliveredOrder.Status = OrderStatus.PaymentReceived;
+            undeliveredOrder.ShippingStatus = ShipmentStatus.Pending;
+            undeliveredOrder.DeliveredAtUtc = null;
+            var expiredOrder = await db.Orders.SingleAsync(x => x.Id == second.OrderId);
+            expiredOrder.DeliveredAtUtc = services.GetRequiredService<TimeProvider>().GetUtcNow().AddDays(-15);
+            await db.SaveChangesAsync();
+            undelivered = (first.OrderId, first.OrderItemId, undeliveredOrder.OrderNumber);
+            expired = (second.OrderId, second.OrderItemId);
+        }
+
+        using var customer = factory.CreateClientWithoutRedirects();
+        await LoginAsync(customer, AeternumWebApplicationFactory.CustomerEmail);
+        using (var detail = await customer.GetAsync($"/account/orders/{undelivered.OrderId}"))
+        {
+            detail.EnsureSuccessStatusCode();
+            var html = await detail.Content.ReadAsStringAsync();
+            Assert.DoesNotContain("id=\"return-request\"", html, StringComparison.Ordinal);
+            Assert.DoesNotContain("data-return-create", html, StringComparison.Ordinal);
+        }
+
+        var token = await GetAntiforgeryTokenAsync(customer, "/account/orders");
+        static object Body(Guid orderId, Guid orderItemId) => new
+        {
+            orderId,
+            reason = "Must be rejected",
+            description = (string?)null,
+            items = new[]
+            {
+                new
+                {
+                    orderItemId,
+                    quantity = 1,
+                    reason = "Must be rejected",
+                    condition = 0,
+                    imageStorageKey = (string?)null,
+                },
+            },
+        };
+
+        using (var response = await PostJsonAsync(customer, "/account/returns", token,
+                   Body(undelivered.OrderId, undelivered.OrderItemId)))
+            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+        using (var response = await PostJsonAsync(customer, "/account/returns", token,
+                   Body(expired.OrderId, expired.OrderItemId)))
+            Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+
+        await using var assertionScope = factory.Services.CreateAsyncScope();
+        var assertionDb = assertionScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.False(await assertionDb.ReturnRequests.AnyAsync(x =>
+            x.OrderId == undelivered.OrderId || x.OrderId == expired.OrderId));
+    }
+
+    [Fact]
     public async Task Malformed_payment_callbacks_return_bad_request_instead_of_server_error()
     {
         using var client = factory.CreateClientWithoutRedirects();

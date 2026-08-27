@@ -22,17 +22,18 @@
             <tbody>
                 @foreach (var review in Model.Reviews.Items)
                 {
+                    var reviewStatusInfo = CommerceStatusDisplay.ReviewStatusInfo(review.Status);
                     <tr>
                         <td>@review.ProductName</td>
                         <td>@review.Rating / 5</td>
                         <td>@review.CreatedAtUtc.ToLocalTime().ToString("d MMM yyyy", currency)</td>
-                        <td>@review.Status</td>
+                        <td><span class="status-badge" data-status-kind="@reviewStatusInfo.Kind">@reviewStatusInfo.Label</span></td>
                         <td>
                             <form data-review-status-form data-review-id="@review.Id" class="cluster">
                                 <select name="status">
                                     @foreach (var status in statuses)
                                     {
-                                        <option value="@status" selected="@(status == review.Status ? "selected" : null)">@status</option>
+                                        <option value="@status" selected="@(status == review.Status ? "selected" : null)">@CommerceStatusDisplay.ReviewStatusInfo(status).Label</option>
                                     }
                                 </select>
                                 <input type="text" name="response" placeholder="Yanıt (opsiyonel)" class="text-sm" />

@@ -1,0 +1,196 @@
+@using System.Globalization
+@using AETKAHVE.Application.Commerce
+@using AETKAHVE.Domain.Commerce
+@model AdminOrderDetail
+@{
+    ViewData["Title"] = Model.Summary.OrderNumber;
+    var currency = new CultureInfo("tr-TR");
+    var orderStatusInfo = CommerceStatusDisplay.OrderStatusInfo(Model.Summary.Status);
+    var paymentStatusInfo = CommerceStatusDisplay.PaymentStatusInfo(Model.Summary.PaymentStatus);
+}
+<h1 class="admin-dashboard__title">Sipariş @Model.Summary.OrderNumber</h1>
+<div data-admin-order-detail-page class="stack">
+    <div class="surface surface--padded">
+        <p class="mb-4"><span class="status-badge" data-status-kind="@orderStatusInfo.Kind">@orderStatusInfo.Label</span></p>
+        <div class="grid-auto">
+            <div>
+                <p class="text-eyebrow">Tarih</p>
+                <p>@Model.Summary.CreatedAtUtc.ToLocalTime().ToString("d MMM yyyy HH:mm", currency)</p>
+            </div>
+            <div>
+                <p class="text-eyebrow">Ödeme Durumu</p>
+                <p><span class="status-badge" data-status-kind="@paymentStatusInfo.Kind">@paymentStatusInfo.Label</span></p>
+            </div>
+            <div>
+                <p class="text-eyebrow">Tutar</p>
+                <p>@Model.Summary.GrandTotal.ToString("N2", currency) ₺</p>
+            </div>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(Model.CustomerNote))
+        {
+            <p class="text-eyebrow mt-4">Müşteri Notu</p>
+            <p class="text-muted">@Model.CustomerNote</p>
+        }
+    </div>
+
+    <div class="surface surface--padded">
+        <h2 class="text-lg mb-4">Sipariş Kalemleri</h2>
+        <div class="table-scroll" tabindex="0" role="region" aria-label="Sipariş kalemleri tablosu">
+        <table>
+            <thead><tr><th>Ürün</th><th>Adet</th><th>Birim Fiyat</th><th>Toplam</th></tr></thead>
+            <tbody>
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>@item.Name<br /><span class="text-sm text-muted">@item.Sku</span></td>
+                        <td>@item.Quantity</td>
+                        <td>@item.UnitPrice.ToString("N2", currency) ₺</td>
+                        <td>@item.Total.ToString("N2", currency) ₺</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        </div>
+    </div>
+
+    <div class="grid-auto">
+        <div class="surface surface--padded">
+            <h2 class="text-lg mb-4">Teslimat Adresi</h2>
+            <p class="text-muted">@Model.ShippingAddress</p>
+        </div>
+        <div class="surface surface--padded">
+            <h2 class="text-lg mb-4">Fatura Adresi</h2>
+            <p class="text-muted">@Model.BillingAddress</p>
+        </div>
+    </div>
+
+    <div class="surface surface--padded">
+        <h2 class="text-lg mb-4">Durum Geçmişi</h2>
+        @if (Model.StatusHistory.Count == 0)
+        {
+            <p class="text-muted">Henüz durum geçmişi yok.</p>
+        }
+        else
+        {
+            <div class="table-scroll" tabindex="0" role="region" aria-label="Sipariş durum geçmişi tablosu">
+            <table>
+                <thead><tr><th>Tarih</th><th>Önceki Durum</th><th>Yeni Durum</th><th>Not</th></tr></thead>
+                <tbody>
+                    @foreach (var entry in Model.StatusHistory)
+                    {
+                        <tr>
+                            <td>@entry.ChangedAtUtc.ToLocalTime().ToString("d MMM yyyy HH:mm", currency)</td>
+                            <td>@CommerceStatusDisplay.OrderStatusInfo(entry.PreviousStatus).Label</td>
+                            <td>@CommerceStatusDisplay.OrderStatusInfo(entry.NewStatus).Label</td>
+                            <td class="text-muted">@(string.IsNullOrWhiteSpace(entry.Description) ? "—" : entry.Description)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            </div>
+        }
+    </div>
+
+    <div class="surface surface--padded">
+        <h2 class="text-lg mb-4">Kargo Bilgisi</h2>
+        @if (Model.Shipment is null)
+        {
+            <p class="text-muted">Bu sipariş için henüz kargo kaydı oluşturulmadı.</p>
+        }
+        else
+        {
+            <div class="grid-auto mb-4">
+                <div>
+                    <p class="text-eyebrow">Kargo Firması</p>
+                    <p>@(string.IsNullOrWhiteSpace(Model.Shipment.ShippingCompany) ? "—" : Model.Shipment.ShippingCompany)</p>
+                </div>
+                <div>
+                    <p class="text-eyebrow">Takip No</p>
+                    <p>
+                        @if (!string.IsNullOrWhiteSpace(Model.Shipment.TrackingUrl))
+                        {
+                            <a href="@Model.Shipment.TrackingUrl" target="_blank" rel="noopener">@(Model.Shipment.TrackingNumber ?? Model.Shipment.TrackingUrl)</a>
+                        }
+                        else
+                        {
+                            @(Model.Shipment.TrackingNumber ?? "—")
+                        }
+                    </p>
+                </div>
+                <div>
+                    <p class="text-eyebrow">Durum</p>
+                    <p><span class="status-badge" data-status-kind="@CommerceStatusDisplay.ShipmentStatusInfo(Model.Shipment.Status).Kind">@CommerceStatusDisplay.ShipmentStatusInfo(Model.Shipment.Status).Label</span></p>
+                </div>
+                <div>
+                    <p class="text-eyebrow">Tahmini Teslimat</p>
+                    <p>@(Model.Shipment.EstimatedDeliveryDateUtc?.ToLocalTime().ToString("d MMM yyyy", currency) ?? "—")</p>
+                </div>
+                <div>
+                    <p class="text-eyebrow">Kargoya Veriliş</p>
+                    <p>@(Model.Shipment.ShippedAtUtc?.ToLocalTime().ToString("d MMM yyyy HH:mm", currency) ?? "—")</p>
+                </div>
+                <div>
+                    <p class="text-eyebrow">Teslim Edilme</p>
+                    <p>@(Model.Shipment.DeliveredAtUtc?.ToLocalTime().ToString("d MMM yyyy HH:mm", currency) ?? "—")</p>
+                </div>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(Model.Shipment.ShippingNote))
+            {
+                <p class="text-eyebrow">Not</p>
+                <p class="text-muted mb-4">@Model.Shipment.ShippingNote</p>
+            }
+
+            @if (Model.Shipment.StatusHistory.Count > 0)
+            {
+                <h3 class="text-base mb-4">Kargo Durum Geçmişi</h3>
+                <div class="table-scroll" tabindex="0" role="region" aria-label="Kargo durum geçmişi tablosu">
+                <table>
+                    <thead><tr><th>Tarih</th><th>Önceki Durum</th><th>Yeni Durum</th><th>Not</th></tr></thead>
+                    <tbody>
+                        @foreach (var entry in Model.Shipment.StatusHistory)
+                        {
+                            <tr>
+                                <td>@entry.ChangedAtUtc.ToLocalTime().ToString("d MMM yyyy HH:mm", currency)</td>
+                                <td>@CommerceStatusDisplay.ShipmentStatusInfo(entry.PreviousStatus).Label</td>
+                                <td>@CommerceStatusDisplay.ShipmentStatusInfo(entry.NewStatus).Label</td>
+                                <td class="text-muted">@(string.IsNullOrWhiteSpace(entry.Description) ? "—" : entry.Description)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                </div>
+            }
+        }
+    </div>
+
+    <div class="surface surface--padded">
+        <details data-order-force-status-panel>
+            <summary class="text-lg">Gelişmiş: Durumu manuel düzelt</summary>
+            <p class="text-muted text-sm mb-4">Normal akışı (sıralı durum geçişlerini) atlayarak durumu doğrudan değiştirir. Sadece hatalı bir geçişi düzeltmek gibi istisnai durumlarda kullanın — sebep zorunludur ve durum geçmişinde "[Manuel düzeltme]" olarak görünür.</p>
+            <form data-order-force-status-form data-order-id="@Model.Summary.Id" class="cluster">
+                <select name="status">
+                    @foreach (var status in Enum.GetValues<OrderStatus>())
+                    {
+                        <option value="@status">@CommerceStatusDisplay.OrderStatusInfo(status).Label</option>
+                    }
+                </select>
+                <input type="text" name="reason" placeholder="Sebep (zorunlu)" required maxlength="500" class="input-wide" />
+                <button type="submit" class="btn btn--outline btn--sm">Zorla Uygula</button>
+            </form>
+        </details>
+    </div>
+
+    <div class="surface surface--padded">
+        <details data-order-delete-panel>
+            <summary class="text-lg">Tehlikeli Bölge: Siparişi kalıcı olarak sil</summary>
+            <p class="text-muted text-sm mb-4">Siparişi ve ona bağlı her şeyi (kalemler, durum/kargo geçmişi, ödeme/iade kayıtları, fatura, yorumlar) veritabanından kalıcı olarak siler. Geri alınamaz — yalnızca test verisi temizliği gibi istisnai durumlarda kullanın.</p>
+            <button type="button" class="btn btn--outline btn--sm" data-order-delete-button data-order-id="@Model.Summary.Id">Siparişi Kalıcı Olarak Sil</button>
+        </details>
+    </div>
+
+    <a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="btn btn--outline">Sipariş Listesine Dön</a>
+</div>
+
+@section PageScripts {
+    <script type="module" src="~/js/admin/order-detail.js" asp-append-version="true"></script>
+}

@@ -33,4 +33,7 @@ public static class OrderStatusRules
 
     public static bool CanTransition(OrderStatus current, OrderStatus next) =>
         AllowedTransitions.TryGetValue(current, out var allowed) && allowed.Contains(next);
+
+    public static IReadOnlyList<OrderStatus> GetAllowedNext(OrderStatus current) =>
+        AllowedTransitions.TryGetValue(current, out var allowed) ? allowed : [];
 }

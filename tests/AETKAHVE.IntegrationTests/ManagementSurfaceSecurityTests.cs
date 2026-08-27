@@ -53,14 +53,16 @@ public sealed class ManagementSurfaceSecurityTests(AeternumWebApplicationFactory
     }
 
     [Fact]
-    public async Task Superadmin_can_use_admin_commerce_pages_but_customer_cannot()
+    public async Task Superadmin_and_customer_cannot_use_admin_commerce_pages()
     {
         using var superAdminClient = factory.CreateClientWithoutRedirects();
         Assert.Equal(HttpStatusCode.Redirect, (await FormClient.LoginAsync(
             superAdminClient,
             "/superadmin",
             AeternumWebApplicationFactory.SuperAdminEmail)).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await superAdminClient.GetAsync("/admin/products")).StatusCode);
+        var superAdminResponse = await superAdminClient.GetAsync("/admin/products");
+        Assert.Equal(HttpStatusCode.Redirect, superAdminResponse.StatusCode);
+        Assert.Equal("/admin/login", superAdminResponse.Headers.Location?.AbsolutePath);
 
         using var customerClient = factory.CreateClientWithoutRedirects();
         Assert.Equal(HttpStatusCode.Redirect, (await FormClient.LoginAsync(

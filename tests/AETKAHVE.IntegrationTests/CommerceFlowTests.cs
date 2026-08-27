@@ -16,6 +16,31 @@ namespace AETKAHVE.IntegrationTests;
 public sealed class CommerceFlowTests(AeternumWebApplicationFactory factory) : IClassFixture<AeternumWebApplicationFactory>
 {
     [Fact]
+    public async Task Admin_stock_adjustment_targets_the_single_active_variant_when_the_page_omits_variant_id()
+    {
+        await using var scope = factory.Services.CreateAsyncScope();
+        var services = scope.ServiceProvider;
+        var admin = await services.GetRequiredService<UserManager<ApplicationUser>>()
+            .FindByEmailAsync(AeternumWebApplicationFactory.AdminEmail)
+            ?? throw new InvalidOperationException("Test admin was not found.");
+        var product = await CreateProductAsync(services, 2);
+
+        var result = await services.GetRequiredService<IAdminCommerceService>()
+            .AdjustStockAsync(admin.Id, product.ProductId, null, -1, default);
+
+        Assert.True(result.Succeeded);
+        var db = services.GetRequiredService<AppDbContext>();
+        db.ChangeTracker.Clear();
+        Assert.Equal(0, (await db.Products.SingleAsync(x => x.Id == product.ProductId)).StockQuantity);
+        Assert.Equal(1, (await db.ProductVariants.SingleAsync(x => x.Id == product.VariantId)).StockQuantity);
+        var movement = await db.StockMovements.AsNoTracking()
+            .SingleAsync(x => x.ProductId == product.ProductId && x.MovementType == StockMovementType.ManualDecrease);
+        Assert.Equal(product.VariantId, movement.ProductVariantId);
+        Assert.Equal(2, movement.PreviousStock);
+        Assert.Equal(1, movement.NewStock);
+    }
+
+    [Fact]
     public async Task Disabled_payment_provider_fails_before_an_order_or_payment_is_persisted()
     {
         await using var scope = factory.Services.CreateAsyncScope();
@@ -41,6 +66,7 @@ public sealed class CommerceFlowTests(AeternumWebApplicationFactory factory) : I
             services.GetRequiredService<INotificationQueue>(),
             Options.Create(new PaymentOptions { Provider = PaymentProviderNames.Disabled }),
             services.GetRequiredService<IOptions<InvoiceOptions>>(),
+            services.GetRequiredService<IOptions<CommerceOptions>>(),
             services.GetRequiredService<TimeProvider>());
 
         await Assert.ThrowsAsync<CommerceRuleException>(() => checkout.InitializeAsync(

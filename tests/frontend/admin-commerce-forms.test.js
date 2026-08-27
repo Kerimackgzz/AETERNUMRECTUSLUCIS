@@ -97,3 +97,25 @@ test("admin form sources preserve drafts, surface API errors and remove empty wa
   assert.match(accountCss, /field-validation-error:empty/);
   assert.doesNotMatch(accountCss, /content:\s*["']⚠/);
 });
+
+test("shipment drafts are created from their row and terminal actions stay hidden", () => {
+  const source = fs.readFileSync(path.join(root, "src/AETKAHVE.Web/wwwroot/js/admin/shipments.js"), "utf8");
+  const view = fs.readFileSync(path.join(root, "src/AETKAHVE.Web/Areas/Admin/Views/Shipments/Index.cshtml"), "utf8");
+
+  assert.doesNotMatch(view, /data-shipment-create-form/);
+  assert.doesNotMatch(view, /Sipariş ID \(GUID\)/);
+  assert.match(view, /data-shipment-row/);
+  assert.match(view, /data-shipment-create/);
+  assert.match(view, /data-shipment-note/);
+  assert.match(view, /isDraft/);
+  assert.match(view, /canTrack/);
+  assert.match(view, /canCancel/);
+  assert.match(source, /setRowBusy/);
+  assert.match(source, /row\.dataset\.busy/);
+  assert.match(source, /estimatedDeliveryDateUtc:\s*null/);
+  assert.match(source, /sessionStorage\.setItem\(RELOAD_TOAST_KEY/);
+  assert.match(source, /restoreReloadToast\(\)/);
+  assert.match(source, /reloadWithToast\(data\?\.message \|\| successMessage\)/);
+  assert.match(source, /window\.location\.reload\(\)/);
+  assert.match(source, /commerceErrorMessage/);
+});

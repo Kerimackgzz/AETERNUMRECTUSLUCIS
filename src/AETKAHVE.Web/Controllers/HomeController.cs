@@ -1,5 +1,5 @@
-using System.Security.Claims;
 using AETKAHVE.Application.Commerce;
+using AETKAHVE.Application.Security;
 using AETKAHVE.Web.Infrastructure;
 using AETKAHVE.Web.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +11,7 @@ public sealed class HomeController(ICatalogQueryService catalogQueryService) : C
 {
     public async Task<IActionResult> Index(CancellationToken cancellationToken)
     {
-        var userId = Guid.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) ? id : (Guid?)null;
+        var userId = User.TryGetCustomerId(out var id) ? id : (Guid?)null;
         var featured = await catalogQueryService.GetFeaturedAsync(8, userId, cancellationToken);
         return View(new HomePageViewModel
         {

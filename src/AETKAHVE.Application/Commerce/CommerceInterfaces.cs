@@ -126,6 +126,8 @@ public interface IAdminCommerceService
 {
     Task<AdminDashboardSummary> GetDashboardAsync(CancellationToken cancellationToken);
     Task<Guid> SaveProductAsync(Guid adminUserId, AdminProductInput input, CancellationToken cancellationToken);
+    Task<PagedResult<AdminProductSummary>> GetProductsAsync(int page, int pageSize, CancellationToken cancellationToken);
+    Task<ServiceResult> SetProductActiveAsync(Guid adminUserId, Guid productId, bool isActive, CancellationToken cancellationToken);
     Task<Guid> SaveCatalogLookupAsync(Guid adminUserId, AdminCatalogLookupInput input, CancellationToken cancellationToken);
     Task<ServiceResult> AdjustStockAsync(Guid adminUserId, Guid productId, Guid? variantId, int delta, CancellationToken cancellationToken);
     Task<PagedResult<OrderSummary>> GetOrdersAsync(int page, int pageSize, CancellationToken cancellationToken);
@@ -138,11 +140,16 @@ public interface IAdminCommerceService
     Task<PagedResult<AdminContactMessageSummary>> GetContactMessagesAsync(int page, int pageSize, CancellationToken cancellationToken);
     Task<InvoiceFile?> OpenInvoiceAsync(Guid invoiceId, CancellationToken cancellationToken);
     Task<ServiceResult> ChangeOrderStatusAsync(Guid adminUserId, Guid orderId, OrderStatus status, string description, CancellationToken cancellationToken);
+    Task<ServiceResult> ForceSetOrderStatusAsync(Guid adminUserId, Guid orderId, OrderStatus status, string reason, CancellationToken cancellationToken);
+    Task<ServiceResult> DeleteOrderAsync(Guid adminUserId, Guid orderId, CancellationToken cancellationToken);
+    Task<AdminOrderDetail?> GetOrderDetailAsync(Guid orderId, CancellationToken cancellationToken);
     Task<ServiceResult> CreateShipmentAsync(Guid adminUserId, AdminShipmentInput input, CancellationToken cancellationToken);
     Task<ServiceResult> TrackShipmentAsync(Guid adminUserId, Guid orderId, CancellationToken cancellationToken);
     Task<ServiceResult> CancelShipmentAsync(Guid adminUserId, Guid orderId, CancellationToken cancellationToken);
     Task<Guid> SaveCampaignAsync(Guid adminUserId, AdminCampaignInput input, CancellationToken cancellationToken);
     Task<Guid> SaveCouponAsync(Guid adminUserId, AdminCouponInput input, CancellationToken cancellationToken);
+    Task<ServiceResult> SetCampaignActiveAsync(Guid adminUserId, Guid campaignId, bool isActive, CancellationToken cancellationToken);
+    Task<ServiceResult> SetCouponActiveAsync(Guid adminUserId, Guid couponId, bool isActive, CancellationToken cancellationToken);
     Task<ServiceResult> ModerateReviewAsync(Guid adminUserId, Guid reviewId, ReviewStatus status, string? response, CancellationToken cancellationToken);
     Task<ServiceResult> UpdateContactStatusAsync(Guid adminUserId, Guid messageId, ContactMessageStatus status, CancellationToken cancellationToken);
 }

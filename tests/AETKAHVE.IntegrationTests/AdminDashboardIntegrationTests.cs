@@ -53,7 +53,7 @@ public sealed class AdminDashboardIntegrationTests(AeternumWebApplicationFactory
     }
 
     [Fact]
-    public async Task Superadmin_dashboard_uses_its_own_security_link_and_exposes_commerce_navigation()
+    public async Task Superadmin_dashboard_uses_only_its_own_authorization_and_security_routes()
     {
         using var client = factory.CreateClientWithoutRedirects();
         Assert.Equal(HttpStatusCode.Redirect, (await FormClient.LoginAsync(
@@ -65,9 +65,10 @@ public sealed class AdminDashboardIntegrationTests(AeternumWebApplicationFactory
         var html = WebUtility.HtmlDecode(await response.Content.ReadAsStringAsync());
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Contains("data-superadmin-dashboard", html, StringComparison.Ordinal);
         Assert.Contains("href=\"/superadmin/security\"", html, StringComparison.Ordinal);
-        Assert.Contains("href=\"/admin/products\"", html, StringComparison.Ordinal);
-        Assert.Contains("data-admin-dashboard", html, StringComparison.Ordinal);
+        Assert.Contains("href=\"/superadmin/admins\"", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("href=\"/admin", html, StringComparison.Ordinal);
     }
 
     private async Task<string> SeedDashboardDataAsync()

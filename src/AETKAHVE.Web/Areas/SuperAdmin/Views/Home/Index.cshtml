@@ -1,5 +1,24 @@
-@model AdminDashboardViewModel
 @{
-    ViewData["Title"] = Model.Title;
+    ViewData["Title"] = "SuperAdmin Yönetimi";
 }
-<partial name="_AdminDashboard" model="Model" />
+
+<section class="admin-dashboard" data-superadmin-dashboard>
+    <header class="admin-dashboard__hero">
+        <div>
+            <p class="admin-dashboard__eyebrow">Süper Yönetim / Yetkilendirme merkezi</p>
+            <h1 class="admin-dashboard__title">SuperAdmin Yönetimi</h1>
+            <p class="admin-dashboard__intro text-muted">
+                Yönetici hesaplarını ve SuperAdmin güvenlik ayarlarını bu ayrı portal üzerinden yönetin.
+            </p>
+        </div>
+    </header>
+
+    <div class="admin-module-grid">
+        <a href="/superadmin/admins" class="admin-module-card surface">
+            <span>01</span><strong>Adminler</strong><small>Yönetici hesapları ve erişim durumları</small>
+        </a>
+        <a href="/superadmin/security" class="admin-module-card surface">
+            <span>02</span><strong>Güvenlik</strong><small>Kimlik, parola ve oturum güvenliği</small>
+        </a>
+    </div>
+</section>

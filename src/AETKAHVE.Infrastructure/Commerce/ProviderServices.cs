@@ -49,17 +49,37 @@ public sealed class MockPaymentGateway : IPaymentGateway
 
 public sealed class MockShippingProvider : IShippingProvider
 {
+    // Created -> Shipped -> OutForDelivery -> Delivered. Each TrackAsync call advances the
+    // shipment one real step instead of always reporting "Shipped", so repeatedly clicking
+    // "Takip et" in the admin UI behaves like an actual courier update and can reach Delivered.
+    private static readonly ShipmentStatus[] Progression =
+        [ShipmentStatus.Created, ShipmentStatus.Shipped, ShipmentStatus.OutForDelivery, ShipmentStatus.Delivered];
+    private readonly ConcurrentDictionary<string, int> _progress = new(StringComparer.OrdinalIgnoreCase);
+
     public string ProviderName => "Mock";
 
     public Task<ShipmentCreateResult> CreateShipmentAsync(ShipmentCreateRequest request, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var tracking = $"ARL{request.OrderId:N}"[..18].ToUpperInvariant();
+        _progress[tracking] = 0;
         return Task.FromResult(new ShipmentCreateResult(true, tracking, $"https://shipping.example.invalid/track/{tracking}", null));
     }
 
-    public Task<ShipmentTrackingResult> TrackAsync(string trackingNumber, CancellationToken cancellationToken) =>
-        Task.FromResult(new ShipmentTrackingResult(true, ShipmentStatus.Shipped, $"{trackingNumber} is in transit."));
+    public Task<ShipmentTrackingResult> TrackAsync(string trackingNumber, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var step = _progress.AddOrUpdate(trackingNumber, 1, (_, current) => Math.Min(current + 1, Progression.Length - 1));
+        var status = Progression[step];
+        var description = status switch
+        {
+            ShipmentStatus.Shipped => $"{trackingNumber} kargoya verildi, yola çıktı.",
+            ShipmentStatus.OutForDelivery => $"{trackingNumber} dağıtıma çıktı, bugün teslim edilecek.",
+            ShipmentStatus.Delivered => $"{trackingNumber} teslim edildi.",
+            _ => $"{trackingNumber} kargo firmasına ulaştırıldı.",
+        };
+        return Task.FromResult(new ShipmentTrackingResult(true, status, description));
+    }
 
     public Task<ShipmentCancelResult> CancelAsync(string trackingNumber, CancellationToken cancellationToken) =>
         Task.FromResult(new ShipmentCancelResult(true, null));

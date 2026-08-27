@@ -270,6 +270,10 @@ namespace AETKAHVE.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<Guid>("ConcurrencyToken")
+                        .IsConcurrencyToken()
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("CouponCode")
                         .HasMaxLength(80)
                         .HasColumnType("nvarchar(80)");

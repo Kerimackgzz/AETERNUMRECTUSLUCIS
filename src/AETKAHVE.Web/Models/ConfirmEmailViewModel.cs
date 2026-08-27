@@ -11,4 +11,6 @@ public sealed class ConfirmEmailViewModel
     public string? MaskedEmail { get; init; }
 
     public string? StatusMessage { get; init; }
+
+    public string? ReturnUrl { get; init; }
 }

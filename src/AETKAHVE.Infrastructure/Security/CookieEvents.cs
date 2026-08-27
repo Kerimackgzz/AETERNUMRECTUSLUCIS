@@ -21,6 +21,9 @@ public sealed class CustomerCookieEvents(UserManager<ApplicationUser> userManage
 
         if (user is null || !user.IsActive || user.DeletedAtUtc.HasValue ||
             !string.Equals(user.SecurityStamp, securityStamp, StringComparison.Ordinal) ||
+            !context.Principal!.HasClaim(
+                SecurityClaimTypes.Portal,
+                AuthenticationPortal.Customer.ToString()) ||
             !await userManager.IsInRoleAsync(user, RoleNames.Customer))
         {
             context.RejectPrincipal();
@@ -58,7 +61,8 @@ public abstract class ManagementCookieEvents(
         var user = await userManager.FindByIdAsync(userId.ToString());
         var expectedRole = portal == AuthenticationPortal.Admin ? RoleNames.Admin : RoleNames.SuperAdmin;
         if (user is null || !user.IsActive || user.DeletedAtUtc.HasValue ||
-            !await userManager.IsInRoleAsync(user, expectedRole))
+            !await userManager.IsInRoleAsync(user, expectedRole) ||
+            !context.Principal!.HasClaim(SecurityClaimTypes.Portal, portal.ToString()))
         {
             await RejectAndDeleteCookieAsync(context, "session-ended");
             return;
