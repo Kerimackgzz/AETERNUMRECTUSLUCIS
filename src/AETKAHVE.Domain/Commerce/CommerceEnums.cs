@@ -37,3 +37,23 @@ public static class OrderStatusRules
     public static IReadOnlyList<OrderStatus> GetAllowedNext(OrderStatus current) =>
         AllowedTransitions.TryGetValue(current, out var allowed) ? allowed : [];
 }
+
+public static class ReturnStatusRules
+{
+    private static readonly IReadOnlyDictionary<ReturnStatus, ReturnStatus[]> AllowedTransitions =
+        new Dictionary<ReturnStatus, ReturnStatus[]>
+        {
+            [ReturnStatus.Pending] = [ReturnStatus.UnderReview, ReturnStatus.Approved, ReturnStatus.Rejected, ReturnStatus.Cancelled],
+            [ReturnStatus.UnderReview] = [ReturnStatus.Approved, ReturnStatus.Rejected],
+            [ReturnStatus.Approved] = [ReturnStatus.AwaitingProduct, ReturnStatus.ProductReceived],
+            [ReturnStatus.AwaitingProduct] = [ReturnStatus.ProductReceived],
+            [ReturnStatus.ProductReceived] = [ReturnStatus.RefundPending, ReturnStatus.Completed],
+            [ReturnStatus.RefundPending] = [ReturnStatus.Completed],
+        };
+
+    public static bool CanTransition(ReturnStatus current, ReturnStatus next) =>
+        AllowedTransitions.TryGetValue(current, out var allowed) && allowed.Contains(next);
+
+    public static IReadOnlyList<ReturnStatus> GetAllowedNext(ReturnStatus current) =>
+        AllowedTransitions.TryGetValue(current, out var allowed) ? allowed : [];
+}

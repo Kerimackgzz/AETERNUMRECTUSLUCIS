@@ -90,7 +90,7 @@ public sealed class ReturnService(
             .Include(x => x.Order).ThenInclude(x => x.Items).Include(x => x.Order).ThenInclude(x => x.Payments)
             .SingleOrDefaultAsync(x => x.Id == decision.ReturnRequestId, cancellationToken);
         if (request is null) return ServiceResult.Failure("Return request was not found.");
-        if (!CanTransition(request.Status, decision.NewStatus)) return ServiceResult.Failure("Return status transition is invalid.");
+        if (!ReturnStatusRules.CanTransition(request.Status, decision.NewStatus)) return ServiceResult.Failure("Return status transition is invalid.");
 
         RefundResult? refundResult = null;
         Payment? payment = null;
@@ -189,17 +189,6 @@ public sealed class ReturnService(
             });
         }
     }
-
-    private static bool CanTransition(ReturnStatus current, ReturnStatus next) => (current, next) switch
-    {
-        (ReturnStatus.Pending, ReturnStatus.UnderReview or ReturnStatus.Approved or ReturnStatus.Rejected or ReturnStatus.Cancelled) => true,
-        (ReturnStatus.UnderReview, ReturnStatus.Approved or ReturnStatus.Rejected) => true,
-        (ReturnStatus.Approved, ReturnStatus.AwaitingProduct or ReturnStatus.ProductReceived) => true,
-        (ReturnStatus.AwaitingProduct, ReturnStatus.ProductReceived) => true,
-        (ReturnStatus.ProductReceived, ReturnStatus.RefundPending or ReturnStatus.Completed) => true,
-        (ReturnStatus.RefundPending, ReturnStatus.Completed) => true,
-        _ => false,
-    };
 
     private static string Required(string value, int max) => string.IsNullOrWhiteSpace(value) ? throw new CommerceRuleException("Required value is missing.") : value.Trim()[..Math.Min(max, value.Trim().Length)];
     private static string? Truncate(string? value, int max) => string.IsNullOrWhiteSpace(value) ? null : value.Trim()[..Math.Min(max, value.Trim().Length)];

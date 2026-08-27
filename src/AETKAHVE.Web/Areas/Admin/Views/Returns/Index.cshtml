@@ -4,7 +4,6 @@
 @{
     ViewData["Title"] = "İade Yönetimi";
     var currency = new CultureInfo("tr-TR");
-    var statuses = Enum.GetValues<ReturnStatus>();
 }
 <h1 class="admin-dashboard__title">İade Yönetimi</h1>
 <div data-admin-returns-page>
@@ -23,23 +22,31 @@
                 @foreach (var item in Model.Returns.Items)
                 {
                     var returnStatusInfo = CommerceStatusDisplay.ReturnStatusInfo(item.Status);
+                    var allowedNext = ReturnStatusRules.GetAllowedNext(item.Status);
                     <tr>
                         <td>@item.OrderNumber</td>
                         <td>@item.RequestedAtUtc.ToLocalTime().ToString("d MMM yyyy", currency)</td>
                         <td><span class="status-badge" data-status-kind="@returnStatusInfo.Kind">@returnStatusInfo.Label</span></td>
                         <td>@item.RefundAmount.ToString("N2", currency) ₺</td>
                         <td>
-                            <form data-return-status-form data-return-id="@item.Id" class="cluster">
-                                <select name="status">
-                                    @foreach (var status in statuses)
-                                    {
-                                        <option value="@status" selected="@(status == item.Status ? "selected" : null)">@CommerceStatusDisplay.ReturnStatusInfo(status).Label</option>
-                                    }
-                                </select>
-                                <label class="text-sm"><input type="checkbox" name="restock" /> Stoğa ekle</label>
-                                <input type="text" name="response" placeholder="Yanıt" class="text-sm" />
-                                <button type="submit" class="btn btn--outline btn--sm">Uygula</button>
-                            </form>
+                            @if (allowedNext.Count == 0)
+                            {
+                                <span class="text-muted text-sm">Son durum</span>
+                            }
+                            else
+                            {
+                                <form data-return-status-form data-return-id="@item.Id" class="cluster">
+                                    <select name="status">
+                                        @foreach (var status in allowedNext)
+                                        {
+                                            <option value="@status">@CommerceStatusDisplay.ReturnStatusInfo(status).Label</option>
+                                        }
+                                    </select>
+                                    <label class="text-sm"><input type="checkbox" name="restock" /> Stoğa ekle</label>
+                                    <input type="text" name="response" placeholder="Yanıt" class="text-sm" />
+                                    <button type="submit" class="btn btn--outline btn--sm">Uygula</button>
+                                </form>
+                            }
                         </td>
                     </tr>
                 }
